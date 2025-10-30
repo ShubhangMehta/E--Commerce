@@ -1,0 +1,176 @@
+# ======================================
+# 🧩 OS / System Files
+# ======================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+__MACOSX/
+
+# ======================================
+# 🐍 Python / Django
+# ======================================
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.pdb
+*.egg-info/
+*.manifest
+*.spec
+*.log
+*.pot
+*.mo
+*.cover
+*.sqlite3
+db.sqlite3
+instance/
+.env
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+.tox/
+.mypy_cache/
+.pyre/
+.pytype/
+.coverage.*
+htmlcov/
+celerybeat-schedule
+
+# ======================================
+# 🧭 Django Specific
+# ======================================
+# Media and static files
+media/
+staticfiles/
+static/
+collected_static/
+user_uploads/
+
+# Migrations (optional — comment out if you want to track)
+# *Never* ignore initial migrations, but you can exclude local testing migrations
+**/migrations/__pycache__/
+# Uncomment below only if you know what you're doing:
+# **/migrations/*.py
+
+# Local configs
+local_settings.py
+settings_local.py
+
+# SQLite / temporary databases
+*.db
+*.sqlite3
+
+# ======================================
+# 🧱 Multi-Tenant / SaaS Specific
+# ======================================
+# Tenant schemas and backups
+tenants_backups/
+tenant_data/
+tenant_logs/
+tenant_static/
+tenant_media/
+temp_schemas/
+
+# Example: if using custom schema sync logs or seed data
+schema_sync_logs/
+seed_data/
+init_scripts/
+
+# ======================================
+# 🧰 Supabase / Postgres
+# ======================================
+# Supabase keys or exported config
+supabase/.temp/
+supabase/.env
+supabase/backup/
+supabase/.supabase
+supabase/migrations/.snapshots/
+
+# ======================================
+# 🐳 Docker / Compose
+# ======================================
+.dockerignore
+docker-compose.override.yml
+docker-compose*.log
+*.pid
+*.pid.lock
+/tmp/
+logs/
+tmp/
+build/
+dist/
+.env.docker
+.env.prod
+.env.dev
+.env.stage
+
+# ======================================
+# ⚙️ IDE / Editors
+# ======================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ======================================
+# 🧩 Frontend (if React, Vue, or similar)
+# ======================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.cache/
+.next/
+out/
+public/static/
+
+# ======================================
+# 🧾 Reports / Coverage / Tests
+# ======================================
+.coverage
+coverage/
+*.lcov
+nosetests.xml
+coverage.xml
+report.xml
+test_output/
+
+# ======================================
+# 🔐 Environment / Secrets
+# ======================================
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+*.env
+
+# ======================================
+# 🧹 Miscellaneous / Temporary
+# ======================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.orig
+*.rej
+*.old
+*.zip
+*.tar.gz
+*.rar
+*.7z
+cache/
+logs/
+uploads/
