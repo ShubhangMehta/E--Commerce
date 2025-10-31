@@ -1,7 +1,9 @@
-SaaS + E-Commerce Platform
+SaaS + E-Commerce Platform:
+
 A powerful multi-tenant SaaS platform built that enables businesses to launch and manage their own customized e-commerce websites and service platforms — all without writing code.
 
 Project Overview:
+
 This project provides a complete Website-as-a-Service (WaaS) solution that allows clients (tenants) to quickly deploy and manage their personalized online stores and business websites through an intuitive dashboard. Each tenant operates in a separate database schema, ensuring data isolation and security while sharing a common infrastructure
 
 Features:
