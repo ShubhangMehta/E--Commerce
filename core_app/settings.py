@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -34,7 +34,6 @@ ALLOWED_HOSTS = []
 SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -62,6 +61,8 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
+    "django_tenants.middleware.TenantMiddleware",
+    "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
