@@ -8,15 +8,15 @@ This project provides a complete Website-as-a-Service (WaaS) solution that allow
 
 Team Roles:
 
-Humera - Team Leader/Intern
+Humera Mueed - Team Leader/Intern
 
-Venkatesh - Developer/Intern
+Venkatesh Bodakunta Trinity - Developer/Intern
 
-Shubhang - Developer/Intern
+Shubhang Mehta - Developer/Intern
 
-Anshad - Developer/Intern
+Anshad Ahamed - Developer/Intern
 
-Abburi - Developer/Intern
+Abburi Srinath- Developer/Intern
 
 Features:
 
