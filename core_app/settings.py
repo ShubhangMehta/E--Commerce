@@ -154,6 +154,9 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+#PUBLIC_SCHEMA_URLCONF="core_app.urls"
+#TENANT_SCHEMA_URLCONF="customers.urls"
+
 
 # ----------------------------
 # Email / SMTP Configuration
