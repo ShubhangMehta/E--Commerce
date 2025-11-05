@@ -9,9 +9,13 @@ This project provides a complete Website-as-a-Service (WaaS) solution that allow
 Team Roles:
 
 Humera - Tenant management 
-Venkatesh - login/logout page 
+
+Venkatesh - login/logout page
+
 Shubhang - Billing and Subscription page
+
 Anshad - Billing and Subscription page
+
 Abburi - Backup & restore management
 
 Features:
