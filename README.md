@@ -8,15 +8,15 @@ This project provides a complete Website-as-a-Service (WaaS) solution that allow
 
 Team Roles:
 
-Humera - Tenant management 
+Humera - Team Leader/Intern
 
-Venkatesh - login/logout page
+Venkatesh - Developer/Intern
 
-Shubhang - Billing and Subscription page
+Shubhang - Developer/Intern
 
-Anshad - Billing and Subscription page
+Anshad - Developer/Intern
 
-Abburi - Backup & restore management
+Abburi - Developer/Intern
 
 Features:
 
