@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django_tenants.admin import TenantAdminMixin
-from django.db.models import F
 from .models import Client, Domain, TenantRequest
 from datetime import date
 
