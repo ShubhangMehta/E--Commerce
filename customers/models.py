@@ -2,6 +2,10 @@ from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.utils import timezone
 
+
+
+# Create your models here.
+
 class Client(TenantMixin):
     # Tenant Info 
     tenant_name = models.CharField(max_length=100)
@@ -13,13 +17,18 @@ class Client(TenantMixin):
         help_text="Tenant's desired subdomain (e.g., 'store1', 'bigco')."
     )
     created_on = models.DateField(auto_now_add=True)
-    email = models.EmailField()
-    company = models.CharField(max_length=200)
-    address = models.TextField()
-    logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
+    email=models.EmailField(null=True,blank=True)
+    company=models.CharField(max_length=200,null=True,blank=True)
+    address=models.TextField(null=True,blank=True)
+    logo=models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
-    # Subscription 
-    plan_type = models.CharField(max_length=50)
+    #  Subscription 
+    PLAN_TYPE_CHOICES=[
+        ('Basic','Basic'),
+        ('Standard','Standard'),
+        ('Premium','Premium')
+    ]
+    plan_type = models.CharField(max_length=50,choices=PLAN_TYPE_CHOICES,default='Basic')
     subscription_start = models.DateField(auto_now_add=True)
     subscription_end = models.DateField(null=True, blank=True)
 
@@ -49,9 +58,18 @@ class Client(TenantMixin):
         ('CARD', 'Credit/Debit Card'),
     ]
     payment_mode = models.CharField(max_length=10, choices=PAYMENT_MODES, default='COD')
-    payment_status = models.CharField(max_length=30, default="Unpaid")
+    PAYMENT_STATUS_CHOICES=[
+        ('Unpaid','Unpaid'),
+        ('Paid','Paid')
+    ]
+    payment_status = models.CharField(max_length=30, choices=PAYMENT_STATUS_CHOICES,default="Unpaid")
+    PAYMENT_PLAN=[
+        ('Weekly','Weekly'),
+        ('Monthly','Monthly')
+    ]
+    payment_plan=models.CharField(max_length=20,choices=PAYMENT_PLAN,default='Weekly')
 
-    # Required for django-tenants
+    #  Django Tenants Required
     auto_create_schema = True
 
     def __str__(self):
@@ -67,8 +85,23 @@ class TenantRequest(models.Model):
     company = models.CharField(max_length=200)
     address = models.TextField()
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
-    plan_type = models.CharField(max_length=50)
-    payment_mode = models.CharField(max_length=10)
+    PLAN_TYPE_CHOICES = [
+        ('Basic', 'Basic'),
+        ('Standard', 'Standard'),
+        ('Premium', 'Premium'),
+    ]
+    plan_type = models.CharField(max_length=50,choices=PLAN_TYPE_CHOICES,default='Basic')
+    PAYMENT_MODE_CHOICES = [
+        ('COD', 'Cash On Delivery'),
+        ('UPI', 'UPI'),
+        ('CARD', 'Credit/Debit Card'),
+    ]
+    payment_mode = models.CharField(max_length=10,choices=PAYMENT_MODE_CHOICES,default='COD')
+    PAYMENT_PLAN_CHOICES = [
+        ('Monthly', 'Monthly'),
+        ('Yearly', 'Yearly'),
+            ]
+    payment_plan=models.CharField(max_length=10,choices=PAYMENT_PLAN_CHOICES,default='Monthly')
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
     is_approved = models.BooleanField(default=False)
@@ -83,3 +116,4 @@ class TenantRequest(models.Model):
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
+

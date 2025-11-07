@@ -14,6 +14,10 @@
 
         <label>Domain Name (without .localhost):</label><br>
         <input type="text" name="domain_name" required><br><br>
+        <label>Email Address:</label><br>
+        <input type="text" name="domain_name" required><br><br>
+
+
 
         <label>Plan Type:</label><br>
         <select name="plan_type" required>
@@ -22,10 +26,17 @@
             <option value="premium">Premium</option>
         </select><br><br>
 
-        <label>Payment Mode:</label><br>
-        <select name="payment_mode" required>
+        <label>Payment Plan:</label><br>
+        <select name="payment_plan" required>
             <option value="monthly">Monthly</option>
             <option value="yearly">Yearly</option>
+        </select><br><br>
+
+        <label>Payment Modes:</label><br>
+        <select name="payment_modes" required>
+            <option value="COD">Cash on Delivery</option>
+            <option value="UPI">UPI</option>
+            <option value="CARD">Credit/Debit Card</option>
         </select><br><br>
 
         <button type="submit">Submit Request</button>
