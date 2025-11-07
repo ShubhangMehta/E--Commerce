@@ -3,12 +3,15 @@ from django_tenants.admin import TenantAdminMixin
 from django.db.models import F
 from .models import Client, Domain, TenantRequest
 from datetime import date
+from django.db import connection, transaction
+from django_tenants.utils import schema_context
+
 
 @admin.register(Domain)
 class DomainAdmin(admin.ModelAdmin):
     list_display = ('domain', 'tenant_name_display', 'is_primary', 'tenant_status_display')
     list_filter = ('is_primary', 'tenant__status') 
-    search_fields = ('domain', 'tenant__tenant_name', 'tenant__schema_name')
+    search_fields = ('desired_domain', 'tenant__tenant_name', 'tenant__schema_name')
 
     def tenant_name_display(self, obj):
         return obj.tenant.tenant_name
@@ -42,7 +45,7 @@ class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
     # Organize fields into collapsible sections for clarity
     fieldsets = (
         ('🏢 Core Tenant Information', {
-            'fields': (('tenant_name', 'schema_name'), 'server_name', 'domain', 'status'),
+            'fields': (('tenant_name', 'schema_name'), 'server_name', 'desired_domain', 'status'),
         }),
         ('💳 Subscription & Billing', {
             'fields': (('plan_type', 'subscription_end'), 'last_payment_date', 'next_due_date', 'total_orders_value'),
@@ -103,32 +106,52 @@ class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
 @admin.register(TenantRequest)
 class TenantRequestAdmin(admin.ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
+    list_filter = ('status',)
     actions = ['approve_selected_tenants']
+    print("🔍 TenantRequestAdmin loaded successfully")
 
     @admin.action(description='Approve selected tenants')
     def approve_selected_tenants(self, request, queryset):
-        for tenant_request in queryset.filter(is_approved=False):
-            # Create tenant
-            tenant = Client.objects.create(
-                schema_name=tenant_request.tenant_name.lower().replace(" ", "_"),
-                tenant_name=tenant_request.tenant_name,
-                server_name="VPS-001",
-                desired_domain=tenant_request.desired_domain,  # ✅ fixed here
-                plan_type=tenant_request.plan_type,
-                payment_mode=tenant_request.payment_mode,
-                subscription_start=date.today(),
-                subscription_end=date.today().replace(year=date.today().year + 1)
-            )
-
-            # Create domain
-            Domain.objects.create(
-                domain=f"{tenant_request.desired_domain}.localhost",  # ✅ fixed here
-                tenant=tenant,
-                is_primary=True
-            )
-
-            # Mark as approved
-            tenant_request.is_approved = True
-            tenant_request.save()
-
-        self.message_user(request, "Selected tenants approved and schemas created.")
+        try:
+            print("🚀 ACTION EXECUTED >>>", queryset)
+            connection.set_autocommit(True)
+    
+            with schema_context('public'):
+                for tenant_request in queryset.filter(is_approved=False):
+                    schema_name = tenant_request.tenant_name.lower().replace(" ", "_")
+    
+                    tenant_request.is_approved = True
+                    tenant_request.status = "Approved"
+                    tenant_request.save()
+    
+                    tenant = Client(
+                        schema_name=schema_name,
+                        tenant_name=tenant_request.tenant_name,
+                        server_name="VPS-001",
+                        desired_domain=tenant_request.desired_domain,
+                        plan_type=tenant_request.plan_type,
+                        payment_mode=tenant_request.payment_mode,
+                        email=tenant_request.email,
+                        company=tenant_request.company,
+                        address=tenant_request.address,
+                        logo=tenant_request.logo
+                    )
+                    tenant.save()  # just saves metadata first
+    
+                    print(f"⚙️ Creating schema manually for: {schema_name}")
+                    tenant.create_schema(check_if_exists=True)  # ✅ force schema creation
+    
+                    Domain.objects.create(
+                        domain=f"{tenant_request.desired_domain}.localhost",
+                        tenant=tenant,
+                        is_primary=True
+                    )
+    
+                    print(f"✅ Tenant {schema_name} schema created successfully.")
+    
+            connection.set_autocommit(False)
+            self.message_user(request, "✅ Tenants approved and schemas created successfully.")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.message_user(request, f"❌ Error approving tenants: {e}", level='error')

@@ -52,7 +52,7 @@ TENANT_APPS = [
 ]
 
 
-INSTALLED_APPS = list(set(SHARED_APPS + TENANT_APPS))
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -154,6 +154,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+PUBLIC_SCHEMA_NAME = "public"
 PUBLIC_SCHEMA_URLCONF="customers.urls"
+
 
 
