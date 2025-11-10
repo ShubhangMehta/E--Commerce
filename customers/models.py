@@ -81,9 +81,9 @@ class Domain(DomainMixin):
 class TenantRequest(models.Model):
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
-    email = models.EmailField()
-    company = models.CharField(max_length=200)
-    address = models.TextField()
+    email = models.EmailField(null=True, blank=True)
+    company = models.CharField(max_length=200,null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     PLAN_TYPE_CHOICES = [
         ('Basic', 'Basic'),

@@ -10,6 +10,11 @@ def create_tenant(request):
         domain_name = request.POST.get('domain_name')
         plan_type = request.POST.get('plan_type')
         payment_mode = request.POST.get('payment_mode')
+        payment_plan=request.POST.get('payment_plan')
+        email=request.POST.get('email')
+        company=request.POST.get('company')
+        address=request.POST.get('address')
+
 
         if not tenant_name or not domain_name:
             return JsonResponse({'error': 'Tenant name and Domain name are required!'}, status=400)
@@ -23,7 +28,11 @@ def create_tenant(request):
             tenant_name=tenant_name,
             desired_domain=domain_name,
             plan_type=plan_type,
-            payment_mode=payment_mode
+            payment_mode=payment_mode,
+            payment_plan=payment_plan,
+            email=email,
+            company=company,
+            address=address
         )
 
         return JsonResponse({'message': f'Tenant request for "{tenant_name}" submitted successfully! Awaiting admin approval.'})
