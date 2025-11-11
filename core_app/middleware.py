@@ -1,5 +1,7 @@
 from django.http import HttpResponseForbidden
 from django.db import connection
+from django.http import HttpResponse
+from django.utils import timezone
 
 class BlockTenantAdminMiddleware:
     """
@@ -23,3 +25,27 @@ class BlockTenantAdminMiddleware:
         
         return self.get_response(request)
     
+
+
+class SubscriptionEnforcementMiddleware:
+    """
+    For tenant schemas (non-public), block the app if the tenant's subscription_end is in the past.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if connection.schema_name != "public":
+            from customers.models import Client
+            try:
+                client = Client.objects.get(schema_name=connection.schema_name)
+                if client.subscription_end and client.subscription_end < timezone.now().date():
+                    return HttpResponse(
+                        "<h2>Subscription Expired</h2><p>Please renew to continue using the service.</p>",
+                        status=402
+                    )
+                if client.status == "Suspended":
+                    return HttpResponse("<h2>Account Suspended</h2>", status=403)
+            except Client.DoesNotExist:
+                pass
+        return self.get_response(request)

@@ -45,6 +45,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'billing.apps.BillingConfig',    #Billing and Subscription app
 ]
 
 TENANT_APPS = [
@@ -74,7 +75,8 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMainMiddleware",
+    "django_tenants.middleware.TenantMiddleware",
+    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
     "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -198,18 +200,18 @@ ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
-######------
-#Email alerts
-######------
-'''EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# -----------------------------------
+# Payment And Billing Configuration
+# -----------------------------------
 
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
 
-EMAIL_HOST_USER = "your_email@gmail.com"        # The email that sends alerts
-EMAIL_HOST_PASSWORD = "your_app_password"       # Gmail App Password
+BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
 
-ADMINS = [("Admin", "admin@example.com")]  '''     # Where alerts are sent
+BILLING_DEFAULT_SERVER_NAME = "primary"
+BILLING_DOMAIN_SUFFIX = ".localhost"
 
 
