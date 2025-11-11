@@ -1,127 +1,52 @@
 from django.contrib import admin
-from .models import (
-    Customer,
-    SubscriptionPlan,
-    UserSubscription,
-    Payment,
-    Invoice,
-    RefundRequest,
-    Client,
-    Domain,
 
-    # Razorpay related models
-    RzpPlan,
-    RzpSubscription,
-    RzpInvoice,
-    RzpPayment,
-    RzpWebhookEvent,
-    RzpRefund,
-)
+# Register your models here.
+from django.contrib import admin
+from .models import Plan, Subscription, Invoice, Payment, Refund
 
-# -----------------------------
-# Customer Admin
-# -----------------------------
-@admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
-    list_display = ["name", "email", "phone", "joined_date"]
-    search_fields = ["name", "email", "phone"]
-    list_filter = ["joined_date"]
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'plan_type', 'price', 'billing_cycle', 'is_active']
+    list_filter = ['plan_type', 'billing_cycle', 'is_active']
+    search_fields = ['name', 'description']
+    list_editable = ['is_active']
 
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['tenant', 'plan', 'status', 'start_date', 'end_date', 'next_due_date']
+    list_filter = ['status', 'plan', 'auto_renew']
+    search_fields = ['tenant__name', 'plan__name']
+    readonly_fields = ['created_at']
 
-# -----------------------------
-# Subscription Plan Admin
-# -----------------------------
-@admin.register(SubscriptionPlan)
-class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ["name", "price", "duration_days", "status"]
-    list_filter = ["status"]
-    search_fields = ["name", "description"]
-
-
-# -----------------------------
-# User Subscription Admin
-# -----------------------------
-@admin.register(UserSubscription)
-class UserSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ["user", "plan", "start_date", "end_date", "status", "is_active", "auto_renew"]
-    list_filter = ["status", "is_active", "auto_renew"]
-    search_fields = ["user__username", "plan__name"]
-
-
-# -----------------------------
-# Payment Admin
-# -----------------------------
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ["user", "amount", "method", "payment_plan", "transaction_id", "status", "created_at"]
-    search_fields = ["user__username", "transaction_id"]
-    list_filter = ["method", "payment_plan", "status"]
-    readonly_fields = ["created_at"]
-
-
-# -----------------------------
-# Invoice Admin
-# -----------------------------
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ["invoice_number", "user", "subscription", "payment", "invoice_type", "created_at"]
-    search_fields = ["invoice_number", "user__username"]
-    list_filter = ["invoice_type"]
-    readonly_fields = ["created_at"]
+    list_display = ['invoice_number', 'subscription', 'amount', 'status', 'due_date', 'paid_date']
+    list_filter = ['status', 'due_date']
+    search_fields = ['invoice_number', 'subscription__tenant__name']
+    readonly_fields = ['created_at']
+    actions = ['mark_as_paid', 'generate_pdf_invoices']
 
+    def mark_as_paid(self, request, queryset):
+        updated = queryset.update(status='paid', paid_date=timezone.now())
+        self.message_user(request, f'{updated} invoices marked as paid.')
+    mark_as_paid.short_description = "Mark selected invoices as paid"
 
-# -----------------------------
-# Refund Request Admin
-# -----------------------------
-@admin.register(RefundRequest)
-class RefundRequestAdmin(admin.ModelAdmin):
-    list_display = ["user", "payment", "refund_type", "refund_policy", "status", "requested_at", "is_refunded"]
-    search_fields = ["user__username", "reason"]
-    list_filter = ["refund_type", "refund_policy", "status", "is_refunded"]
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['transaction_id', 'invoice', 'payment_method', 'amount', 'payment_date']
+    list_filter = ['payment_method', 'payment_date']
+    search_fields = ['transaction_id', 'invoice__invoice_number']
+    readonly_fields = ['payment_date']
 
+@admin.register(Refund)
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ['subscription', 'amount', 'status', 'created_at', 'approved_by']
+    list_filter = ['status', 'created_at']
+    search_fields = ['subscription__tenant__name', 'reason']
+    readonly_fields = ['created_at']
+    actions = ['approve_refunds', 'reject_refunds']
 
-# -----------------------------
-# Tenant & Domain Admin (django-tenants)
-# -----------------------------
-@admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
-    list_display = ["tenant_name", "server_name", "desired_domain", "paid_until", "on_trial", "created_on"]
-
-
-@admin.register(Domain)
-class DomainAdmin(admin.ModelAdmin):
-    list_display = ["domain", "tenant", "is_primary"]
-
-
-# -----------------------------
-# Razorpay Related Admin Models
-# -----------------------------
-
-@admin.register(RzpPlan)
-class RzpPlanAdmin(admin.ModelAdmin):
-    list_display = ("name", "interval", "amount_in_paise")
-
-
-@admin.register(RzpSubscription)
-class RzpSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("email", "plan", "status", "current_period_start", "current_period_end")
-
-
-@admin.register(RzpInvoice)
-class RzpInvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "subscription", "amount_in_paise", "status")
-
-
-@admin.register(RzpPayment)
-class RzpPaymentAdmin(admin.ModelAdmin):
-    list_display = ("razorpay_payment_id", "subscription", "amount_in_paise", "captured")
-
-
-@admin.register(RzpWebhookEvent)
-class RzpWebhookEventAdmin(admin.ModelAdmin):
-    list_display = ("event", "signature_ok", "received_at")
-
-
-@admin.register(RzpRefund)
-class RzpRefundAdmin(admin.ModelAdmin):
-    list_display = ("payment", "razorpay_refund_id", "status", "created_at")
+    def approve_refunds(self, request, queryset):
+        updated = queryset.update(status='approved', approved_by=request.user, approved_date=timezone.now())
+        self.message_user(request, f'{updated} refunds approved.')
+    approve_refunds.short_description = "Approve selected refunds"
