@@ -89,3 +89,5 @@ class WebhookEvent(models.Model):
     payload = models.JSONField()
     signature_ok = models.BooleanField(default=False)
     received_at = models.DateTimeField(auto_now_add=True)
+
+# This is a comment only
