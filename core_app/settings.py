@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ['*']
 SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
+    "accounts",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,16 +47,18 @@ TENANT_APPS = [
     # your tenant-specific apps
     'catalog',
     'orders',
-    'accounts',
+    #'accounts',
     'themes',
 ]
 
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
 
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",

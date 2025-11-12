@@ -10,4 +10,10 @@ urlpatterns = [
     #Django built-ins for password reset
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='accounts/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='accounts/password_reset_done.html'), name='password_reset_complete'),
+
+    #Django built-in for sessions-logs
+    path('session-logs/', views.session_logs_view, name='session_logs'),
+
+    #Django built-in for 2FA verification
+    path('verify-2fa/', views.verify_2fa_view, name='verify_2fa'),
 ]
