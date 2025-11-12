@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
+#from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+#load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -41,6 +43,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
 ]
 
 TENANT_APPS = [
@@ -49,6 +52,7 @@ TENANT_APPS = [
     'orders',
     #'accounts',
     'themes',
+    'django_crontab',
 ]
 
 
@@ -160,6 +164,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 #PUBLIC_SCHEMA_URLCONF="core_app.urls"
 #TENANT_SCHEMA_URLCONF="customers.urls"
+
+CRONJOBS = [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
+
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]
+
+
+
 
 
 # ----------------------------
