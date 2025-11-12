@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from datetime import date
-from .models import TenantRequest, Domain
+from django.contrib import messages
+from .models import TenantRequest, Domain, Ticket
 
 
 def create_tenant(request):
@@ -42,3 +43,24 @@ def create_tenant(request):
 
 def index(request):
     return HttpResponse("<h1> Public Index </h1>")
+
+
+def raise_ticket(request):
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        description = request.POST.get('description')
+        category = request.POST.get('category')
+
+        if subject and description and category:
+            Ticket.objects.create(
+                client=request.tenant,
+                subject=subject,
+                description=description,
+                category=category
+            )
+            messages.success(request, "Your support ticket has been submitted successfully!")
+            return redirect('raise_ticket')
+        else:
+            messages.error(request, "Please fill all fields before submitting.")
+
+    return render(request, 'raise_ticket.html')
