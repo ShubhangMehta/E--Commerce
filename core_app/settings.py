@@ -173,10 +173,6 @@ CRONJOBS += [
     ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
 ]
 
-
-
-
-
 # ----------------------------
 # Email / SMTP Configuration
 # ----------------------------
