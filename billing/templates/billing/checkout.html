@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Subscribe</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+  <h2>Choose plan & start</h2>
+
+  <form id="chk" method="post" action="{% url 'billing:start' %}">
+    {% csrf_token %}
+    <label>Tenant Name</label>
+    <input name="tenant_name" required>
+    <label>Desired Subdomain (no .localhost)</label>
+    <input name="desired_domain" required>
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>Plan</label>
+    <select name="plan_name" required>
+      {% for p in plans %}
+        <option value="{{ p.name }}">
+            {{ p.name }} — ₹{{ p.amount_in_rupees }}
+        </option>̥
+      {% endfor %}
+    </select>
+
+    <label>Interval</label>
+    <select name="interval">
+        {% for p in plans %}
+            {% if p.interval == 'monthly' %}
+                <option value="monthly">Monthly</option>
+                    {% elif p.interval == 'yearly' %}
+                <option value="yearly">Yearly</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <button type="submit">Start</button>
+  </form>
+
+  <script>
+  const form = document.getElementById('chk');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(form);
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const res = await fetch(form.action, {
+      method: 'POST',
+      headers: { "X-CSRFToken": csrftoken },
+      body: fd
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      alert(JSON.stringify(data));
+      return;
+    }
+
+    const rzp = new Razorpay({
+      key: data.rzp_key,
+      subscription_id: data.subscription_id,
+      name: "Your SaaS",
+      description: "Subscription Payment",
+      handler: function () {
+        alert("Payment Success ✅ Store will activate shortly");
+        window.location.href = "/";
+      }
+    });
+
+    rzp.open();
+  });
+</script>
+
+</body>
+</html>
