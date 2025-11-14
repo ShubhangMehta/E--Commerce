@@ -1,35 +1,106 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
-from datetime import date
-from .models import TenantRequest, Domain
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils import timezone
+import json
+
+from .models import SubscriptionPlan, UserSubscription, Invoice, Payment
 
 
-def create_tenant(request):
+def home(request):
+    plans = SubscriptionPlan.objects.filter(is_active=True)
+    return render(request, 'billing/home.html', {'plans': plans})
+
+
+def plans(request):
+    plans = SubscriptionPlan.objects.filter(is_active=True)
+    return render(request, 'billing/plans.html', {'plans': plans})
+
+
+@login_required
+def billing_cycle(request):
+    subscriptions = UserSubscription.objects.filter(user=request.user)
+    invoices = Invoice.objects.filter(subscription__in=subscriptions)
+    return render(request, 'billing/billing_cycle.html', {
+        'subscriptions': subscriptions,
+        'invoices': invoices
+    })
+
+
+@login_required
+def checkout(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
     if request.method == 'POST':
-        tenant_name = request.POST.get('tenant_name')
-        domain_name = request.POST.get('domain_name')
-        plan_type = request.POST.get('plan_type')
-        payment_mode = request.POST.get('payment_mode')
-
-        if not tenant_name or not domain_name:
-            return JsonResponse({'error': 'Tenant name and Domain name are required!'}, status=400)
-
-        # Prevent duplicate domains
-        if Domain.objects.filter(domain=f"{domain_name}.localhost").exists() or TenantRequest.objects.filter(desired_domain=domain_name).exists():
-            return JsonResponse({'error': 'This domain name is already taken!'}, status=400)
-
-        # Store tenant request (pending approval)
-        TenantRequest.objects.create(
-            tenant_name=tenant_name,
-            desired_domain=domain_name,
-            plan_type=plan_type,
-            payment_mode=payment_mode
+        # Create subscription
+        subscription = UserSubscription.objects.create(
+            user=request.user,
+            plan=plan,
+            status='active',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timezone.timedelta(days=plan.duration_days),
+            next_due_date=timezone.now() + timezone.timedelta(days=plan.duration_days)
         )
 
-        return JsonResponse({'message': f'Tenant request for "{tenant_name}" submitted successfully! Awaiting admin approval.'})
+        # Create invoice
+        invoice = Invoice.objects.create(
+            subscription=subscription,
+            amount=plan.price,
+            due_date=timezone.now() + timezone.timedelta(days=7)
+        )
 
-    return render(request, 'create_tenant.html')
+        return redirect('payment_success', invoice_id=invoice.id)
+
+    return render(request, 'billing/checkout.html', {'plan': plan})
 
 
-def index(request):
-    return HttpResponse("<h1> Public Index </h1>")
+@login_required
+def payment_success(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    return render(request, 'billing/payment_success.html', {'invoice': invoice})
+
+
+@login_required
+def subscription(request):
+    subscriptions = UserSubscription.objects.filter(user=request.user)
+    return render(request, 'billing/subscription.html', {'subscriptions': subscriptions})
+
+
+@login_required
+def renew_subscription(request, subscription_id):
+    subscription = get_object_or_404(UserSubscription, id=subscription_id, user=request.user)
+
+    if request.method == 'POST':
+        invoice = Invoice.objects.create(
+            subscription=subscription,
+            amount=subscription.plan.price,
+            due_date=timezone.now() + timezone.timedelta(days=7)
+        )
+
+        return redirect('payment_success', invoice_id=invoice.id)
+
+    return render(request, 'billing/renew.html', {'subscription': subscription})
+
+
+@login_required
+def update_plan(request, subscription_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        subscription = get_object_or_404(UserSubscription, id=subscription_id)
+        new_plan = get_object_or_404(SubscriptionPlan, id=data['plan_id'])
+
+        subscription.plan = new_plan
+        subscription.save()
+
+        return JsonResponse({'success': True, 'message': 'Plan updated successfully'})
+
+
+@login_required
+def mark_invoice_paid(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice.status = 'paid'
+    invoice.paid_date = timezone.now()
+    invoice.save()
+
+    return JsonResponse({'success': True, 'message': 'Invoice marked as paid'})
