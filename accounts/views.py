@@ -114,3 +114,5 @@ def logout_all_devices_view(request):
     )
     logout(request)
     return redirect('/login/')
+
+#this is a test comment deleted in next commit
