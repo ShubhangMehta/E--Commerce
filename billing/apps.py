@@ -8,3 +8,4 @@ class BillingConfig(AppConfig):
     def ready(self):
         # Register signal handlers
         from . import signals  # noqa
+

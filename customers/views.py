@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 import json
-
 from .models import SubscriptionPlan, UserSubscription, Invoice, Payment
 
 
