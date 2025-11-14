@@ -91,3 +91,24 @@ class WebhookEvent(models.Model):
     received_at = models.DateTimeField(auto_now_add=True)
 
 # This is a comment only
+class Refund(models.Model):
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    reason = models.TextField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='refunded_approvals'
+    )
+    approved_date = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Refund {self.id} - {self.subscription}"
