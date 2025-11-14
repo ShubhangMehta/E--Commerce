@@ -35,7 +35,7 @@ ALLOWED_HOSTS = ['*']
 
 SHARED_APPS = [
     "django_tenants",  # mandatory
-    "customers",  # you must list the app where your tenant model resides in
+    'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
     "accounts",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -43,7 +43,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'billing.apps.BillingConfig',    #Billing and Subscription app
 ]
 
 TENANT_APPS = [
@@ -70,6 +70,7 @@ DATABASE_ROUTERS = (
 
 MIDDLEWARE = [
     "django_tenants.middleware.TenantMiddleware",
+    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
     "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -189,5 +190,19 @@ EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+# -----------------------------------
+# Payment And Billing Configuration
+# -----------------------------------
+
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
+
+BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
+
+BILLING_DEFAULT_SERVER_NAME = "primary"
+BILLING_DOMAIN_SUFFIX = ".localhost"
 
 
