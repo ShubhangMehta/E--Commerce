@@ -1,6 +1,20 @@
 # ======================================
 # 🧩 OS / System Files
-# ======================================
+# Ignore dump and database files
+*.sql
+*.dump
+*.bak
+*.db
+
+# Ignore logs and temp files
+*.log
+*.tmp
+*.csv
+
+# Ignore venv and system files
+venv/
+__pycache__/
+.DS_Store# ======================================
 .DS_Store
 Thumbs.db
 ehthumbs.db
@@ -151,7 +165,7 @@ test_output/
 .env.*
 .env.local
 .env.development.local
-.env.test.local
+.env.test...local
 .env.production.local
 .envrc
 *.env
