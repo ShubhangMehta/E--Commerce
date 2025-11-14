@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Tenant</title>
+</head>
+<body>
+    <h2>Create Tenant Request</h2>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <label>Tenant Name:</label><br>
+        <input type="text" name="tenant_name" required><br><br>
+
+        <label>Domain Name (without .localhost):</label><br>
+        <input type="text" name="domain_name" required><br><br>
+        <label>Email Address:</label><br>
+        <input type="text" name="email" required><br><br>
+        <label>Address:</label><br>
+        <input type="text" name="address" required><br><br>
+        <label>Company:</label><br>
+        <input type="text" name="company" required><br><br>
+
+
+
+        <label>Plan Type:</label><br>
+        <select name="plan_type" required>
+            <option value="basic">Basic</option>
+            <option value="standard">Standard</option>
+            <option value="premium">Premium</option>
+        </select><br><br>
+
+        <label>Payment Plan:</label><br>
+        <select name="payment_plan" required>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+        </select><br><br>
+
+        <label>Payment Modes:</label><br>
+        <select name="payment_mode" required>
+            <option value="COD">Cash on Delivery</option>
+            <option value="UPI">UPI</option>
+            <option value="CARD">Credit/Debit Card</option>
+        </select><br><br>
+
+        <button type="submit">Submit Request</button>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>
