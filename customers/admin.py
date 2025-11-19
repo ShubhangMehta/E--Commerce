@@ -4,6 +4,7 @@ from .models import Client, Domain, TenantRequest
 from datetime import date
 from django.db import connection, transaction
 from django_tenants.utils import schema_context
+from core_app.emails.utils import send_html_email
 
 
 @admin.register(Domain)
@@ -107,7 +108,7 @@ class TenantRequestAdmin(admin.ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
     list_filter = ('status',)
     actions = ['approve_selected_tenants']
-    print("🔍 TenantRequestAdmin loaded successfully")
+    #print("🔍 TenantRequestAdmin loaded successfully")
 
     @admin.action(description='Approve selected tenants')
     def approve_selected_tenants(self, request, queryset):
@@ -147,9 +148,26 @@ class TenantRequestAdmin(admin.ModelAdmin):
                     )
     
                     print(f"✅ Tenant {schema_name} schema created successfully.")
+                    
+                    send_html_email(
+                        subject="Your Tenant has been successfully created",
+                        to_email=tenant_request.email,
+                        template_name="emails/tenant_created.html",
+                        context={
+                            "owner_name": tenant_request.tenant_name,
+                            "tenant_name": tenant_request.tenant_name,
+                            "company": tenant_request.company,
+                            "email": tenant_request.email,
+                            "address": tenant_request.address,
+                            #"created_on": tenant_created_on,
+                            "domain": tenant_request.desired_domain
+                        }
+                    )       
+                    print(f" email sent to {tenant_request.email}")
     
             connection.set_autocommit(False)
             self.message_user(request, "✅ Tenants approved and schemas created successfully.")
+
         except Exception as e:
             import traceback
             traceback.print_exc()

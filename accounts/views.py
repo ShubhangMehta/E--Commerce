@@ -74,11 +74,12 @@ def session_logs_view(request):
 def verify_2fa_view(request):
     if 'pending_user' not in request.session:
         return redirect('login')
+    
     user_id = request.session['pending_user']
     user = get_object_or_404(User, id=user_id)
 
     if request.method =='POST':
-        code = request.POST['code'] 
+        code = request.POST['code']
         valid = TwoFactorCode.objects.filter(user=user, code=code, is_used=False).last()
         if valid and valid.is_valid():
             valid.is_used = True

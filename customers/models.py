@@ -2,8 +2,6 @@ from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.utils import timezone
 
-
-
 # Create your models here.
 
 class Client(TenantMixin):
