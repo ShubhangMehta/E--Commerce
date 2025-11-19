@@ -1,41 +1,43 @@
 # customers/rzp_services.py
-
 import razorpay
 from django.conf import settings
 
-from .models import Invoice
+def rzp():
+    return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-# Initialize Razorpay client
-rzp_client = razorpay.Client(
-    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-)
+def create_or_fetch_plan(plan):
+    if plan.razorpay_plan_id:
+        return plan.razorpay_plan_id
 
-def get_or_create_order_for_invoice(invoice: Invoice) -> dict:
-    """
-    Resume-same-invoice behavior:
-    - If invoice already has razorpay_order_id, reuse it (client can retry).
-    - Otherwise create a new Razorpay Order and save it on the invoice.
-    """
-    if invoice.razorpay_order_id:
-        return {"id": invoice.razorpay_order_id}
-
-    tr = invoice.tenant_request
-
-    rzp_order = rzp_client.order.create({
-        "amount": invoice.amount*100,           # paise
-        "currency": invoice.currency,       # INR
-        "payment_capture": 1,
-        "receipt": invoice.invoice_number,
-        "notes": {
-            "invoice_id": str(invoice.id),
-            "tenant_request_id": str(tr.id),
-            "desired_domain": str(tr.desired_domain),
+    payload = {
+        "period": "monthly" if plan.interval == "monthly" else "yearly",
+        "interval": 1,
+        "item": {
+            "name": f"{plan.name} ({plan.interval})",
+            "amount": plan.amount_in_paise,
+            "currency": "INR",
         },
-    })
+    }
+    rzp_plan = rzp().plan.create(payload)
+    plan.razorpay_plan_id = rzp_plan["id"]
+    plan.save(update_fields=["razorpay_plan_id"])
+    return rzp_plan["id"]
 
-    invoice.razorpay_order_id = rzp_order["id"]
-    invoice.save(update_fields=["razorpay_order_id"])
+def create_subscription(plan, customer_notify=True):
+    plan_id = create_or_fetch_plan(plan)
+    payload = {
+        "plan_id": plan_id,
+        "total_count": 1,
+        "customer_notify": customer_notify,
+        "expire_by": None,
+    }
+    return rzp().subscription.create(payload)
 
-    return rzp_order
+def cancel_subscription(rzp_subscription_id, cancel_at_cycle_end=False):
+    return rzp().subscription.cancel(rzp_subscription_id, {"cancel_at_cycle_end": cancel_at_cycle_end})
 
-
+def refund_payment(payment_id, amount_in_paise=None):
+    data = {}
+    if amount_in_paise:
+        data["amount"] = amount_in_paise
+    return rzp().payment.refund(payment_id, data)

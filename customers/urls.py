@@ -11,4 +11,10 @@ urlpatterns = [
     path('renew/<int:subscription_id>/', views.renew_subscription, name='renew'),
     path('update-plan/<int:subscription_id>/', views.update_plan, name='update_plan'),
     path('mark-paid/<int:invoice_id>/', views.mark_invoice_paid, name='mark_invoice_paid'),
+
+    # Razorpay billing from customers app
+    path("billing/pricing/", customer_views.pricing_page, name="rzp_pricing"),
+    path("billing/checkout/start/", customer_views.start_subscription, name="rzp_start"),
+    path("billing/checkout/", customer_views.checkout_view, name="rzp_checkout"),
+    path("billing/webhook/razorpay/", customer_views.razorpay_webhook, name="rzp_webhook"),
 ]

@@ -43,7 +43,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'billing.apps.BillingConfig',    #Billing and Subscription app
+    #'billing.apps.BillingConfig',    #Billing and Subscription app
 ]
 
 TENANT_APPS = [

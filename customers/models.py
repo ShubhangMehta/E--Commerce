@@ -3,8 +3,9 @@ from django_tenants.models import TenantMixin, DomainMixin
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
+
 from django.conf import settings
-from django.db.models import Q
+from dateutil.relativedelta import relativedelta
 
 # Create your models here.
 
@@ -328,109 +329,176 @@ class Invoice(models.Model):
 
     invoice_number = models.CharField(max_length=20, unique=True)
     invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default='auto')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='issued')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    amount = models.PositiveIntegerField()
-    currency = models.CharField(max_length=10, default="INR")
+    def __str__(self):
+        return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
 
-    razorpay_order_id = models.CharField(max_length=64, blank=True, null=True)
+# ---------------------------------------------
+#  Refund / Cancellation Model
+# ---------------------------------------------
+
+class RefundRequest(models.Model):
+    REFUND_TYPES = [
+        ('product_issue', 'Product/Service Issue'),
+        ('late_delivery', 'Late Delivery'),
+        ('payment_error', 'Payment Error'),
+        ('duplicate_payment', 'Duplicate Payment'),
+        ('subscription_cancel', 'Subscription Cancellation'),
+        ('others', 'Others'),
+    ]
+
+    REFUND_POLICIES = [
+        ('full', 'Full Refund'),
+        ('partial', 'Partial Refund'),
+        ('no_refund', 'No Refund'),
+    ]
+
+    REFUND_STATUS = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    refund_type = models.CharField(max_length=50, choices=REFUND_TYPES)
+    refund_policy = models.CharField(max_length=50, choices=REFUND_POLICIES, default='partial')
+    status = models.CharField(max_length=20, choices=REFUND_STATUS, default='pending')
+    reason = models.TextField()
+    terms_and_conditions = models.TextField(default="Refund requests must comply with the platform’s current policy and can be rejected if criteria are not met.")
+    refund_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    approved_by = models.CharField(max_length=100, blank=True, null=True)
+    is_refunded = models.BooleanField(default=False)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(blank=True, null=True)
+    policy_version = models.CharField(max_length=10, default="v1.0")
+
+    def __str__(self):
+        return f"Refund by {self.client.tenant_name} - {self.get_status_display()} ({self.get_refund_type_display()})"
+
+ 
+
+
+# ---------------------------------------------
+#  Razorpay Billing Models (moved from billing app)
+# ---------------------------------------------
+
+PLAN_CHOICES = (
+    ("Basic", "Basic"),
+    ("Standard", "Standard"),
+    ("Premium", "Premium"),
+)
+
+BILLING_INTERVALS = (
+    ("monthly", "Monthly"),
+    ("yearly", "Yearly"),
+)
+
+
+class RzpPlan(models.Model):
+    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
+    interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
+    amount_in_paise = models.PositiveIntegerField(help_text="e.g. 49900 for ₹499.00")
+    razorpay_plan_id = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Optional: map to existing RZP Plan",
+    )
+    features = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.interval})"
+
+
+class RzpSubscription(models.Model):
+    client = models.ForeignKey("customers.Client", on_delete=models.SET_NULL, blank=True, null=True)
+    tenant_name = models.CharField(max_length=100)
+    desired_domain = models.CharField(max_length=150)  # subdomain without suffix
+    email = models.EmailField()
+
+    plan = models.ForeignKey(RzpPlan, on_delete=models.PROTECT)
+    interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("created", "Created"),
+            ("active", "Active"),
+            ("pending", "Pending"),
+            ("past_due", "Past Due"),
+            ("cancelled", "Cancelled"),
+            ("expired", "Expired"),
+        ],
+        default="created",
+    )
+
+    razorpay_subscription_id = models.CharField(max_length=64, unique=True, blank=True, null=True)
+    started_at = models.DateTimeField(blank=True, null=True)
+    current_period_start = models.DateTimeField(blank=True, null=True)
+    current_period_end = models.DateTimeField(blank=True, null=True)
+    cancel_at_period_end = models.BooleanField(default=False)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number} ({self.status})"
+        return f"{self.email} - {self.plan.name} ({self.status})"
 
 
-# ================================================================
-#   RAZORPAY BILLING MODELS
-# ================================================================
+class RzpInvoice(models.Model):
+    subscription = models.ForeignKey(RzpSubscription, on_delete=models.CASCADE, related_name="invoices")
+    invoice_number = models.CharField(max_length=50, unique=True)
+    amount_in_paise = models.PositiveIntegerField()
+    currency = models.CharField(max_length=10, default="INR")
+    status = models.CharField(
+        max_length=20,
+        choices=[("pending", "Pending"), ("paid", "Paid"), ("refunded", "Refunded")],
+        default="pending",
+    )
+    due_date = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return self.invoice_number
+
 
 class RzpPayment(models.Model):
-    """
-    Razorpay payment for a subscription invoice.
-    """
-    STATUS_CHOICES = [
-        ('created', 'Created'),
-        ('authorized', 'Authorized'),
-        ('captured', 'Captured'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
-    ]
-
-    EVENT_CHOICES = [
-        ('payment.created', 'Payment Created'),
-        ('payment.authorized', 'Payment Authorized'),
-        ('payment.captured', 'Payment Captured'),
-        ('payment.failed', 'Payment Failed'),
-        ('refund.processed', 'Refund Processed'),
-    ]
-
-    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE, related_name="payments", null=True, blank=True)
-    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True, related_name="payments")
-
-    razorpay_payment_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
-    razorpay_order_id = models.CharField(max_length=64, blank=True, null=True)
-
-    amount= models.PositiveIntegerField()
+    subscription = models.ForeignKey(RzpSubscription, on_delete=models.CASCADE, related_name="payments")
+    invoice = models.ForeignKey(RzpInvoice, on_delete=models.SET_NULL, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=64, unique=True)
+    amount_in_paise = models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="INR")
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
-    event = models.CharField(max_length=50, choices=EVENT_CHOICES, blank=True)
-
     captured = models.BooleanField(default=False)
-    failure_reason=models.TextField(blank=True)
-
     created_at = models.DateTimeField(default=timezone.now)
     meta = models.JSONField(default=dict, blank=True)
 
-    class Meta:
-        ordering = ['-created_at']
-        #Preventing dupilcate payments rows
-        constraints = [
-            models.UniqueConstraint(
-                fields=['razorpay_payment_id'],
-                condition=Q(razorpay_payment_id__isnull=False),
-                name='uniq_rzp_payment_id__nonnull'
-            )
-        ]
-
     def __str__(self):
-        return self.razorpay_payment_id or f"RZP Attempt {self.id}"
+        return self.razorpay_payment_id
 
 
 class RzpWebhookEvent(models.Model):
-    """
-    Stores webhook events received from Razorpay.
-    Used for validating and syncing payment states.
-    """
-
     event = models.CharField(max_length=80)
     payload = models.JSONField()
     signature_ok = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    received_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.event} @ {self.created_at}"
+        return f"{self.event} @ {self.received_at}"
 
 
 class RzpRefund(models.Model):
-    """
-    Razorpay refund for a payment transaction.
-    """
-
     payment = models.ForeignKey(RzpPayment, on_delete=models.CASCADE, related_name="refunds")
-
     razorpay_refund_id = models.CharField(max_length=64, unique=True)
     amount_in_paise = models.PositiveIntegerField()
-
     status = models.CharField(
         max_length=20,
         choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
-        default="pending"
+        default="pending",
     )
-
     created_at = models.DateTimeField(auto_now_add=True)
-
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -438,9 +506,7 @@ class RzpRefund(models.Model):
         blank=True,
         related_name="refunded_approvals",
     )
-    approved_date = models.DateTimeField(blank=True, null=True)
+    approved_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Refund {self.id} - {self.payment}"
-    
-
