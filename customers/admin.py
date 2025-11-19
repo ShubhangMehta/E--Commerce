@@ -7,7 +7,15 @@ from .models import (
     Invoice,
     RefundRequest,
     Client,
-    Domain
+    Domain,
+
+    # Razorpay related models
+    RzpPlan,
+    RzpSubscription,
+    RzpInvoice,
+    RzpPayment,
+    RzpWebhookEvent,
+    RzpRefund,
 )
 
 # -----------------------------
@@ -83,3 +91,37 @@ class ClientAdmin(admin.ModelAdmin):
 @admin.register(Domain)
 class DomainAdmin(admin.ModelAdmin):
     list_display = ["domain", "tenant", "is_primary"]
+
+
+# -----------------------------
+# Razorpay Related Admin Models
+# -----------------------------
+
+@admin.register(RzpPlan)
+class RzpPlanAdmin(admin.ModelAdmin):
+    list_display = ("name", "interval", "amount_in_paise")
+
+
+@admin.register(RzpSubscription)
+class RzpSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("email", "plan", "status", "current_period_start", "current_period_end")
+
+
+@admin.register(RzpInvoice)
+class RzpInvoiceAdmin(admin.ModelAdmin):
+    list_display = ("invoice_number", "subscription", "amount_in_paise", "status")
+
+
+@admin.register(RzpPayment)
+class RzpPaymentAdmin(admin.ModelAdmin):
+    list_display = ("razorpay_payment_id", "subscription", "amount_in_paise", "captured")
+
+
+@admin.register(RzpWebhookEvent)
+class RzpWebhookEventAdmin(admin.ModelAdmin):
+    list_display = ("event", "signature_ok", "received_at")
+
+
+@admin.register(RzpRefund)
+class RzpRefundAdmin(admin.ModelAdmin):
+    list_display = ("payment", "razorpay_refund_id", "status", "created_at")
