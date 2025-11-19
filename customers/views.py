@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from datetime import date
 from .models import TenantRequest, Domain
-
+from core_app.emails.utils import send_html_email
 
 def create_tenant(request):
     if request.method == 'POST':
@@ -33,6 +33,20 @@ def create_tenant(request):
             email=email,
             company=company,
             address=address
+        )
+
+        send_html_email(
+            subject="Your Tenant Request Has Been Received",
+            to_email=email,
+            template_name="emails/welcome.html",
+            context={
+                "name": tenant_name,
+                "tenant_name": tenant_name,
+                "domain": domain_name,
+                "company": company,
+                "email": email,
+                "plan": plan_type,
+            }
         )
 
         return JsonResponse({'message': f'Tenant request for "{tenant_name}" submitted successfully! Awaiting admin approval.'})
