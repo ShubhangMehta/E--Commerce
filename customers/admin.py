@@ -1,16 +1,20 @@
 from django.contrib import admin
 from django_tenants.admin import TenantAdminMixin
-from django.db.models import F
-from .models import Client, Domain, TenantRequest
-from datetime import date
-from django.db import connection, transaction
+from django.db import connection
 from django_tenants.utils import schema_context
+from .models import (
+    Client, Domain, TenantRequest, SubscriptionPlan,
+    Ticket, ClientSubscription, Payment, Invoice, RefundRequest
+)
 
 
+# ----------------------------
+# Domain Admin
+# ----------------------------
 @admin.register(Domain)
 class DomainAdmin(admin.ModelAdmin):
     list_display = ('domain', 'tenant_name_display', 'is_primary', 'tenant_status_display')
-    list_filter = ('is_primary', 'tenant__status') 
+    list_filter = ('is_primary',)
     search_fields = ('desired_domain', 'tenant__tenant_name', 'tenant__schema_name')
 
     def tenant_name_display(self, obj):
@@ -20,89 +24,61 @@ class DomainAdmin(admin.ModelAdmin):
     def tenant_status_display(self, obj):
         return obj.tenant.status
     tenant_status_display.short_description = 'Status'
-    
+
+
+# ----------------------------
+# Client Admin
+# ----------------------------
 @admin.register(Client)
 class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
-    # --- A. List Display (The Tenant Overview Dashboard) ---
     list_display = (
-        'tenant_name', 
-        'schema_name', 
-        'status',          # Active/Suspended
-        'plan_type',       
+        'tenant_name',
+        'schema_name',
+        'status',           # from @property
+        'current_plan',     # from @property
+        'subscription_start',
         'subscription_end',
-        'display_payment_due', # Custom indicator for next due date
-        'display_usage_summary', # Custom method for key metrics
         'created_on',
-    )
-    
-    # --- B. Filters, Search, and Sorting ---
-    list_filter = ('status', 'plan_type')
+        )
+    readonly_fields = (
+    'created_on',
+    'status',
+    'current_plan',
+    'subscription_start',
+    'subscription_end',
+    'storage_used_mb',
+    'product_count',
+    'order_count',
+    'visitor_count_7d',
+    'visitor_count_30d',
+    'active_users',
+    'last_login',
+)
+    list_filter = ('desired_domain',)
     search_fields = ('tenant_name', 'schema_name')
-    # Sort by creation date by default
     ordering = ('-created_on',)
-    
-    # --- C. Field Organization (For the Detail/Edit Page) ---
-    # Organize fields into collapsible sections for clarity
+
     fieldsets = (
         ('🏢 Core Tenant Information', {
             'fields': (('tenant_name', 'schema_name'), 'server_name', 'desired_domain', 'status'),
         }),
         ('💳 Subscription & Billing', {
-            'fields': (('plan_type', 'subscription_end'), 'last_payment_date', 'next_due_date', 'total_orders_value'),
+            'fields': (('current_plan', 'subscription_end'), 'subscription_start'),
         }),
         ('📊 Usage & Performance Metrics', {
-            'fields': (('storage_used_mb', 'product_count', 'order_count'), ('visitor_count_7d', 'visitor_count_30d', 'active_users', 'last_login')),
-            'classes': ('collapse',), # Make this section collapsible
-        }),
-        ('💰 Payment Processing', {
-            'fields': (('payment_mode', 'payment_status')),
+            'fields': (
+                ('storage_used_mb', 'product_count', 'order_count'),
+                ('visitor_count_7d', 'visitor_count_30d', 'active_users', 'last_login')
+            ),
             'classes': ('collapse',),
         }),
     )
-    
-    # --- D. Admin Actions (Tenant Management Workflow) ---
-    actions = ['suspend_tenants', 'activate_tenants']
 
-    # Custom action to suspend a tenant
-    def suspend_tenants(self, request, queryset):
-        updated = queryset.update(status='Suspended')
-        self.message_user(request, f"{updated} tenant(s) successfully suspended and access disabled.")
-    suspend_tenants.short_description = "Suspend selected tenants"
 
-    # Custom action to activate a tenant
-    def activate_tenants(self, request, queryset):
-        updated = queryset.update(status='Active')
-        self.message_user(request, f"{updated} tenant(s) successfully activated.")
-    activate_tenants.short_description = "Activate selected tenants"
 
-    # --- E. Custom Display Methods for the List View ---
-    
-    def display_usage_summary(self, obj):
-        """Displays key metrics in a compact format."""
-        # Use HTML formatting to make the data stand out in the list view
-        return (
-            f"**P**: {obj.product_count} | "
-            f"**O**: {obj.order_count} | "
-            f"**St**: {round(obj.storage_used_mb, 1)}MB"
-        )
-    display_usage_summary.short_description = 'Usage (P|O|Storage)'
-    
-    def display_payment_due(self, obj):
-        """Highlights the next due date."""
-        if obj.next_due_date:
-            return f"Due: {obj.next_due_date}"
-        return "N/A"
-    display_payment_due.short_description = 'Next Due'
-    
-    # --- F. Read-Only Fields ---
-    # These fields should only be managed by the system, not manually edited by the Super Admin
-    readonly_fields = (
-        'created_on', 'subscription_start', 'storage_used_mb', 
-        'product_count', 'order_count', 'visitor_count_7d', 
-        'visitor_count_30d', 'active_users', 'last_login', 
-        'total_orders_value', 'last_payment_date'
-    )
-
+# ----------------------------
+# Tenant Request Admin
+# ----------------------------
 @admin.register(TenantRequest)
 class TenantRequestAdmin(admin.ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
@@ -129,8 +105,6 @@ class TenantRequestAdmin(admin.ModelAdmin):
                         tenant_name=tenant_request.tenant_name,
                         server_name="VPS-001",
                         desired_domain=tenant_request.desired_domain,
-                        plan_type=tenant_request.plan_type,
-                        payment_mode=tenant_request.payment_mode,
                         email=tenant_request.email,
                         company=tenant_request.company,
                         address=tenant_request.address,
@@ -155,3 +129,50 @@ class TenantRequestAdmin(admin.ModelAdmin):
             import traceback
             traceback.print_exc()
             self.message_user(request, f"❌ Error approving tenants: {e}", level='error')
+
+
+# ----------------------------
+# Other Admin Registrations
+# ----------------------------
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'duration_days', 'storage_limit_mb', 'status')
+    list_filter = ('status',)
+    search_fields = ('name',)
+
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('client', 'subject', 'category', 'priority', 'status', 'assigned_to', 'created_at')
+    list_filter = ('category', 'priority', 'status')
+    search_fields = ('client__tenant_name', 'subject', 'assigned_to')
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('client', 'amount', 'method', 'payment_plan', 'status', 'transaction_id', 'created_at')
+    list_filter = ('method', 'payment_plan', 'status')
+    search_fields = ('client__tenant_name', 'transaction_id')
+
+
+@admin.register(ClientSubscription)
+class ClientSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('client', 'plan', 'status', 'start_date', 'end_date', 'auto_renew')
+    list_filter = ('status', 'plan', 'auto_renew')
+    search_fields = ('client__tenant_name', 'plan__name')
+    ordering = ['-end_date']  # reflect latest subscription first
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ('invoice_number', 'client', 'subscription', 'payment', 'invoice_type', 'created_at')
+    list_filter = ('invoice_type',)
+    search_fields = ('invoice_number', 'client__tenant_name')
+
+
+@admin.register(RefundRequest)
+class RefundRequestAdmin(admin.ModelAdmin):
+    list_display = ('client', 'payment', 'refund_type', 'refund_policy', 'status', 'refund_amount', 'requested_at')
+    list_filter = ('status', 'refund_type', 'refund_policy')
+    search_fields = ('client__tenant_name', 'payment__transaction_id')

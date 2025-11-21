@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login History</title>
+  <style>
+    body { font-family: Arial; margin: 30px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: left; }
+    th { background: #f3f3f3; }
+  </style>
+</head>
+<body>
+  <h2>Recent Login Activity</h2>
+  <table>
+    <tr>
+      <th>IP Address</th>
+      <th>Device</th>
+      <th>Login Time</th>
+      <th>Logout Time</th>
+      <th>Status</th>
+    </tr>
+    {% for s in sessions %}
+    <tr>
+      <td>{{ s.ip_address }}</td>
+      <td>{{ s.user_agent|truncatechars:50 }}</td>
+      <td>{{ s.login_time }}</td>
+      <td>{{ s.logout_time|default:"—" }}</td>
+      <td>{% if s.is_active %}Active{% else %}Ended{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

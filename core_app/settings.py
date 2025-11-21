@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -34,7 +34,7 @@ ALLOWED_HOSTS = []
 SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
-
+    "accounts",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +47,7 @@ TENANT_APPS = [
     # your tenant-specific apps
     'catalog',
     'orders',
-    'accounts',
+    #'accounts',
     'themes',
 ]
 
@@ -57,12 +57,16 @@ INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.main.TenantMainMiddleware",
+    "django_tenants.middleware.TenantMiddleware",
+    "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -77,7 +81,7 @@ ROOT_URLCONF = "core_app.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -154,8 +158,21 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-PUBLIC_SCHEMA_NAME = "public"
 PUBLIC_SCHEMA_URLCONF="customers.urls"
+TENANT_SCHEMA_URLCONF="core_app.urls"
 
+
+# ----------------------------
+# Email / SMTP Configuration
+# ----------------------------
+
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 

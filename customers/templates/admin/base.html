@@ -1,0 +1,38 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}{{ title }} | Custom Admin{% endblock %}</title>
+
+    {# Load Django’s default admin CSS so things don’t break #}
+    {% block extrastyle %}
+    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+
+    {% endblock %}
+
+    {# Space where you can later add your custom CSS or JS #}
+    {% block extrahead %}{% endblock %}
+</head>
+
+<body class="app-admin">
+    {% block header %}
+    <header style="background: #1d3557; padding: 15px;">
+        <h1 style="color:white; margin:0;">Custom Admin Layout</h1>
+    </header>
+    {% endblock %}
+
+    <main style="padding: 20px;">
+        {% block content %}
+        Hi welcome to Humera’s dashboard
+        {% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer style="text-align:center; padding:10px; margin-top:40px; color:#888;">
+        Custom Admin © 2025
+    </footer>
+    {% endblock %}
+</body>
+</html>
