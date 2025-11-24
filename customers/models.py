@@ -39,7 +39,6 @@ class Client(TenantMixin):
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
-    created_on = models.DateField(null=True, blank=True)
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
@@ -91,6 +90,11 @@ class Client(TenantMixin):
 
     def __str__(self):
         return self.tenant_name
+    @property
+    def created_on(self):
+        latest_sub = self.clientsubscription_set.order_by('-start_date').first()
+        return latest_sub.start_date.date() if latest_sub else None
+
 
     
 class Domain(DomainMixin):

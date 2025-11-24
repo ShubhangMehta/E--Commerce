@@ -6,6 +6,7 @@ from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
     Ticket, ClientSubscription, Payment, Invoice, RefundRequest
 )
+from django.utils import timezone
 
 
 # ----------------------------
@@ -56,7 +57,8 @@ class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
 )
     list_filter = ('desired_domain',)
     search_fields = ('tenant_name', 'schema_name')
-    ordering = ('-created_on',)
+    ordering = ('-clientsubscription__start_date',)
+
 
     fieldsets = (
         ('🏢 Core Tenant Information', {
@@ -85,46 +87,67 @@ class TenantRequestAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     actions = ['approve_selected_tenants']
     print("🔍 TenantRequestAdmin loaded successfully")
-
     @admin.action(description='Approve selected tenants')
     def approve_selected_tenants(self, request, queryset):
         try:
             print("🚀 ACTION EXECUTED >>>", queryset)
             connection.set_autocommit(True)
-    
+
             with schema_context('public'):
-                for tenant_request in queryset.filter(is_approved=False):
-                    schema_name = tenant_request.tenant_name.lower().replace(" ", "_")
-    
-                    tenant_request.is_approved = True
-                    tenant_request.status = "Approved"
-                    tenant_request.save()
-    
-                    tenant = Client(
+                for tr in queryset.filter(is_approved=False):
+                    schema_name = tr.tenant_name.lower().replace(" ", "_")
+
+                    # 1️⃣ Mark request approved
+                    tr.is_approved = True
+                    tr.status = "Approved"
+                    tr.save()
+
+                    # 2️⃣ Create Tenant
+                    tenant = Client.objects.create(
                         schema_name=schema_name,
-                        tenant_name=tenant_request.tenant_name,
+                        tenant_name=tr.tenant_name,
                         server_name="VPS-001",
-                        desired_domain=tenant_request.desired_domain,
-                        email=tenant_request.email,
-                        company=tenant_request.company,
-                        address=tenant_request.address,
-                        logo=tenant_request.logo
+                        desired_domain=tr.desired_domain,
+                        email=tr.email,
+                        company=tr.company,
+                        address=tr.address,
+                        logo=tr.logo
                     )
-                    tenant.save()  # just saves metadata first
-    
+
                     print(f"⚙️ Creating schema manually for: {schema_name}")
-                    tenant.create_schema(check_if_exists=True)  # ✅ force schema creation
-    
-                    Domain.objects.create(
-                        domain=f"{tenant_request.desired_domain}.localhost",
+                    tenant.create_schema(check_if_exists=True)
+
+                    # 3️⃣ Create Domain
+                    domain = Domain.objects.create(
+                        domain=f"{tr.desired_domain}.localhost",
                         tenant=tenant,
                         is_primary=True
                     )
-    
-                    print(f"✅ Tenant {schema_name} schema created successfully.")
-    
+
+                    # 4️⃣ Create Payment
+                    amount = tr.plan.price
+                    payment = Payment.objects.create(
+                        client=tenant,
+                        amount=amount,
+                        method=tr.payment_mode,
+                        payment_plan=tr.payment_plan,
+                        transaction_id=f"TXN-{tenant.id}-{timezone.now().timestamp()}",
+                        status='paid'
+                    )
+
+                    # 5️⃣ Create Subscription
+                    subscription = ClientSubscription.objects.create(
+                        client=tenant,
+                        plan=tr.plan,
+                        payment=payment,
+                        auto_renew=True
+                    )
+
+                    print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
+
             connection.set_autocommit(False)
-            self.message_user(request, "✅ Tenants approved and schemas created successfully.")
+            self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
+
         except Exception as e:
             import traceback
             traceback.print_exc()
