@@ -3,9 +3,9 @@ from .models import (
     Customer,
     SubscriptionPlan,
     UserSubscription,
-    Payment,
-    Invoice,
-    RefundRequest,
+    UserPayment,
+    UserInvoice,
+    UserRefundRequest,
     Client,
     Domain,
 
@@ -49,10 +49,10 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
 
 
 # -----------------------------
-# Payment Admin
+# User Payment Admin
 # -----------------------------
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
+@admin.register(UserPayment)
+class UserPaymentAdmin(admin.ModelAdmin):
     list_display = ["user", "amount", "method", "payment_plan", "transaction_id", "status", "created_at"]
     search_fields = ["user__username", "transaction_id"]
     list_filter = ["method", "payment_plan", "status"]
@@ -60,10 +60,10 @@ class PaymentAdmin(admin.ModelAdmin):
 
 
 # -----------------------------
-# Invoice Admin
+# User Invoice Admin
 # -----------------------------
-@admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
+@admin.register(UserInvoice)
+class UserInvoiceAdmin(admin.ModelAdmin):
     list_display = ["invoice_number", "user", "subscription", "payment", "invoice_type", "created_at"]
     search_fields = ["invoice_number", "user__username"]
     list_filter = ["invoice_type"]
@@ -71,17 +71,17 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 
 # -----------------------------
-# Refund Request Admin
+# User Refund Request Admin
 # -----------------------------
-@admin.register(RefundRequest)
-class RefundRequestAdmin(admin.ModelAdmin):
+@admin.register(UserRefundRequest)
+class UserRefundRequestAdmin(admin.ModelAdmin):
     list_display = ["user", "payment", "refund_type", "refund_policy", "status", "requested_at", "is_refunded"]
     search_fields = ["user__username", "reason"]
     list_filter = ["refund_type", "refund_policy", "status", "is_refunded"]
 
 
 # -----------------------------
-# Tenant & Domain Admin (django-tenants)
+# Tenant & Domain Admin
 # -----------------------------
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
