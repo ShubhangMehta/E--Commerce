@@ -1,176 +1,262 @@
+"""
+===============================================================
+                        MODELS FILE
+        Clean, Structured, Documented Django Models
+===============================================================
+
+This file contains:
+    - Shared Customer Models
+    - Shared Subscription Plans
+    - User Billing System
+    - Multi-Tenant Client Billing System (TenantMixin)
+    - Razorpay Billing Models
+
+All logic preserved. Only formatting and readability improved.
+"""
+
+# ================================================================
+#   IMPORTS
+# ================================================================
+
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+<<<<<<< HEAD
 
 # Create your models here.
+=======
+from django.conf import settings
+
+
+# ================================================================
+#   SHARED CUSTOMER MODEL (USED BY ALL USERS)
+# ================================================================
+>>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
 
 class Customer(models.Model):
+    """
+    Represents an end-user customer using the platform.
+    """
+
     name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True)       # Unique login/contact email
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    joined_date = models.DateTimeField(auto_now_add=True)
+    joined_date = models.DateTimeField(auto_now_add=True)  # Date customer registered
 
     def __str__(self):
         return self.name
-    
-# ---------------------------------------------
-#  Subscription Model
-# ---------------------------------------------
+
+
+# ================================================================
+#   SHARED SUBSCRIPTION PLAN (USED BY USER + CLIENT)
+# ================================================================
+
 class SubscriptionPlan(models.Model):
+    """
+    Represents subscription plans available to both users and tenants.
+    """
+
     PLAN_CHOICES = [
-        ('basic', 'Basic'),
-        ('standard', 'Standard'),
-        ('premium', 'Premium'),
+        ("basic", "Basic"),
+        ("standard", "Standard"),
+        ("premium", "Premium"),
     ]
 
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('suspended', 'Suspended'),
+        ("active", "Active"),
+        ("inactive", "Inactive"),
+        ("suspended", "Suspended"),
     ]
 
     name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration_days = models.PositiveIntegerField(default=30)
+    storage_limit_mb = models.PositiveIntegerField(
+        default=500,
+        help_text="Per-plan storage limit for tenants (ignored for user subscriptions)."
+    )
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="active")
 
     def __str__(self):
         return f"{self.get_name_display()} - ₹{self.price} ({self.get_status_display()})"
-    
-# ---------------------------------------------
-#  User Subscription (Tracks active plan)
-# ---------------------------------------------
+
+
+# ================================================================
+#   USER SUBSCRIPTIONS (INDIVIDUAL ACCOUNT PLANS)
+# ================================================================
+
 class UserSubscription(models.Model):
+    """
+    Maps a platform user to a subscription plan.
+    Tracks subscription duration and status.
+    """
+
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('expired', 'Expired'),
-        ('suspended', 'Suspended'),
-        ('cancelled', 'Cancelled'),
+        ("active", "Active"),
+        ("expired", "Expired"),
+        ("suspended", "Suspended"),
+        ("cancelled", "Cancelled"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(blank=True, null=True)
+
     is_active = models.BooleanField(default=True)
     auto_renew = models.BooleanField(default=False)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="active")
 
     def save(self, *args, **kwargs):
-        if not self.end_date:
+        # Automatically calculate end date
+        if self.plan and not self.end_date:
             self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.username} - {self.plan.name} ({self.get_status_display()})"
+        return f"{self.user.username} - {self.plan.name if self.plan else 'No Plan'} ({self.get_status_display()})"
 
-# ---------------------------------------------
-#  Payment Details
-# ---------------------------------------------
-class Payment(models.Model):
+
+# ================================================================
+#   USER PAYMENTS
+# ================================================================
+
+class UserPayment(models.Model):
+    """
+    Stores payment transactions made by individual users.
+    """
+
     PAYMENT_METHODS = [
-        ('credit_card', 'Credit Card'),
-        ('debit_card', 'Debit Card'),
-        ('upi', 'UPI'),
-        ('net_banking', 'Net Banking'),
-        ('wallet', 'Wallet'),
+        ("credit_card", "Credit Card"),
+        ("debit_card", "Debit Card"),
+        ("upi", "UPI"),
+        ("net_banking", "Net Banking"),
+        ("wallet", "Wallet"),
     ]
 
     PAYMENT_STATUS = [
-        ('paid', 'Paid'),
-        ('unpaid', 'Unpaid'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
+        ("paid", "Paid"),
+        ("unpaid", "Unpaid"),
+        ("failed", "Failed"),
+        ("refunded", "Refunded"),
     ]
 
     PAYMENT_PLAN = [
-        ('weekly', 'Weekly'),
-        ('monthly', 'Monthly'),
-        ('yearly', 'Yearly'),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
-    payment_plan = models.CharField(max_length=20, choices=PAYMENT_PLAN, default='monthly')
+    payment_plan = models.CharField(max_length=20, choices=PAYMENT_PLAN, default="monthly")
+
     transaction_id = models.CharField(max_length=100, unique=True)
-    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='unpaid')
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default="unpaid")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.method} - {self.get_status_display()}"
-    
-# ---------------------------------------------
-#  Invoice Model
-# ---------------------------------------------
-class Invoice(models.Model):
+
+
+# ================================================================
+#   USER INVOICES
+# ================================================================
+
+class UserInvoice(models.Model):
+    """
+    Stores invoices generated for user subscription payments.
+    """
+
     INVOICE_TYPE = [
-        ('manual', 'Manually Generated'),
-        ('auto', 'Auto Generated'),
+        ("manual", "Manually Generated"),
+        ("auto", "Auto Generated"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     subscription = models.ForeignKey(UserSubscription, on_delete=models.CASCADE)
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE)
+    payment = models.OneToOneField(UserPayment, on_delete=models.CASCADE)
+
     invoice_number = models.CharField(max_length=20, unique=True)
-    invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default='auto')
+    invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default="auto")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
 
-# ---------------------------------------------
-#  Refund / Cancellation Model
-# ---------------------------------------------
-from django.db import models
-from django.contrib.auth.models import User
-from .models import Payment  # Make sure Payment model exists
 
-class RefundRequest(models.Model):
+# ================================================================
+#   USER REFUND REQUESTS
+# ================================================================
+
+class UserRefundRequest(models.Model):
+    """
+    Refund / cancellation request submitted by users.
+    """
+
     REFUND_TYPES = [
-        ('product_issue', 'Product/Service Issue'),
-        ('late_delivery', 'Late Delivery'),
-        ('payment_error', 'Payment Error'),
-        ('duplicate_payment', 'Duplicate Payment'),
-        ('subscription_cancel', 'Subscription Cancellation'),
-        ('others', 'Others'),
+        ("product_issue", "Product/Service Issue"),
+        ("late_delivery", "Late Delivery"),
+        ("payment_error", "Payment Error"),
+        ("duplicate_payment", "Duplicate Payment"),
+        ("subscription_cancel", "Subscription Cancellation"),
+        ("others", "Others"),
     ]
 
     REFUND_POLICIES = [
-        ('full', 'Full Refund'),
-        ('partial', 'Partial Refund'),
-        ('no_refund', 'No Refund'),
+        ("full", "Full Refund"),
+        ("partial", "Partial Refund"),
+        ("no_refund", "No Refund"),
     ]
 
     REFUND_STATUS = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("completed", "Completed"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    payment = models.ForeignKey(UserPayment, on_delete=models.CASCADE)
+
     refund_type = models.CharField(max_length=50, choices=REFUND_TYPES)
-    refund_policy = models.CharField(max_length=50, choices=REFUND_POLICIES, default='partial')
-    status = models.CharField(max_length=20, choices=REFUND_STATUS, default='pending')
+    refund_policy = models.CharField(max_length=50, choices=REFUND_POLICIES, default="partial")
+    status = models.CharField(max_length=20, choices=REFUND_STATUS, default="pending")
+
     reason = models.TextField()
-    terms_and_conditions = models.TextField(default="Refund requests must comply with the platform’s current policy and can be rejected if criteria are not met.")
+    terms_and_conditions = models.TextField(
+        default="Refund requests must comply with the platform’s current policy."
+    )
+
     refund_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+
     approved_by = models.CharField(max_length=100, blank=True, null=True)
     is_refunded = models.BooleanField(default=False)
+
     requested_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(blank=True, null=True)
+
     policy_version = models.CharField(max_length=10, default="v1.0")
 
     def __str__(self):
-        return f"Refund by {self.user.username} - {self.get_status_display()} ({self.get_refund_type_display()})"
+        return f"Refund by {self.user.username} - {self.get_status_display()}"
+
+
+# ================================================================
+#   MULTI-TENANT CLIENT MODELS
+# ================================================================
 
 class Client(TenantMixin):
+<<<<<<< HEAD
     name = models.CharField(max_length=100)
     paid_until = models.DateField()
     on_trial = models.BooleanField(default=True)
@@ -437,11 +523,317 @@ class RefundRequest(models.Model):
         return f"Refund by {self.client.tenant_name} - {self.get_status_display()} ({self.get_refund_type_display()})"
 
  
+=======
+    """
+    A tenant (client) in the multi-tenant architecture.
+    Each client gets its own database schema.
+    """
+
+    tenant_name = models.CharField(max_length=100)
+    server_name = models.CharField(max_length=150)
+    desired_domain = models.CharField(max_length=150, blank=True, null=True)
+
+    email = models.EmailField(blank=True, null=True)
+    company = models.CharField(max_length=200, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
+
+    # Subscription Info
+    subscription_plan = models.ForeignKey(
+        SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    subscription_start = models.DateField(blank=True, null=True)
+    subscription_end = models.DateField(blank=True, null=True)
+
+    STATUS_CHOICES = [
+        ("Active", "Active"),
+        ("Suspended", "Suspended"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Active")
+
+    # Usage Metrics
+    storage_used_mb = models.FloatField(default=0.0)
+    product_count = models.IntegerField(default=0)
+    order_count = models.IntegerField(default=0)
+    visitor_count_7d = models.IntegerField(default=0)
+    visitor_count_30d = models.IntegerField(default=0)
+    active_users = models.IntegerField(default=0)
+
+    last_login = models.DateTimeField(blank=True, null=True)
+
+    # Billing Cycle
+    paid_until = models.DateField(blank=True, null=True)
+    on_trial = models.BooleanField(default=True)
+    created_on = models.DateField(auto_now_add=True)
+
+    auto_create_schema = True  # Auto-create DB schema
+
+    def __str__(self):
+        return self.tenant_name
 
 
-# ---------------------------------------------
-#  Razorpay Billing Models (moved from billing app)
-# ---------------------------------------------
+class Domain(DomainMixin):
+    """
+    Domain mapping for tenant.
+    """
+    pass
+>>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
+
+
+class TenantRequest(models.Model):
+    """
+    Stores sign-up requests from businesses wanting to create a tenant.
+    """
+
+    tenant_name = models.CharField(max_length=100)
+    desired_domain = models.CharField(max_length=150)
+
+    email = models.EmailField(blank=True, null=True)
+    company = models.CharField(max_length=200, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
+
+    # Subscription plan chosen at signup
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+
+    PAYMENT_METHODS = [
+        ("COD", "Cash On Delivery"),
+        ("UPI", "UPI"),
+        ("CARD", "Credit/Debit Card"),
+    ]
+    payment_mode = models.CharField(max_length=10, choices=PAYMENT_METHODS, default="COD")
+
+    PAYMENT_PLANS = [
+        ("Monthly", "Monthly"),
+        ("Yearly", "Yearly"),
+    ]
+    payment_plan = models.CharField(max_length=10, choices=PAYMENT_PLANS, default="Monthly")
+
+    created_on = models.DateTimeField(auto_now_add=True)
+    requested_on = models.DateField(default=timezone.now)
+    is_approved = models.BooleanField(default=False)
+
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Approved", "Approved"),
+        ("Rejected", "Rejected"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+
+    def __str__(self):
+        return f"{self.tenant_name} ({self.status})"
+
+
+# ================================================================
+#   CLIENT PAYMENTS
+# ================================================================
+
+class ClientPayment(models.Model):
+    """
+    Stores payments made by tenants (business clients).
+    """
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+
+    method = models.CharField(max_length=20, choices=TenantRequest.PAYMENT_METHODS)
+    payment_plan = models.CharField(max_length=20, choices=TenantRequest.PAYMENT_PLANS)
+
+    transaction_id = models.CharField(max_length=100, unique=True)
+
+    STATUS_CHOICES = [
+        ("paid", "Paid"),
+        ("unpaid", "Unpaid"),
+        ("failed", "Failed"),
+        ("refunded", "Refunded"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="unpaid")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.client.tenant_name} - {self.method} - {self.status}"
+
+
+# ================================================================
+#   CLIENT SUBSCRIPTIONS
+# ================================================================
+
+class ClientSubscription(models.Model):
+    """
+    Tracks subscription plan and lifecycle for each tenant client.
+    """
+
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("expired", "Expired"),
+        ("suspended", "Suspended"),
+        ("cancelled", "Cancelled"),
+        ("pending", "Pending"),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+
+    duration_days = models.PositiveIntegerField(default=30)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+
+    payment = models.ForeignKey(
+        ClientPayment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subscriptions",
+    )
+
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+
+    grace_period_days = models.PositiveIntegerField(default=3)
+
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="active")
+    auto_renew = models.BooleanField(default=False)
+
+    manual_override = models.BooleanField(
+        default=False,
+        help_text="Allow admin to manually override date or status"
+    )
+
+    # Reference to payment transaction for this subscription
+    payment_reference = models.ForeignKey(
+        ClientPayment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subscription_references",
+    )
+
+    def save(self, *args, **kwargs):
+        """
+        Handles:
+            - auto-assigning start/end dates
+            - updating client status
+            - syncing storage limits
+        """
+        if not self.manual_override:
+
+            # Set default start date
+            if not self.start_date:
+                self.start_date = timezone.now()
+
+            # Auto-select end date if missing
+            if self.plan and not self.end_date:
+                self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
+
+            # Update subscription status
+            now = timezone.now()
+            if self.end_date and self.end_date < now:
+                self.status = "expired"
+            elif self.status not in ["suspended", "cancelled"]:
+                self.status = "active"
+
+            # Update client status
+            self.client.status = "Active" if self.status == "active" else "Suspended"
+
+            # Sync storage capacity based on plan
+            if self.plan:
+                self.client.storage_used_mb = self.plan.storage_limit_mb
+
+            self.client.save()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.client.tenant_name} - {self.plan.name if self.plan else 'No Plan'} ({self.status})"
+
+
+# ================================================================
+#   CLIENT INVOICES
+# ================================================================
+
+class ClientInvoice(models.Model):
+    """
+    Invoice generated for tenant billing.
+    """
+
+    INVOICE_TYPE = [
+        ("manual", "Manually Generated"),
+        ("auto", "Auto Generated"),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE)
+    payment = models.OneToOneField(ClientPayment, on_delete=models.CASCADE)
+
+    invoice_number = models.CharField(max_length=20, unique=True)
+    invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default="auto")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number}"
+
+
+# ================================================================
+#   CLIENT REFUND REQUESTS
+# ================================================================
+
+class ClientRefundRequest(models.Model):
+    """
+    Refund request issued by a tenant.
+    """
+
+    REFUND_TYPES = [
+        ("product_issue", "Product/Service Issue"),
+        ("late_delivery", "Late Delivery"),
+        ("payment_error", "Payment Error"),
+        ("duplicate_payment", "Duplicate Payment"),
+        ("subscription_cancel", "Subscription Cancellation"),
+        ("others", "Others"),
+    ]
+
+    REFUND_POLICIES = [
+        ("full", "Full Refund"),
+        ("partial", "Partial Refund"),
+        ("no_refund", "No Refund"),
+    ]
+
+    REFUND_STATUS = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("completed", "Completed"),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    payment = models.ForeignKey(ClientPayment, on_delete=models.CASCADE)
+
+    refund_type = models.CharField(max_length=50, choices=REFUND_TYPES)
+    refund_policy = models.CharField(max_length=50, choices=REFUND_POLICIES, default="partial")
+    status = models.CharField(max_length=20, choices=REFUND_STATUS, default="pending")
+
+    reason = models.TextField()
+    terms_and_conditions = models.TextField(
+        default="Refund requests must comply with the platform’s policy."
+    )
+
+    refund_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+
+    approved_by = models.CharField(max_length=100, blank=True, null=True)
+    is_refunded = models.BooleanField(default=False)
+
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(blank=True, null=True)
+
+    policy_version = models.CharField(max_length=10, default="v1.0")
+
+    def __str__(self):
+        return f"Refund by {self.client.tenant_name} ({self.get_status_display()})"
+
+
+# ================================================================
+#   RAZORPAY BILLING MODELS
+# ================================================================
 
 PLAN_CHOICES = (
     ("Basic", "Basic"),
@@ -456,15 +848,21 @@ BILLING_INTERVALS = (
 
 
 class RzpPlan(models.Model):
+    """
+    Razorpay plan created for automated billing.
+    """
+
     name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
     interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
-    amount_in_paise = models.PositiveIntegerField(help_text="e.g. 49900 for ₹499.00")
-    razorpay_plan_id = models.CharField(
-        max_length=64,
-        blank=True,
-        null=True,
-        help_text="Optional: map to existing RZP Plan",
+
+    amount_in_paise = models.PositiveIntegerField(
+        help_text="100.00 INR → 10000 paise"
     )
+
+    razorpay_plan_id = models.CharField(
+        max_length=64, blank=True, null=True, help_text="Maps to an existing RZP plan if needed"
+    )
+
     features = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
@@ -472,13 +870,21 @@ class RzpPlan(models.Model):
 
 
 class RzpSubscription(models.Model):
-    client = models.ForeignKey("customers.Client", on_delete=models.SET_NULL, blank=True, null=True)
+    """
+    Razorpay subscription record for automated billing.
+    """
+
+    client = models.ForeignKey(
+        "customers.Client", on_delete=models.SET_NULL, blank=True, null=True
+    )
+
     tenant_name = models.CharField(max_length=100)
-    desired_domain = models.CharField(max_length=150)  # subdomain without suffix
+    desired_domain = models.CharField(max_length=150)     # subdomain
     email = models.EmailField()
 
     plan = models.ForeignKey(RzpPlan, on_delete=models.PROTECT)
     interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
+
     status = models.CharField(
         max_length=20,
         choices=[
@@ -489,10 +895,11 @@ class RzpSubscription(models.Model):
             ("cancelled", "Cancelled"),
             ("expired", "Expired"),
         ],
-        default="created",
+        default="created"
     )
 
     razorpay_subscription_id = models.CharField(max_length=64, unique=True, blank=True, null=True)
+
     started_at = models.DateTimeField(blank=True, null=True)
     current_period_start = models.DateTimeField(blank=True, null=True)
     current_period_end = models.DateTimeField(blank=True, null=True)
@@ -506,15 +913,22 @@ class RzpSubscription(models.Model):
 
 
 class RzpInvoice(models.Model):
+    """
+    Razorpay invoice created for subscription billing.
+    """
+
     subscription = models.ForeignKey(RzpSubscription, on_delete=models.CASCADE, related_name="invoices")
+
     invoice_number = models.CharField(max_length=50, unique=True)
     amount_in_paise = models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="INR")
+
     status = models.CharField(
         max_length=20,
         choices=[("pending", "Pending"), ("paid", "Paid"), ("refunded", "Refunded")],
-        default="pending",
+        default="pending"
     )
+
     due_date = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(blank=True, null=True)
@@ -524,13 +938,20 @@ class RzpInvoice(models.Model):
 
 
 class RzpPayment(models.Model):
+    """
+    Razorpay payment for a subscription invoice.
+    """
+
     subscription = models.ForeignKey(RzpSubscription, on_delete=models.CASCADE, related_name="payments")
     invoice = models.ForeignKey(RzpInvoice, on_delete=models.SET_NULL, blank=True, null=True)
+
     razorpay_payment_id = models.CharField(max_length=64, unique=True)
     amount_in_paise = models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="INR")
+
     captured = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
+
     meta = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
@@ -538,6 +959,11 @@ class RzpPayment(models.Model):
 
 
 class RzpWebhookEvent(models.Model):
+    """
+    Stores webhook events received from Razorpay.
+    Used for validating and syncing payment states.
+    """
+
     event = models.CharField(max_length=80)
     payload = models.JSONField()
     signature_ok = models.BooleanField(default=False)
@@ -548,15 +974,23 @@ class RzpWebhookEvent(models.Model):
 
 
 class RzpRefund(models.Model):
+    """
+    Razorpay refund for a payment transaction.
+    """
+
     payment = models.ForeignKey(RzpPayment, on_delete=models.CASCADE, related_name="refunds")
+
     razorpay_refund_id = models.CharField(max_length=64, unique=True)
     amount_in_paise = models.PositiveIntegerField()
+
     status = models.CharField(
         max_length=20,
         choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
-        default="pending",
+        default="pending"
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
+
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -564,7 +998,7 @@ class RzpRefund(models.Model):
         blank=True,
         related_name="refunded_approvals",
     )
-    approved_date = models.DateTimeField(null=True, blank=True)
+    approved_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"Refund {self.id} - {self.payment}"

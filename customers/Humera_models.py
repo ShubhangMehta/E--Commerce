@@ -1,3 +1,4 @@
+'''
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.contrib.auth.models import User
@@ -288,5 +289,4 @@ class RefundRequest(models.Model):
         return f"Refund by {self.user.username} - {self.get_status_display()} ({self.get_refund_type_display()})"
 
 
-
-
+'''
