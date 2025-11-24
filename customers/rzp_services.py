@@ -1,43 +1,145 @@
 # customers/rzp_services.py
+
+"""
+Razorpay Service Utilities
+--------------------------
+
+This module contains helper functions for interacting with the Razorpay API.
+It includes:
+    - Initializing Razorpay client
+    - Creating or fetching subscription plans
+    - Creating subscriptions
+    - Canceling subscriptions
+    - Processing refunds
+
+All logic is preserved exactly as before — only improved readability and comments added.
+"""
+
 import razorpay
 from django.conf import settings
 
+
+# -------------------------------------------------------------
+# Razorpay Client Initialization
+# -------------------------------------------------------------
+
 def rzp():
-    return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    """
+    Returns a Razorpay client instance using credentials from settings.
+    """
+    return razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+
+
+# -------------------------------------------------------------
+# Razorpay Plan Management
+# -------------------------------------------------------------
 
 def create_or_fetch_plan(plan):
+    """
+    Creates a Razorpay plan if not already created.
+
+    Args:
+        plan: Django model instance representing the subscription plan.
+              Must contain interval, name, amount_in_paise, razorpay_plan_id.
+
+    Returns:
+        The Razorpay plan ID (existing or newly created).
+    """
+
+    # If plan already exists in Razorpay, return it
     if plan.razorpay_plan_id:
         return plan.razorpay_plan_id
 
+    # Prepare payload for new Razorpay plan
     payload = {
         "period": "monthly" if plan.interval == "monthly" else "yearly",
-        "interval": 1,
+        "interval": 1,   # Billing interval (1 month or 1 year)
         "item": {
             "name": f"{plan.name} ({plan.interval})",
             "amount": plan.amount_in_paise,
             "currency": "INR",
         },
     }
+
+    # Create plan in Razorpay
     rzp_plan = rzp().plan.create(payload)
+
+    # Save plan ID to local model
     plan.razorpay_plan_id = rzp_plan["id"]
     plan.save(update_fields=["razorpay_plan_id"])
+
     return rzp_plan["id"]
 
+
+# -------------------------------------------------------------
+# Razorpay Subscription Handling
+# -------------------------------------------------------------
+
 def create_subscription(plan, customer_notify=True):
+    """
+    Creates a new Razorpay subscription for the given plan.
+
+    Args:
+        plan: Django model instance of the subscription plan.
+        customer_notify: Whether Razorpay should notify the customer by email/SMS.
+
+    Returns:
+        Razorpay subscription object.
+    """
+
     plan_id = create_or_fetch_plan(plan)
+
     payload = {
         "plan_id": plan_id,
-        "total_count": 1,
+        "total_count": 1,            # One billing cycle
         "customer_notify": customer_notify,
-        "expire_by": None,
+        "expire_by": None,           # No auto-expiry
     }
+
     return rzp().subscription.create(payload)
 
+
 def cancel_subscription(rzp_subscription_id, cancel_at_cycle_end=False):
-    return rzp().subscription.cancel(rzp_subscription_id, {"cancel_at_cycle_end": cancel_at_cycle_end})
+    """
+    Cancels an active Razorpay subscription.
+
+    Args:
+        rzp_subscription_id: ID of the Razorpay subscription.
+        cancel_at_cycle_end: If True, cancel after current cycle ends;
+                             If False, cancel immediately.
+
+    Returns:
+        Razorpay API response.
+    """
+    return rzp().subscription.cancel(
+        rzp_subscription_id,
+        {"cancel_at_cycle_end": cancel_at_cycle_end}
+    )
+
+
+# -------------------------------------------------------------
+# Razorpay Refund Processing
+# -------------------------------------------------------------
 
 def refund_payment(payment_id, amount_in_paise=None):
+    """
+    Issues a refund for a payment.
+
+    Args:
+        payment_id: Razorpay payment ID.
+        amount_in_paise: Optional partial refund amount in paise.
+                         If None, it refunds full amount.
+
+    Returns:
+        Razorpay API refund response.
+    """
+
     data = {}
+
+    # If partial amount is specified, include it in the payload
     if amount_in_paise:
         data["amount"] = amount_in_paise
+
     return rzp().payment.refund(payment_id, data)
