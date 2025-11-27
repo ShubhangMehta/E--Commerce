@@ -116,4 +116,38 @@ class TenantRequest(models.Model):
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
+    
+
+class Ticket(models.Model):
+    CATEGORY_CHOICES = [
+        ('technical', 'Technical Issue'),
+        ('billing', 'Billing'),
+        ('general', 'General Query'),
+        ('feature', 'Feature Request'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ]
+
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('closed', 'Closed'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='tickets')
+    subject = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='open')
+    assigned_to = models.CharField(max_length=255, null=True, blank=True)  # could be staff username or email
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
