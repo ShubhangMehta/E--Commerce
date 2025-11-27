@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from datetime import date
 from .models import TenantRequest, Domain, Ticket
-from utils.email_utils import send_html_email
+from core_app.emails.utils import send_html_email
 from django.contrib import messages
 
 def create_tenant(request):
