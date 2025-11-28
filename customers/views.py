@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
-from .models import TenantRequest, Domain, SubscriptionPlan, Ticket
+from .models import TenantRequest, Domain, SubscriptionPlan, Ticket 
 from core_app.emails.utils import send_html_email
 from django.contrib import messages
 
@@ -52,7 +52,7 @@ def create_tenant(request):
                 "domain": domain_name,
                 "company": company,
                 "email": email,
-                "plan": plan_type,
+                #"plan": plan_type,
             }
         )
 
