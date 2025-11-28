@@ -15,7 +15,7 @@ class BlockTenantAdminMiddleware:
         current_schema = connection.schema_name
 
         #if not current_schema == 'public' block it
-        if current_schema != 'public' and request.path.startswith('/admin/'):
+        if current_schema != 'public_schema' and request.path.startswith('/admin/'):
             return HttpResponseForbidden("<h2> Access Denied </h2>" 
                 "<p>Access to admin site is restricted for tenant schemas.</p>"
             )

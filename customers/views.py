@@ -1,47 +1,53 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
-from datetime import date
 from django.contrib import messages
-from .models import TenantRequest, Domain, Ticket
+from .models import TenantRequest, Domain, SubscriptionPlan
 
 
 def create_tenant(request):
     if request.method == 'POST':
         tenant_name = request.POST.get('tenant_name')
         domain_name = request.POST.get('domain_name')
-        plan_type = request.POST.get('plan_type')
+        plan_id = request.POST.get('plan_type')
         payment_mode = request.POST.get('payment_mode')
-        payment_plan=request.POST.get('payment_plan')
-        email=request.POST.get('email')
-        company=request.POST.get('company')
-        address=request.POST.get('address')
-
+        payment_plan = request.POST.get('payment_plan')
+        email = request.POST.get('email')
+        company = request.POST.get('company')
+        address = request.POST.get('address')
+        logo = request.FILES.get('logo')
 
         if not tenant_name or not domain_name:
-            return JsonResponse({'error': 'Tenant name and Domain name are required!'}, status=400)
+            return JsonResponse({'error': 'Tenant name and domain name required'}, status=400)
 
         # Prevent duplicate domains
-        if Domain.objects.filter(domain=f"{domain_name}.localhost").exists() or TenantRequest.objects.filter(desired_domain=domain_name).exists():
-            return JsonResponse({'error': 'This domain name is already taken!'}, status=400)
+        full_domain = f"{domain_name}.localhost"
+        if Domain.objects.filter(domain=full_domain).exists() or TenantRequest.objects.filter(desired_domain=domain_name).exists():
+            return JsonResponse({'error': 'This domain is already taken.'}, status=400)
 
-        # Store tenant request (pending approval)
+        # Validate subscription plan
+        plan = SubscriptionPlan.objects.filter(id=plan_id).first()
+        if not plan:
+            return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+
+        # Store request
         TenantRequest.objects.create(
             tenant_name=tenant_name,
             desired_domain=domain_name,
-            plan_type=plan_type,
+            plan=plan,
             payment_mode=payment_mode,
             payment_plan=payment_plan,
             email=email,
             company=company,
-            address=address
+            address=address,
+            logo=logo
         )
 
-        return JsonResponse({'message': f'Tenant request for "{tenant_name}" submitted successfully! Awaiting admin approval.'})
+        return JsonResponse({'message': f'Request for {tenant_name} submitted for approval!'})
 
     return render(request, 'create_tenant.html')
 
 
-def index(request):
+def home(request):
     return HttpResponse("<h1> Public Index </h1>")
 
 
