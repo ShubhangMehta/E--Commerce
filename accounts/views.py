@@ -90,7 +90,7 @@ def verify_2fa_view(request):
                 ip_address=get_client_ip(request), 
                 user_agent=request.META.get('HTTP_USER_AGENT', 'unknown')
             )
-            del request.session['pending_user']
+            request.session.pop('pending_user', None)
             return redirect('/admin/') ##or tenant dashboard
         else:
             messages.error(request, 'Invalid or expired code.')
