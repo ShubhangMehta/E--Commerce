@@ -254,7 +254,18 @@
                     {% if user.is_active and user.is_staff %}
                         {% url 'admin:logout' as logout_url %}
                         <a href="{% url 'admin:password_change' %}"><i class="fa-solid fa-key"></i> Password</a> |
-                        <a href="{{ logout_url }}"><i class="fa-solid fa-right-from-bracket"></i> Log out</a>
+                        {% url 'admin:logout' as logout_url %}
+                        <a href="{% url 'admin:password_change' %}">
+                            <i class="fa-solid fa-key"></i> Password
+                        </a> |
+
+                        <form id="logout-form" action="{{ logout_url }}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="background:none;border:none;padding:0;margin:0;color:#007bff;cursor:pointer;">
+                                <i class="fa-solid fa-right-from-bracket"></i> Log out
+                            </button>
+                        </form>
+
                     {% else %}
                         {% url 'admin:login' as login_url %}
                         <a href="{{ login_url }}"><i class="fa-solid fa-right-to-bracket"></i> Log in</a>

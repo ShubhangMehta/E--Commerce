@@ -16,4 +16,11 @@ urlpatterns = [
 
     #Django built-in for 2FA verification
     path('verify-2fa/', views.verify_2fa_view, name='verify_2fa'),
+
+    #Logout url
+    path('logout/', views.logout_view, name='logout'),
+
+    #Logout from all devices
+    path('logout-all/', views.logout_all_devices_view, name='logout_all'),
+
 ]

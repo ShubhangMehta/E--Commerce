@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
-from .models import TenantRequest, Domain, SubscriptionPlan
+from .models import TenantRequest, Domain, SubscriptionPlan, Ticket
 
 
 def create_tenant(request):
