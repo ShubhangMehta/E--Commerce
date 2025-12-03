@@ -149,19 +149,23 @@ class TenantRequestAdmin(admin.ModelAdmin):
                     
                     send_html_email(
                         subject="Your Tenant has been successfully created",
-                        to_email=tenant_request.email,
+                        to_email=tr.email,
                         template_name="emails/tenant_created.html",
                         context={
-                            "owner_name": tenant_request.tenant_name,
-                            "tenant_name": tenant_request.tenant_name,
-                            "company": tenant_request.company,
-                            "email": tenant_request.email,
-                            "address": tenant_request.address,
+                            "owner_name": tr.tenant_name,
+                            "tenant_name": tr.tenant_name,
+                            "company": tr.company,
+                            "email": tr.email,
+                            "address": tr.address,
                             #"created_on": tenant_created_on,
-                            "domain": tenant_request.desired_domain
+                            "domain": tr.desired_domain,
                         }
-                    )       
-                    print(f" email sent to {tenant_request.email}")
+                    )    
+                    if not tr.email:
+                            print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
+                            continue
+                       
+                    print(f"email sent to {tr.email}")
 
             connection.set_autocommit(False)
             self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
