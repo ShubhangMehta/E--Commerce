@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial; background:#f4f4f4; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:10px;">
+        <h2>Welcome</h2>
+        
+        <h2>We Received Your Tenant Request</h2>
+
+        <p>Hello {{ name }},</p>
+
+        <p>Your request to create a SaaS store has been successfully submitted.</p>
+        <p>Our team will review it and approve it shortly.</p>
+
+        <h3>Submitted Details:</h3>
+        <ul>
+            <li><strong>Tenant Name:</strong> {{ tenant_name }}</li>
+            <li><strong>Desired Domain:</strong> {{ domain }}</li>
+            <li><strong>Company:</strong> {{ company }}</li>
+            <li><strong>Email:</strong> {{ email }}</li>
+            <li><strong>Plan Type:</strong> {{ plan }}</li>
+        </ul>
+
+        <p>We will notify you once your store is approved.</p>
+
+        <p style="margin-top:20px;">Regards,<br>SaaS Platform Team</p>
+    </div>
+</body>
+</html>

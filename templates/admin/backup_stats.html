@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+
+<h1 style="margin-bottom: 20px;">📊 Backup Statistics</h1>
+
+<div style="display: flex; gap: 20px; margin-bottom: 30px;">
+
+    <!-- Success Count -->
+    <div style="flex: 1; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+        <h2 style="margin: 0; font-size: 32px; color: #2e7d32;">{{ success_count }}</h2>
+        <p style="margin: 0; color: #1b5e20;">Successful Backups</p>
+    </div>
+
+    <!-- Failed Count -->
+    <div style="flex: 1; padding: 20px; background: #ffebee; border-radius: 8px;">
+        <h2 style="margin: 0; font-size: 32px; color: #c62828;">{{ failed_count }}</h2>
+        <p style="margin: 0; color: #b71c1c;">Failed Backups</p>
+    </div>
+
+</div>
+
+<hr>
+
+<h2 style="margin-top: 30px;">📅 Backup Trend (Last 7 Days)</h2>
+
+<!-- Line Chart -->
+<canvas id="trendChart" height="100"></canvas>
+
+<hr style="margin: 40px 0;">
+
+<h2>🟢 Success vs 🔴 Failure Ratio</h2>
+
+<!-- Pie Chart -->
+<canvas id="ratioChart" height="120"></canvas>
+
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Prepare data from Django context
+    const trendLabels = [
+        {% for item in trend %}
+            "{{ item.day }}",
+        {% endfor %}
+    ];
+
+    const trendCounts = [
+        {% for item in trend %}
+            {{ item.count }},
+        {% endfor %}
+    ];
+
+    const successCount = {{ success_count }};
+    const failedCount = {{ failed_count }};
+
+    // -------------------------------
+    // Line Chart: Backup Trend
+    // -------------------------------
+    const trendCtx = document.getElementById("trendChart").getContext("2d");
+
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [{
+                label: "Backups per Day",
+                data: trendCounts,
+                borderWidth: 2,
+                fill: false
+            }]
+        }
+    });
+
+    // -------------------------------
+    // Pie Chart: Success vs Failure
+    // -------------------------------
+    const ratioCtx = document.getElementById("ratioChart").getContext("2d");
+
+    new Chart(ratioCtx, {
+        type: 'pie',
+        data: {
+            labels: ["Success", "Failure"],
+            datasets: [{
+                data: [successCount, failedCount],
+                borderWidth: 1
+            }]
+        }
+    });
+
+</script>
+
+{% endblock %}

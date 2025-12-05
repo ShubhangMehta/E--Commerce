@@ -6,6 +6,18 @@ Project Overview:
 
 This project provides a complete Website-as-a-Service (WaaS) solution that allows clients (tenants) to quickly deploy and manage their personalized online stores and business websites through an intuitive dashboard. Each tenant operates in a separate database schema, ensuring data isolation and security while sharing a common infrastructure
 
+Team Roles:
+
+Humera Mueed - Team Leader/Intern
+
+Venkatesh Bodakunta Trinity - Developer/Intern
+
+Shubhang Mehta - Developer/Intern
+
+Anshad Ahamed - Developer/Intern
+
+Abburi Srinath- Developer/Intern
+
 Features:
 
 Multi-Tenant Architecture — Built using django-tenants for schema isolation.

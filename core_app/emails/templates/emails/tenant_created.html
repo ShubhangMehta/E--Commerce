@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial; background:#f4f4f4; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:10px;">
+        <h2>Your Tenant Has Been Created</h2>
+
+        <p>Hello {{ owner_name }},</p>
+        <p>Your SaaS store has been successfully created.</p>
+
+        <h3>Tenant Details:</h3>
+        <ul>
+            <li><strong>Tenant Name:</strong> {{ tenant_name }}</li>
+            <li><strong>Company:</strong> {{ company }}</li>
+            <li><strong>Email:</strong> {{ email }}</li>
+            <li><strong>Address:</strong> {{ address }}</li>
+            <li><strong>Domain:</strong> {{ domain }}</li>
+        </ul>
+
+        <h3>Domain Details:</h3>
+        <ul>
+            <li><strong>Domain:</strong> {{ domain }}</li>
+        </ul>
+
+        <p style="margin-top:20px;">You can now start building your store.</p>
+
+        <p style="margin-top:20px;">Regards,<br>SaaS Platform Team</p>
+    </div>
+</body>
+</html>
