@@ -86,7 +86,9 @@ ROOT_URLCONF = "core_app.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / 'core_app/emails/templates',
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -163,8 +165,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-#PUBLIC_SCHEMA_URLCONF="core_app.urls"
-#TENANT_SCHEMA_URLCONF="customers.urls"
+# PUBLIC_SCHEMA_URLCONF="customers.urls"
+# TENANT_SCHEMA_URLCONF="core_app.urls"
 
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM

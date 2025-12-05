@@ -3,6 +3,13 @@ from django.dispatch import receiver
 from django.conf import settings
 from .models import LoginSession
 from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from .models import UserProfile
+
+from core_app.emails.utils import send_html_email
+
 
 @receiver(user_logged_in, dispatch_uid="accounts_user_logged_in_unique")
 def log_user_login(sender, request, user, **kwargs):
@@ -39,3 +46,31 @@ def log_user_logout(sender, request, user, **kwargs):
         last.is_active = False
         last.save()
 
+@receiver(user_logged_in)
+def send_login_email_once_per_day(sender, request, user, **kwargs):
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    now = timezone.now()
+
+    if not profile.last_login_email:
+        send_login_email(user, profile)
+        return
+    
+    if now - profile.last_login_email >= timedelta(hours=24):
+        send_login_email(user, profile)
+
+def send_login_email(user, profile):
+    send_html_email(
+                    subject="Login Successful",
+                    to_email=user.email,
+                    template_name="emails/login_success.html",
+                    context={"user_name": user.username}
+    )
+
+    profile.last_login_email = timezone.now()
+    profile.save(update_fields=['last_login_email'])
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
