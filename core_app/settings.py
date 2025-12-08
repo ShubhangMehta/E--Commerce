@@ -26,7 +26,8 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', "spacebar.localhost"]
+
 
 # Application definition
 
@@ -54,10 +55,7 @@ TENANT_APPS = [
     'dashboard',
     'catalog',
     'orders',
-    'users',
-    "themes"
-    'backups'
-    #'accounts',
+    'dashboard',
     'themes',
     'django_crontab',
 ]
@@ -74,7 +72,8 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",
+    "django_tenants.middleware.TenantMainMiddleware",
+    "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -100,7 +99,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
-                "themes.context_processors.tenant_theme",
             ],
         },
     },
