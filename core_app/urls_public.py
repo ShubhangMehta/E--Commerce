@@ -18,9 +18,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 #admin.autodiscover()
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('accounts.urls')),
     path('', include('customers.urls')),
-    path('', include('themes.urls')),
 ]
