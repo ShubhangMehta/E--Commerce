@@ -1,11 +1,11 @@
 from django.contrib import admin
 from .models import (
-    Customer,
+    #Customer,
     SubscriptionPlan,
-    UserSubscription,
-    UserPayment,
-    UserInvoice,
-    UserRefundRequest,
+    #UserSubscription,
+    #UserPayment,
+    #UserInvoice,
+    #UserRefundRequest,
     Client,
     Domain,
 
@@ -21,12 +21,14 @@ from .models import (
 # -----------------------------
 # Customer Admin
 # -----------------------------
+'''
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ["name", "email", "phone", "joined_date"]
     search_fields = ["name", "email", "phone"]
     list_filter = ["joined_date"]
 
+'''
 
 # -----------------------------
 # Subscription Plan Admin
@@ -41,13 +43,16 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 # -----------------------------
 # User Subscription Admin
 # -----------------------------
+'''
 @admin.register(UserSubscription)
 class UserSubscriptionAdmin(admin.ModelAdmin):
     list_display = ["user", "plan", "start_date", "end_date", "status", "is_active", "auto_renew"]
     list_filter = ["status", "is_active", "auto_renew"]
     search_fields = ["user__username", "plan__name"]
+'''
 
 
+'''
 # -----------------------------
 # User Payment Admin
 # -----------------------------
@@ -78,6 +83,8 @@ class UserRefundRequestAdmin(admin.ModelAdmin):
     list_display = ["user", "payment", "refund_type", "refund_policy", "status", "requested_at", "is_refunded"]
     search_fields = ["user__username", "reason"]
     list_filter = ["refund_type", "refund_policy", "status", "is_refunded"]
+    
+'''
 
 
 # -----------------------------
@@ -85,7 +92,7 @@ class UserRefundRequestAdmin(admin.ModelAdmin):
 # -----------------------------
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ["tenant_name", "server_name", "desired_domain", "paid_until", "on_trial", "created_on"]
+    list_display = ["tenant_name", "server_name", "desired_domain", "status", "current_plan", "created_on"]
 
 
 @admin.register(Domain)

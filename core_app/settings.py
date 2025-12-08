@@ -34,13 +34,14 @@ ALLOWED_HOSTS = ['*']
 SHARED_APPS = [
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
+    #'billing.apps.BillingConfig',    #Billing and Subscription app
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'billing.apps.BillingConfig',    #Billing and Subscription app
+    
 ]
 
 TENANT_APPS = [
@@ -53,10 +54,13 @@ TENANT_APPS = [
 
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+#INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
+
+
+
 
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",
@@ -76,6 +80,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "core_app.urls"
+PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
+
+PUBLIC_SCHEMA_NAME = "public" 
+
 
 TEMPLATES = [
     {
