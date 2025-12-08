@@ -1,25 +1,26 @@
-from django.urls import path, include
-from django.contrib import admin
-from django.http import HttpResponse
-from django.shortcuts import redirect
-from customers import rzp_webhook_views
-from django.utils.http import url_has_allowed_host_and_scheme, urlencode
+"""
+URL configuration for core_app project.
 
-def admin_login_redirect(request):
-    next_url = request.GET.get("next", "/admin/")
-    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        next_url = "/login/"
-    return redirect("/login/?" + urlencode({"next": next_url}))                                   
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+
+from django.contrib import admin
+from django.urls import path,include
+#admin.autodiscover()
 
 urlpatterns = [
-    path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
-    
-    # Keep admin enabled
-    path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
-
-    # Your app routes
-    path("", include("customers.urls")),
-    path("", include("accounts.urls")),
+    path('', include('accounts.urls')),
+    path('', include('customers.urls')),
 ]
- 

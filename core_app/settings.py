@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', "spacebar.localhost"]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -36,6 +36,7 @@ SHARED_APPS = [
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
     'backups',
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,22 +46,20 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'accounts',
-    'dashboard',
+    # # your tenant-specific apps
+    # 'django.contrib.contenttypes',
+    # 'django.contrib.auth',
+    # 'django.contrib.sessions',
+    # 'django.contrib.messages',
+    # 'django.contrib.staticfiles',
     'catalog',
     'orders',
     'dashboard',
     'themes',
-    'django_crontab',
 ]
 
-INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
+
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -85,6 +84,9 @@ MIDDLEWARE = [
     # Place your custom middleware AFTER auth
     "core_app.middleware.BlockTenantAdminMiddleware",
 ]
+
+PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -202,9 +204,6 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# PUBLIC_SCHEMA_URLCONF="customers.urls"
-# TENANT_SCHEMA_URLCONF="core_app.urls"
 
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM

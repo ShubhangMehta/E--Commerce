@@ -17,7 +17,9 @@ class BlockTenantAdminMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        schema = connection.schema_name
+        # Check current schema
+        current_schema = connection.schema_name
+        print("Current Schema >>>> ", connection.schema_name)
 
         # Allow everything in development
         if settings.DEBUG:
@@ -31,4 +33,3 @@ class BlockTenantAdminMiddleware:
             )
 
         return self.get_response(request)
-
