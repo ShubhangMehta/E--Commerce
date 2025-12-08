@@ -2,12 +2,12 @@ from django.contrib import admin
 <<<<<<< HEAD
 =======
 from .models import (
-    Customer,
+    #Customer,
     SubscriptionPlan,
-    UserSubscription,
-    UserPayment,
-    UserInvoice,
-    UserRefundRequest,
+    #UserSubscription,
+    #UserPayment,
+    #UserInvoice,
+    #UserRefundRequest,
     Client,
     Domain,
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
@@ -16,6 +16,7 @@ from .models import (
 from django.contrib import admin
 from .models import Plan, Subscription, Invoice, Payment, Refund
 
+<<<<<<< HEAD
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
     list_display = ['name', 'plan_type', 'price', 'billing_cycle', 'is_active']
@@ -29,6 +30,19 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = ['status', 'plan', 'auto_renew']
     search_fields = ['tenant__name', 'plan__name']
     readonly_fields = ['created_at']
+=======
+# -----------------------------
+# Customer Admin
+# -----------------------------
+'''
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ["name", "email", "phone", "joined_date"]
+    search_fields = ["name", "email", "phone"]
+    list_filter = ["joined_date"]
+
+'''
+>>>>>>> 69fec36 (Razorpay Integration)
 
 <<<<<<< HEAD
 @admin.register(Invoice)
@@ -52,13 +66,16 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 # -----------------------------
 # User Subscription Admin
 # -----------------------------
+'''
 @admin.register(UserSubscription)
 class UserSubscriptionAdmin(admin.ModelAdmin):
     list_display = ["user", "plan", "start_date", "end_date", "status", "is_active", "auto_renew"]
     list_filter = ["status", "is_active", "auto_renew"]
     search_fields = ["user__username", "plan__name"]
+'''
 
 
+'''
 # -----------------------------
 # User Payment Admin
 # -----------------------------
@@ -102,7 +119,12 @@ class UserRefundRequestAdmin(admin.ModelAdmin):
     list_display = ["user", "payment", "refund_type", "refund_policy", "status", "requested_at", "is_refunded"]
     search_fields = ["user__username", "reason"]
     list_filter = ["refund_type", "refund_policy", "status", "is_refunded"]
+<<<<<<< HEAD
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
+=======
+    
+'''
+>>>>>>> 69fec36 (Razorpay Integration)
 
 @admin.register(Refund)
 class RefundAdmin(admin.ModelAdmin):
@@ -123,7 +145,7 @@ class RefundAdmin(admin.ModelAdmin):
 # -----------------------------
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ["tenant_name", "server_name", "desired_domain", "paid_until", "on_trial", "created_on"]
+    list_display = ["tenant_name", "server_name", "desired_domain", "status", "current_plan", "created_on"]
 
 
 @admin.register(Domain)

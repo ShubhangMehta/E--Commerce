@@ -1,23 +1,3 @@
-"""
-===============================================================
-                        MODELS FILE
-        Clean, Structured, Documented Django Models
-===============================================================
-
-This file contains:
-    - Shared Customer Models
-    - Shared Subscription Plans
-    - User Billing System
-    - Multi-Tenant Client Billing System (TenantMixin)
-    - Razorpay Billing Models
-
-All logic preserved. Only formatting and readability improved.
-"""
-
-# ================================================================
-#   IMPORTS
-# ================================================================
-
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.core.exceptions import ValidationError
@@ -30,12 +10,16 @@ from datetime import timedelta
 from django.conf import settings
 
 
+<<<<<<< HEAD
 # ================================================================
 #   SHARED CUSTOMER MODEL (USED BY ALL USERS)
 # ================================================================
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
+=======
+>>>>>>> 69fec36 (Razorpay Integration)
 
-class Customer(models.Model):
+'''
+class Customer(models.Model): #my
     """
     Represents an end-user customer using the platform.
     """
@@ -49,42 +33,40 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        app_label = "customers"
+        # important for django-tenants
+        managed = True
+        #tenant_schema = True   # <<— this makes it a TENANT MODEL
+'''
 
-# ================================================================
-#   SHARED SUBSCRIPTION PLAN (USED BY USER + CLIENT)
-# ================================================================
 
-class SubscriptionPlan(models.Model):
-    """
-    Represents subscription plans available to both users and tenants.
-    """
 
+class SubscriptionPlan(models.Model): #same
     PLAN_CHOICES = [
-        ("basic", "Basic"),
-        ("standard", "Standard"),
-        ("premium", "Premium"),
+        ('basic', 'Basic'),
+        ('standard', 'Standard'),
+        ('premium', 'Premium'),
     ]
 
     STATUS_CHOICES = [
-        ("active", "Active"),
-        ("inactive", "Inactive"),
-        ("suspended", "Suspended"),
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('suspended', 'Suspended'),
     ]
 
     name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration_days = models.PositiveIntegerField(default=30)
-    storage_limit_mb = models.PositiveIntegerField(
-        default=500,
-        help_text="Per-plan storage limit for tenants (ignored for user subscriptions)."
-    )
+    storage_limit_mb = models.PositiveIntegerField(default=500)  # Feature: storage per plan
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="active")
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):
         return f"{self.get_name_display()} - ₹{self.price} ({self.get_status_display()})"
 
 
+<<<<<<< HEAD
 # ================================================================
 #   USER SUBSCRIPTIONS (INDIVIDUAL ACCOUNT PLANS)
 # ================================================================
@@ -617,51 +599,78 @@ class RefundRequest(models.Model):
     A tenant (client) in the multi-tenant architecture.
     Each client gets its own database schema.
     """
+=======
+>>>>>>> 69fec36 (Razorpay Integration)
 
+class Client(TenantMixin): #humera
     tenant_name = models.CharField(max_length=100)
-    server_name = models.CharField(max_length=150)
+    server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
+    email = models.EmailField(null=True, blank=True)
+    company = models.CharField(max_length=200, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
-    email = models.EmailField(blank=True, null=True)
-    company = models.CharField(max_length=200, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
-
-    # Subscription Info
-    subscription_plan = models.ForeignKey(
-        SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    subscription_start = models.DateField(blank=True, null=True)
-    subscription_end = models.DateField(blank=True, null=True)
-
-    STATUS_CHOICES = [
-        ("Active", "Active"),
-        ("Suspended", "Suspended"),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Active")
-
-    # Usage Metrics
+    # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
     product_count = models.IntegerField(default=0)
     order_count = models.IntegerField(default=0)
     visitor_count_7d = models.IntegerField(default=0)
     visitor_count_30d = models.IntegerField(default=0)
     active_users = models.IntegerField(default=0)
+    last_login = models.DateTimeField(null=True, blank=True)
 
-    last_login = models.DateTimeField(blank=True, null=True)
+    auto_create_schema = True
 
-    # Billing Cycle
-    paid_until = models.DateField(blank=True, null=True)
-    on_trial = models.BooleanField(default=True)
-    created_on = models.DateField(auto_now_add=True)
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Suspended', 'Suspended'),
+    ]
 
-    auto_create_schema = True  # Auto-create DB schema
+    @property
+    def status(self):
+        """Returns current client status based on latest subscription."""
+        latest_subscription = self.clientsubscription_set.order_by('-end_date').first()
+        if not latest_subscription:
+            return 'Inactive'
+        return 'Active' if latest_subscription.status == 'active' else 'Suspended'
+
+    @property
+    def current_plan(self):
+        """Returns the latest plan name or None."""
+        latest_subscription = self.clientsubscription_set.order_by('-end_date').first()
+        if not latest_subscription or not latest_subscription.plan:
+            return None
+        return latest_subscription.plan.name
+
+    @property
+    def subscription_start(self):
+        """Returns start date of latest subscription."""
+        latest_subscription = self.clientsubscription_set.order_by('-end_date').first()
+        if not latest_subscription:
+            return None
+        return latest_subscription.start_date
+
+    @property
+    def subscription_end(self):
+        """Returns end date of latest subscription."""
+        latest_subscription = self.clientsubscription_set.order_by('-end_date').first()
+        if not latest_subscription:
+            return None
+        return latest_subscription.end_date
 
     def __str__(self):
         return self.tenant_name
 
+    @property
+    def created_on(self):
+        latest_sub = self.clientsubscription_set.order_by('-start_date').first()
+        return latest_sub.start_date.date() if latest_sub else None
 
-class Domain(DomainMixin):
+
+
+
+class Domain(DomainMixin): #same
     """
     Domain mapping for tenant.
     """
@@ -669,7 +678,8 @@ class Domain(DomainMixin):
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
 
 
-class TenantRequest(models.Model):
+
+class TenantRequest(models.Model): #same
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
@@ -711,9 +721,11 @@ class TenantRequest(models.Model):
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
-    
 
-class Ticket(models.Model):
+
+
+
+class Ticket(models.Model): #humera
     CATEGORY_CHOICES = [
         ('technical', 'Technical Issue'),
         ('billing', 'Billing'),
@@ -746,11 +758,8 @@ class Ticket(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-# ================================================================
-#   CLIENT PAYMENTS
-# ================================================================
 
-class ClientPayment(models.Model):
+class ClientPayment(models.Model): #my
     """
     Stores payments made by tenants (business clients).
     """
@@ -777,11 +786,9 @@ class ClientPayment(models.Model):
         return f"{self.client.tenant_name} - {self.method} - {self.status}"
 
 
-# ================================================================
-#   CLIENT SUBSCRIPTIONS
-# ================================================================
 
-class ClientSubscription(models.Model):
+
+class ClientSubscription(models.Model): #my
     """
     Tracks subscription plan and lifecycle for each tenant client.
     """
@@ -869,11 +876,8 @@ class ClientSubscription(models.Model):
         return f"{self.client.tenant_name} - {self.plan.name if self.plan else 'No Plan'} ({self.status})"
 
 
-# ================================================================
-#   CLIENT INVOICES
-# ================================================================
 
-class ClientInvoice(models.Model):
+class ClientInvoice(models.Model): #my
     """
     Invoice generated for tenant billing.
     """
@@ -893,14 +897,12 @@ class ClientInvoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number}"
+        return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
 
 
-# ================================================================
-#   CLIENT REFUND REQUESTS
-# ================================================================
 
-class ClientRefundRequest(models.Model):
+
+class ClientRefundRequest(models.Model): #same
     """
     Refund request issued by a tenant.
     """
@@ -936,7 +938,7 @@ class ClientRefundRequest(models.Model):
 
     reason = models.TextField()
     terms_and_conditions = models.TextField(
-        default="Refund requests must comply with the platform’s policy."
+        default="Refund requests must comply with the platform’s current policy and can be rejected if criteria are not met."
     )
 
     refund_amount = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
@@ -950,7 +952,9 @@ class ClientRefundRequest(models.Model):
     policy_version = models.CharField(max_length=10, default="v1.0")
 
     def __str__(self):
-        return f"Refund by {self.client.tenant_name} ({self.get_status_display()})"
+        return f"Refund by {self.client.tenant_name} - {self.get_status_display()} ({self.get_refund_type_display()})"
+
+
 
 
 # ================================================================
@@ -1034,6 +1038,8 @@ class RzpSubscription(models.Model):
         return f"{self.email} - {self.plan.name} ({self.status})"
 
 
+
+
 class RzpInvoice(models.Model):
     """
     Razorpay invoice created for subscription billing.
@@ -1080,6 +1086,8 @@ class RzpPayment(models.Model):
         return self.razorpay_payment_id
 
 
+
+
 class RzpWebhookEvent(models.Model):
     """
     Stores webhook events received from Razorpay.
@@ -1093,6 +1101,8 @@ class RzpWebhookEvent(models.Model):
 
     def __str__(self):
         return f"{self.event} @ {self.received_at}"
+
+
 
 
 class RzpRefund(models.Model):
@@ -1124,3 +1134,4 @@ class RzpRefund(models.Model):
 
     def __str__(self):
         return f"Refund {self.id} - {self.payment}"
+    
