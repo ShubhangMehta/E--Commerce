@@ -23,4 +23,5 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('', include('customers.urls')),
     path('backups/', include('backups.urls')),
+    path('', include('themes.urls')),
 ]
