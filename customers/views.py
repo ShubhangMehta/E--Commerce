@@ -32,10 +32,6 @@ from dateutil.relativedelta import relativedelta
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
 from .models import (
     SubscriptionPlan,
-    UserSubscription,
-    UserInvoice,
-    UserPayment,
-    UserRefundRequest,
     RzpPlan,
     RzpSubscription,
     RzpInvoice,
@@ -44,6 +40,15 @@ from .models import (
     Client,
     Domain,
 )
+
+#temp
+from django.urls import get_resolver
+
+def debug_urls(request):
+    urls = []
+    for pattern in get_resolver().url_patterns:
+        urls.append(str(pattern))
+    return HttpResponse("<br>".join(urls))
 
 # --------------------------------------------------------------------
 # Razorpay service helpers
@@ -58,7 +63,22 @@ from .rzp_services import (
 #                        STANDARD BILLING VIEWS
 # ====================================================================
 
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponse
+from django.contrib import messages
+from .models import TenantRequest, Domain, SubscriptionPlan
+
+
+def create_tenant(request):
+    # Load Razorpay plans created by admin
+    plans = RzpPlan.objects.all().order_by("amount_in_paise")
+
+    return render(request, "create_tenant.html", {"plans": plans})
+
+
+
 def home(request):
+<<<<<<< HEAD
     """Public landing page showing available plans."""
     plans = SubscriptionPlan.objects.filter(status='active')
 <<<<<<< HEAD
@@ -82,12 +102,37 @@ def plans(request):
 <<<<<<< HEAD
 =======
     return render(request, 'home.html', {'plans': plans})
+=======
+    return HttpResponse("<h1> Public Index </h1>")
+
+
+def raise_ticket(request):
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        description = request.POST.get('description')
+        category = request.POST.get('category')
+
+        if subject and description and category:
+            Ticket.objects.create(
+                client=request.tenant,
+                subject=subject,
+                description=description,
+                category=category
+            )
+            messages.success(request, "Your support ticket has been submitted successfully!")
+            return redirect('raise_ticket')
+        else:
+            messages.error(request, "Please fill all fields before submitting.")
+
+    return render(request, 'raise_ticket.html')
+>>>>>>> 69fec36 (Razorpay Integration)
 
 
 def plans(request):
     """Plan listing page."""
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
     plans = SubscriptionPlan.objects.filter(status='active')
+<<<<<<< HEAD
     return render(request, 'billing/plans.html', {'plans': plans})
 
 
@@ -262,6 +307,9 @@ def mark_invoice_paid(request, invoice_id):
     invoice.payment.save()
 
     return JsonResponse({'success': True, 'message': 'Invoice marked as paid'})
+=======
+    return render(request, 'customers/plans.html', {'plans': plans})
+>>>>>>> 69fec36 (Razorpay Integration)
 
 
 <<<<<<< HEAD
@@ -311,7 +359,7 @@ def pricing_page(request):
     for p in plans:
         p.amount_in_rupees = p.amount_in_paise / 100
 
-    return render(request, "billing/pricing.html", {
+    return render(request, "pricing.html", {
         "plans": plans,
         "rzp_key": settings.RAZORPAY_KEY_ID,
     })
@@ -320,32 +368,39 @@ def pricing_page(request):
 @transaction.atomic
 def start_subscription(request):
     """
-    Starts Razorpay subscription and creates local DB entries.
+    Starts Razorpay subscription and creates a local subscription entry.
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
-    # Extract form fields
+    # Extract fields
+    tenant_name = (request.POST.get("tenant_name") or "").strip()
     desired_domain = (request.POST.get("domain") or "").strip().lower()
     email = (request.POST.get("email") or "").strip()
     plan_name = (request.POST.get("plan") or "").strip()
     interval = (request.POST.get("interval") or "").strip()
 
-    if not all([desired_domain, email, plan_name, interval]):
+    # Validate
+    if not all([tenant_name, desired_domain, email, plan_name, interval]):
         return JsonResponse({"ok": False, "error": "Missing fields"}, status=400)
 
-    tenant_name = desired_domain.replace("-", " ").title()
+    # Map domain to schema name
+    # Important: tenants cannot have hyphens, spaces, capital letters
+    schema_name = desired_domain.replace("-", "").replace(" ", "").lower()
 
-    # Fetch plan
+    # Get plan
     try:
         plan = RzpPlan.objects.get(name=plan_name, interval=interval)
     except RzpPlan.DoesNotExist:
         return JsonResponse({"ok": False, "error": "Invalid plan"}, status=400)
 
-    # Create Razorpay subscription
-    rzp_sub = rzp_create_subscription(plan, customer_notify=True)
+    # Create Razorpay subscription on Razorpay server
+    try:
+        rzp_sub = rzp_create_subscription(plan, customer_notify=True)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": f"Razorpay error: {e}"}, status=400)
 
-    # Store subscription
+    # Save subscription locally
     sub = RzpSubscription.objects.create(
         tenant_name=tenant_name,
         desired_domain=desired_domain,
@@ -356,7 +411,7 @@ def start_subscription(request):
         razorpay_subscription_id=rzp_sub["id"],
     )
 
-    # Initial invoice (pending)
+    # Create initial invoice (pending)
     invoice = RzpInvoice.objects.create(
         subscription=sub,
         invoice_number=_next_invoice_number(),
@@ -365,6 +420,7 @@ def start_subscription(request):
         status="pending",
     )
 
+    # Response to initialize Razorpay checkout modal
     return JsonResponse({
         "ok": True,
         "subscription_id": sub.id,
@@ -372,16 +428,8 @@ def start_subscription(request):
         "invoice_number": invoice.invoice_number,
         "amount_in_paise": invoice.amount_in_paise,
         "razorpay_plan_id": plan.razorpay_plan_id,
-        "rzp": rzp_sub,
-    })
-
-
-def checkout_view(request):
-    """Alternate Razorpay checkout page."""
-    plans = RzpPlan.objects.all().order_by("amount_in_paise")
-    return render(request, "billing/checkout.html", {
-        "plans": plans,
         "rzp_key": settings.RAZORPAY_KEY_ID,
+        "rzp": rzp_sub,  # optional debugging
     })
 
 
@@ -389,31 +437,38 @@ def checkout_view(request):
 #                        RAZORPAY WEBHOOK HANDLER
 # ====================================================================
 
+'''
 @csrf_exempt
 def razorpay_webhook(request):
     """
-    Receives real-time subscription + payment events from Razorpay.
+    Handles Razorpay subscription & payment events.
+    Creates tenant automatically when subscription is activated.
     """
-    body = request.body
+
+    # ==================================
+    # 1️⃣ VERIFY SIGNATURE
+    # ==================================
+    body = request.body or b""
     signature = request.headers.get("X-Razorpay-Signature", "")
 
-    # Verify signature
-    digest = hmac.new(
-        settings.RAZORPAY_WEBHOOK_SECRET.encode(),
-        msg=body,
-        digestmod=hashlib.sha256,
-    ).hexdigest()
-
-    signature_ok = hmac.compare_digest(digest, signature)
-
-    # Parse JSON safely
     try:
-        payload = request.body.decode("utf-8") if request.body else "{}"
-        data = json.loads(payload)
-    except:
+        expected_signature = hmac.new(
+            settings.RAZORPAY_WEBHOOK_SECRET.encode(),
+            msg=body,
+            digestmod=hashlib.sha256
+        ).hexdigest()
+
+        signature_ok = hmac.compare_digest(expected_signature, signature)
+    except Exception:
+        signature_ok = False
+
+    # Parse JSON body
+    try:
+        data = json.loads(body.decode("utf-8"))
+    except json.JSONDecodeError:
         data = {}
 
-    # Log all webhook events
+    # Log event
     RzpWebhookEvent.objects.create(
         event=data.get("event", ""),
         payload=data,
@@ -421,82 +476,118 @@ def razorpay_webhook(request):
     )
 
     if not signature_ok:
-        return HttpResponse(status=400)
+        return HttpResponse("Invalid signature", status=400)
 
     event = data.get("event")
     payload = data.get("payload", {})
 
-    # -----------------------------
-    # SUBSCRIPTION ACTIVATED
-    # -----------------------------
+    # ==========================================================
+    # 2️⃣ SUBSCRIPTION ACTIVATED → CREATE TENANT SCHEMA
+    # ==========================================================
     if event == "subscription.activated":
-        sub_ent = payload.get("subscription", {})
-        rzp_sub_id = sub_ent.get("id")
+        subscription_payload = payload.get("subscription", {})
+        rzp_sub_id = subscription_payload.get("id")
 
+        if not rzp_sub_id:
+            return HttpResponse(status=200)
+
+        # Fetch local subscription
         try:
             sub = RzpSubscription.objects.get(razorpay_subscription_id=rzp_sub_id)
         except RzpSubscription.DoesNotExist:
             return HttpResponse(status=200)
 
-        # Activate subscription
+        # Mark active locally
         now = timezone.now()
         sub.status = "active"
         sub.started_at = now
         sub.current_period_start = now
-        sub.current_period_end = now + (relativedelta(months=1) if sub.interval == "monthly" else relativedelta(years=1))
+        sub.current_period_end = (
+            now + relativedelta(months=1)
+            if sub.interval == "monthly"
+            else now + relativedelta(years=1)
+        )
         sub.save()
 
-        # Create tenant if first-time subscription
-        client, created = Client.objects.get_or_create(
-            desired_domain=sub.desired_domain,
-            defaults={
-                "tenant_name": sub.tenant_name,
-                "server_name": "default-server",
-            },
+        # Normalize schema name
+        schema_name = (
+            sub.desired_domain.lower()
+            .replace(" ", "")
+            .replace("-", "")
         )
 
-        if created:
-            # Assign domain
-            Domain.objects.create(
-                domain=f"{sub.desired_domain}.localhost",
-                tenant=client,
-                is_primary=True,
+        # Avoid invalid names
+        if not re.match(r"^[a-z0-9_]+$", schema_name):
+            schema_name = re.sub(r"[^a-z0-9]", "", schema_name)
+
+        # =====================================================
+        # CREATE TENANT IF NOT EXISTS
+        # =====================================================
+        client = None
+
+        if not Client.objects.filter(schema_name=schema_name).exists():
+
+            # 1) Create tenant (creates PostgreSQL schema!)
+            client = Client.objects.create(
+                schema_name=schema_name,
+                tenant_name=sub.tenant_name,
+                desired_domain=sub.desired_domain,
+                email=sub.email,
+                server_name="default",
             )
 
+            # 2) Create primary domain
+            Domain.objects.create(
+                domain=f"{schema_name}.localhost",
+                tenant=client,
+                is_primary=True
+            )
+
+        else:
+            client = Client.objects.get(schema_name=schema_name)
+
+        # Attach tenant to subscription
         sub.client = client
         sub.save()
 
-    # -----------------------------
-    # PAYMENT CAPTURED
-    # -----------------------------
+    # ==========================================================
+    # 3️⃣ PAYMENT CAPTURED → UPDATE INVOICE + STORE PAYMENT
+    # ==========================================================
     if event == "payment.captured":
-        pay_ent = payload.get("payment", {})
-        rzp_sub_id = pay_ent.get("subscription_id")
-        amount = pay_ent.get("amount", 0)
+        payment_payload = payload.get("payment", {})
+        rzp_sub_id = payment_payload.get("subscription_id")
 
+        if not rzp_sub_id:
+            return HttpResponse(status=200)
+
+        # Find subscription
         try:
             sub = RzpSubscription.objects.get(razorpay_subscription_id=rzp_sub_id)
         except RzpSubscription.DoesNotExist:
             return HttpResponse(status=200)
 
-        # Match pending invoice
+        amount = payment_payload.get("amount", 0)
+        razorpay_payment_id = payment_payload.get("id")
+
+        # Get or create pending invoice
         inv = sub.invoices.filter(status="pending").order_by("created_at").first()
+
         if not inv:
             inv = RzpInvoice.objects.create(
                 subscription=sub,
                 invoice_number=_next_invoice_number(),
                 amount_in_paise=amount,
                 currency="INR",
-                status="pending",
+                status="pending"
             )
 
         # Record payment
         RzpPayment.objects.create(
             subscription=sub,
             invoice=inv,
-            razorpay_payment_id=pay_ent.get("id"),
+            razorpay_payment_id=razorpay_payment_id,
             amount_in_paise=amount,
-            currency="INR",
+            currency=payment_payload.get("currency", "INR"),
             captured=True,
         )
 
@@ -506,6 +597,11 @@ def razorpay_webhook(request):
         inv.save()
 
     return HttpResponse(status=200)
+'''
+
+@csrf_exempt
+def razorpay_webhook(request):
+    return HttpResponse("OK from webhook")
 
 
 # ====================================================================

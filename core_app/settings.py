@@ -36,16 +36,20 @@ ALLOWED_HOSTS = ['*']
 SHARED_APPS = [
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
+<<<<<<< HEAD
     "accounts",
     'backups',
     'django_crontab',
+=======
+    #'billing.apps.BillingConfig',    #Billing and Subscription app
+>>>>>>> 69fec36 (Razorpay Integration)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'billing.apps.BillingConfig',    #Billing and Subscription app
+    
 ]
 
 TENANT_APPS = [
@@ -62,12 +66,21 @@ TENANT_APPS = [
 ]
 
 
+<<<<<<< HEAD
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
+=======
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+#INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+>>>>>>> 69fec36 (Razorpay Integration)
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
+<<<<<<< HEAD
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+=======
+
+>>>>>>> 69fec36 (Razorpay Integration)
 
 
 DATABASE_ROUTERS = (
@@ -87,8 +100,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+<<<<<<< HEAD
 PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
 ROOT_URLCONF = "core_app.urls_tenants"
+=======
+ROOT_URLCONF = "core_app.urls"
+PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
+
+PUBLIC_SCHEMA_NAME = "public" 
+
+>>>>>>> 69fec36 (Razorpay Integration)
 
 TEMPLATES = [
     {
