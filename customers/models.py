@@ -39,6 +39,8 @@ class Client(TenantMixin):
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
+    theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
+    brand_color = models.CharField(max_length=20, default='#2563eb')
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)

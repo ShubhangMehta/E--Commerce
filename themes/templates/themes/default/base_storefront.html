@@ -8,10 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50" style="--brand-color: {{ tenant.brand_color }};">
 
     <!-- NAVBAR -->
     <nav class="bg-white shadow mb-6">
+        {% if tenant.logo %}
+            <img src="{{ tenant.logo.url }}" class="h-10">
+        {% else %}
+            <span class="font-bold text-xl"> {{ tenant.tenant_name }}</span>
+        {% endif %}
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between">
             <a href="/" class="text-xl font-bold">
                 {{ tenant.tenant_name }}

@@ -4,19 +4,24 @@ from catalog.models import Product
 # Create your views here.
 
 def index(request):
-    return render(request, f"themes/default/index.html")
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/index.html")
 
 def product_list(request):
+    theme = request.tenant.theme
     products = Product.objects.all()
-    return render(request, f"themes/default/product_list.html", {"products": products})
+    return render(request, f"themes/{theme}/product_list.html", {"products": products})
 
 def product_detail(request, id):
+    theme = request.tenant.theme
     product = get_object_or_404(Product, id=id)
-    return render(request, f"themes/default/product_detail.html", {"product": product})
+    return render(request, f"themes/{theme}/product_detail.html", {"product": product})
 
 def cart(request):
-    return render(request, f"themes/default/cart.html")
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/cart.html")
 
 def checkout(request):
-    return render(request, f"themes/default/checkout.html")
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/checkout.html")
 
