@@ -13,6 +13,7 @@ class BlockTenantAdminMiddleware:
     def __call__(self, request):
         # Check current schema
         current_schema = connection.schema_name
+        print("Current Schema >>>> ", connection.schema_name)
 
         #if not current_schema == 'public' block it
         if current_schema != 'public' and request.path.startswith('/admin/'):
