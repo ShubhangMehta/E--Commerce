@@ -1,3 +1,4 @@
+
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.contrib.auth.models import User
@@ -17,30 +18,6 @@ from django.conf import settings
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
 =======
 >>>>>>> 69fec36 (Razorpay Integration)
-
-'''
-class Customer(models.Model): #my
-    """
-    Represents an end-user customer using the platform.
-    """
-
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)       # Unique login/contact email
-    phone = models.CharField(max_length=15, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    joined_date = models.DateTimeField(auto_now_add=True)  # Date customer registered
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        app_label = "customers"
-        # important for django-tenants
-        managed = True
-        #tenant_schema = True   # <<— this makes it a TENANT MODEL
-'''
-
-
 
 class SubscriptionPlan(models.Model): #same
     PLAN_CHOICES = [
@@ -522,6 +499,9 @@ class Client(TenantMixin): #humera
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
+    brand_color = models.CharField(max_length=20, default="#000000", blank=True)
+    theme = models.CharField(max_length=50, default="default", blank=True)
+
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
     product_count = models.IntegerField(default=0)
@@ -532,6 +512,9 @@ class Client(TenantMixin): #humera
     last_login = models.DateTimeField(null=True, blank=True)
 
     auto_create_schema = True
+
+    tenant_urlconf = "core_app.tenant_urls"
+    urlconf = "core_app.tenant_urls"
 
     STATUS_CHOICES = [
         ('Active', 'Active'),
@@ -590,7 +573,7 @@ class Domain(DomainMixin): #same
 
 
 
-class TenantRequest(models.Model): #same
+class TenantRequest(models.Model):
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
@@ -603,7 +586,11 @@ class TenantRequest(models.Model): #same
     address = models.TextField(blank=True, null=True)
     logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
 
-    # Subscription plan chosen at signup
+    # Branding (NEW)
+    brand_color = models.CharField(max_length=20, default="#000000", blank=True)
+    theme = models.CharField(max_length=50, default="default", blank=True)
+
+    # Subscription plan selected at signup
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
 
     PAYMENT_METHODS = [
@@ -632,6 +619,7 @@ class TenantRequest(models.Model): #same
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
+
 
 
 
@@ -907,17 +895,19 @@ class RzpPlan(models.Model):
 
 
 class RzpSubscription(models.Model):
-    """
-    Razorpay subscription record for automated billing.
-    """
 
     client = models.ForeignKey(
         "customers.Client", on_delete=models.SET_NULL, blank=True, null=True
     )
 
     tenant_name = models.CharField(max_length=100)
-    desired_domain = models.CharField(max_length=150)     # subdomain
+    desired_domain = models.CharField(max_length=150)
     email = models.EmailField()
+
+    # ⭐ ADD THESE TWO FIELDS
+    brand_color = models.CharField(max_length=20, default="#000000")
+    theme = models.CharField(max_length=50, default="default")
+
 
     plan = models.ForeignKey(RzpPlan, on_delete=models.PROTECT)
     interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
@@ -1046,3 +1036,8 @@ class RzpRefund(models.Model):
     def __str__(self):
         return f"Refund {self.id} - {self.payment}"
     
+
+
+
+
+

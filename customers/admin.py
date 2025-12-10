@@ -1,21 +1,28 @@
 from django.contrib import admin
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+from django.db import connection
+from django.utils import timezone
+from django_tenants.utils import schema_context
+>>>>>>> 304533d (cleaned the unwanted files and folders)
 from .models import (
-    #Customer,
     SubscriptionPlan,
-    #UserSubscription,
-    #UserPayment,
-    #UserInvoice,
-    #UserRefundRequest,
+    ClientRefundRequest,
     Client,
     Domain,
+<<<<<<< HEAD
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
+=======
+    TenantRequest,
+>>>>>>> 304533d (cleaned the unwanted files and folders)
 
 # Register your models here.
 from django.contrib import admin
 from .models import Plan, Subscription, Invoice, Payment, Refund
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
@@ -43,6 +50,8 @@ class CustomerAdmin(admin.ModelAdmin):
 
 '''
 >>>>>>> 69fec36 (Razorpay Integration)
+=======
+>>>>>>> 304533d (cleaned the unwanted files and folders)
 
 <<<<<<< HEAD
 @admin.register(Invoice)
@@ -64,6 +73,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
 
 
 # -----------------------------
+<<<<<<< HEAD
 # User Subscription Admin
 # -----------------------------
 '''
@@ -141,6 +151,8 @@ class RefundAdmin(admin.ModelAdmin):
     approve_refunds.short_description = "Approve selected refunds"
 =======
 # -----------------------------
+=======
+>>>>>>> 304533d (cleaned the unwanted files and folders)
 # Tenant & Domain Admin
 # -----------------------------
 @admin.register(Client)
@@ -152,6 +164,95 @@ class ClientAdmin(admin.ModelAdmin):
 class DomainAdmin(admin.ModelAdmin):
     list_display = ["domain", "tenant", "is_primary"]
 
+
+@admin.register(TenantRequest)
+class TenantRequestAdmin(admin.ModelAdmin):
+    list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
+    list_filter = ('status',)
+    actions = ['approve_selected_tenants']
+
+    @admin.action(description='Approve selected tenants')
+    def approve_selected_tenants(self, request, queryset):
+        try:
+            print("🚀 ACTION EXECUTED >>>", queryset)
+            connection.set_autocommit(True)
+
+            with schema_context('public'):
+                for tr in queryset.filter(is_approved=False):
+                    schema_name = tr.tenant_name.lower().replace(" ", "_")
+
+                    # 1️⃣ Mark request approved
+                    tr.is_approved = True
+                    tr.status = "Approved"
+                    tr.save()
+
+                    # 2️⃣ Create Tenant (Client)
+                    tenant = Client.objects.create(
+                        schema_name=schema_name,
+                        tenant_name=tr.tenant_name,
+                        server_name="VPS-001",
+                        desired_domain=tr.desired_domain,
+                        email=tr.email,
+                        company=tr.company,
+                        address=tr.address,
+                        logo=tr.logo
+                    )
+
+                    print(f"⚙️ Creating schema manually for: {schema_name}")
+                    tenant.create_schema(check_if_exists=True)
+
+                    # 3️⃣ Create Domain
+                    Domain.objects.create(
+                        domain=f"{tr.desired_domain}.localhost",
+                        tenant=tenant,
+                        is_primary=True
+                    )
+
+                    # 4️⃣ Create Razorpay Subscription
+                    rzp_subscription = RzpSubscription.objects.create(
+                        client=tenant,
+                        tenant_name=tenant.tenant_name,
+                        desired_domain=tenant.desired_domain,
+                        email=tenant.email,
+                        plan=tr.plan,  
+                        interval="monthly",  # you can use tr.payment_plan instead
+                        status="created"
+                    )
+
+                    # 5️⃣ Create Razorpay Payment (mock successful payment)
+                    rzp_payment = RzpPayment.objects.create(
+                        subscription=rzp_subscription,
+                        amount_in_paise=int(tr.plan.price * 100),  # INR → paise
+                        razorpay_payment_id=f"pay_{tenant.id}_{int(timezone.now().timestamp())}",
+                        currency="INR",
+                        captured=True
+                    )
+
+                    print(f"💰 Payment & Subscription created for tenant: {tenant.tenant_name}")
+
+            connection.set_autocommit(False)
+            self.message_user(request, "🎉 Tenants approved and Razorpay subscription created successfully!")
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.message_user(request, f"❌ Error approving tenants: {e}", level='error')
+
+
+@admin.register(ClientRefundRequest)
+class ClientRefundRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "client",
+        "payment",
+        "refund_amount",
+        "refund_type",
+        "refund_policy",
+        "status",
+        "requested_at",
+        "processed_at",
+    )
+    list_filter = ("status", "refund_type", "refund_policy")
+    search_fields = ("client__tenant_name", "reason", "payment__transaction_id")
 
 # -----------------------------
 # Razorpay Related Admin Models

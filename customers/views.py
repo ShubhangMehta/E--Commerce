@@ -16,6 +16,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
+import re
 import hmac
 import hashlib
 import uuid
@@ -31,6 +32,8 @@ from dateutil.relativedelta import relativedelta
 # --------------------------------------------------------------------
 >>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
 from .models import (
+    TenantRequest,
+    Ticket,
     SubscriptionPlan,
     RzpPlan,
     RzpSubscription,
@@ -39,6 +42,8 @@ from .models import (
     RzpWebhookEvent,
     Client,
     Domain,
+    ClientPayment,
+    ClientRefundRequest,
 )
 
 #temp
@@ -314,6 +319,7 @@ def mark_invoice_paid(request, invoice_id):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 def raise_ticket(request):
     if request.method == 'POST':
         subject = request.POST.get('subject')
@@ -338,6 +344,34 @@ def raise_ticket(request):
 #  Razorpay Billing Views (moved from billing app)
 # ---------------------------------------------
 =======
+=======
+def refund_request(request):
+    # TEMP: you must replace this with actual logged-in tenant
+    client = Client.objects.first()  # OR: request.tenant
+
+    if request.method == "POST":
+        reason = request.POST.get("reason")
+        status = request.POST.get("status", "pending")
+
+        # Choose latest payment for refund
+        payment = ClientPayment.objects.filter(client=client).order_by("-created_at").first()
+
+        if not payment:
+            return HttpResponse("No payment found for this tenant", status=400)
+
+        ClientRefundRequest.objects.create(
+            client=client,
+            payment=payment,
+            reason=reason,
+            status=status,
+            refund_type="subscription_cancel",  # default
+        )
+
+        return HttpResponse("<h3>Your refund request was submitted successfully!</h3>")
+
+    return render(request, "refund_request.html", {"client": client})
+
+>>>>>>> 304533d (cleaned the unwanted files and folders)
 # ====================================================================
 #                        RAZORPAY BILLING VIEWS
 # ====================================================================
@@ -373,12 +407,16 @@ def start_subscription(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
-    # Extract fields
-    tenant_name = (request.POST.get("tenant_name") or "").strip()
+    # ✅ Correct field extraction
+    tenant_name = (request.POST.get("tenant_name") or "").strip().title()
     desired_domain = (request.POST.get("domain") or "").strip().lower()
     email = (request.POST.get("email") or "").strip()
     plan_name = (request.POST.get("plan") or "").strip()
     interval = (request.POST.get("interval") or "").strip()
+
+    brand_color = request.POST.get("brand_color", "#000000")
+    theme = request.POST.get("theme", "default")
+
 
     # Validate
     if not all([tenant_name, desired_domain, email, plan_name, interval]):
@@ -405,6 +443,10 @@ def start_subscription(request):
         tenant_name=tenant_name,
         desired_domain=desired_domain,
         email=email,
+        
+        brand_color=brand_color,
+        theme=theme,
+
         plan=plan,
         interval=interval,
         status="created",
@@ -437,17 +479,16 @@ def start_subscription(request):
 #                        RAZORPAY WEBHOOK HANDLER
 # ====================================================================
 
-'''
 @csrf_exempt
 def razorpay_webhook(request):
     """
     Handles Razorpay subscription & payment events.
-    Creates tenant automatically when subscription is activated.
+
+    - subscription.activated  → creates TenantRequest (admin will later approve & create Client)
+    - payment.captured        → updates invoice & payment
     """
 
-    # ==================================
-    # 1️⃣ VERIFY SIGNATURE
-    # ==================================
+    # ---------- 1. VERIFY SIGNATURE ----------
     body = request.body or b""
     signature = request.headers.get("X-Razorpay-Signature", "")
 
@@ -455,20 +496,19 @@ def razorpay_webhook(request):
         expected_signature = hmac.new(
             settings.RAZORPAY_WEBHOOK_SECRET.encode(),
             msg=body,
-            digestmod=hashlib.sha256
+            digestmod=hashlib.sha256,
         ).hexdigest()
-
         signature_ok = hmac.compare_digest(expected_signature, signature)
     except Exception:
         signature_ok = False
 
-    # Parse JSON body
+    # Parse JSON
     try:
         data = json.loads(body.decode("utf-8"))
     except json.JSONDecodeError:
         data = {}
 
-    # Log event
+    # Log the event
     RzpWebhookEvent.objects.create(
         event=data.get("event", ""),
         payload=data,
@@ -476,28 +516,36 @@ def razorpay_webhook(request):
     )
 
     if not signature_ok:
+        print("Razorpay webhook: invalid signature")
         return HttpResponse("Invalid signature", status=400)
 
     event = data.get("event")
-    payload = data.get("payload", {})
+    payload = data.get("payload", {}) or {}
 
-    # ==========================================================
-    # 2️⃣ SUBSCRIPTION ACTIVATED → CREATE TENANT SCHEMA
-    # ==========================================================
+    print("== RAZORPAY WEBHOOK ==", event)
+
+    # =========================================================
+    # 1) subscription.activated → CREATE TenantRequest
+    # =========================================================
     if event == "subscription.activated":
-        subscription_payload = payload.get("subscription", {})
-        rzp_sub_id = subscription_payload.get("id")
+        # Razorpay: payload["subscription"]["entity"]["id"]
+        sub_entity = payload.get("subscription", {}).get("entity", {}) or {}
+        rzp_sub_id = sub_entity.get("id")
+
+        print("subscription.activated → subscription_id from payload:", rzp_sub_id)
 
         if not rzp_sub_id:
             return HttpResponse(status=200)
 
-        # Fetch local subscription
         try:
-            sub = RzpSubscription.objects.get(razorpay_subscription_id=rzp_sub_id)
+            sub = RzpSubscription.objects.get(
+                razorpay_subscription_id=rzp_sub_id
+            )
         except RzpSubscription.DoesNotExist:
+            print("No local RzpSubscription found for", rzp_sub_id)
             return HttpResponse(status=200)
 
-        # Mark active locally
+        # Mark subscription active
         now = timezone.now()
         sub.status = "active"
         sub.started_at = now
@@ -509,85 +557,73 @@ def razorpay_webhook(request):
         )
         sub.save()
 
-        # Normalize schema name
-        schema_name = (
-            sub.desired_domain.lower()
-            .replace(" ", "")
-            .replace("-", "")
+        # Map RzpPlan → SubscriptionPlan (optional)
+        subscription_plan = None
+        if sub.plan:
+            subscription_plan = SubscriptionPlan.objects.filter(
+                name__iexact=sub.plan.name.lower()
+            ).first()
+
+        payment_plan = "Monthly" if sub.interval == "monthly" else "Yearly"
+
+        # 🔹 Create TenantRequest instead of Client
+        tr = TenantRequest.objects.create(
+            tenant_name=sub.tenant_name,
+            desired_domain=sub.desired_domain,
+            email=sub.email,
+            plan=subscription_plan,
+            brand_color= sub.brand_color,
+            theme= sub.theme,
+            payment_mode="CARD",      # online payment
+            payment_plan=payment_plan,
+            status="Pending",         # admin will approve later
         )
 
-        # Avoid invalid names
-        if not re.match(r"^[a-z0-9_]+$", schema_name):
-            schema_name = re.sub(r"[^a-z0-9]", "", schema_name)
+        print("TenantRequest created with id:", tr.id)
+        return HttpResponse("TenantRequest created", status=200)
 
-        # =====================================================
-        # CREATE TENANT IF NOT EXISTS
-        # =====================================================
-        client = None
-
-        if not Client.objects.filter(schema_name=schema_name).exists():
-
-            # 1) Create tenant (creates PostgreSQL schema!)
-            client = Client.objects.create(
-                schema_name=schema_name,
-                tenant_name=sub.tenant_name,
-                desired_domain=sub.desired_domain,
-                email=sub.email,
-                server_name="default",
-            )
-
-            # 2) Create primary domain
-            Domain.objects.create(
-                domain=f"{schema_name}.localhost",
-                tenant=client,
-                is_primary=True
-            )
-
-        else:
-            client = Client.objects.get(schema_name=schema_name)
-
-        # Attach tenant to subscription
-        sub.client = client
-        sub.save()
-
-    # ==========================================================
-    # 3️⃣ PAYMENT CAPTURED → UPDATE INVOICE + STORE PAYMENT
-    # ==========================================================
+    # =========================================================
+    # 2) payment.captured → update invoice + payment
+    # =========================================================
     if event == "payment.captured":
-        payment_payload = payload.get("payment", {})
-        rzp_sub_id = payment_payload.get("subscription_id")
+        pay_entity = payload.get("payment", {}).get("entity", {}) or {}
+        rzp_sub_id = pay_entity.get("subscription_id")
+
+        print("payment.captured → subscription_id from payment:", rzp_sub_id)
 
         if not rzp_sub_id:
+            # some test events have no subscription_id
             return HttpResponse(status=200)
 
-        # Find subscription
         try:
-            sub = RzpSubscription.objects.get(razorpay_subscription_id=rzp_sub_id)
+            sub = RzpSubscription.objects.get(
+                razorpay_subscription_id=rzp_sub_id
+            )
         except RzpSubscription.DoesNotExist:
+            print("No local RzpSubscription found for", rzp_sub_id)
             return HttpResponse(status=200)
 
-        amount = payment_payload.get("amount", 0)
-        razorpay_payment_id = payment_payload.get("id")
+        amount = pay_entity.get("amount", 0)
+        razorpay_payment_id = pay_entity.get("id")
 
         # Get or create pending invoice
         inv = sub.invoices.filter(status="pending").order_by("created_at").first()
-
         if not inv:
             inv = RzpInvoice.objects.create(
                 subscription=sub,
                 invoice_number=_next_invoice_number(),
                 amount_in_paise=amount,
-                currency="INR",
-                status="pending"
+                currency=pay_entity.get("currency", "INR"),
+                status="pending",
             )
 
-        # Record payment
+        # Create payment
         RzpPayment.objects.create(
             subscription=sub,
             invoice=inv,
             razorpay_payment_id=razorpay_payment_id,
             amount_in_paise=amount,
-            currency=payment_payload.get("currency", "INR"),
+            currency=pay_entity.get("currency", "INR"),
             captured=True,
         )
 
@@ -596,12 +632,12 @@ def razorpay_webhook(request):
         inv.paid_at = timezone.now()
         inv.save()
 
-    return HttpResponse(status=200)
-'''
+        print("Invoice marked paid for subscription:", rzp_sub_id)
+        return HttpResponse("Payment updated", status=200)
 
-@csrf_exempt
-def razorpay_webhook(request):
-    return HttpResponse("OK from webhook")
+    # Other events: just acknowledge
+    return HttpResponse("OK", status=200)
+
 
 
 # ====================================================================
@@ -617,6 +653,7 @@ def refund_payment_view(request, payment_id: str):
         return JsonResponse({"ok": True, "refund": rr})
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
+<<<<<<< HEAD
 >>>>>>> 777f33b (razorpay integrated in coutomers folder)
 =======
 @login_required
@@ -661,3 +698,8 @@ def mark_invoice_paid(request, invoice_id):
         return JsonResponse({'success': True, 'message': 'Invoice marked as paid'})
         
 >>>>>>> 0078471 (mylatestcode)
+=======
+
+
+
+>>>>>>> 304533d (cleaned the unwanted files and folders)
