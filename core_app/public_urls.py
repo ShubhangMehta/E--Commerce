@@ -1,3 +1,5 @@
+"""
+
 from django.contrib import admin
 from django.urls import path, include
 
@@ -9,3 +11,6 @@ urlpatterns = [
     path('', include('customers.urls')),
     path('debug-urls/', customer_views.debug_urls), 
 ]
+
+
+"""
