@@ -34,11 +34,13 @@ class SubscriptionEnforcementMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        print("SCHEMA:", connection.schema_name)
+
         if connection.schema_name != "public":
             from customers.models import Client
             try:
                 client = Client.objects.get(schema_name=connection.schema_name)
-                if client.subscription_end and client.subscription_end < timezone.now().date():
+                if client.subscription_end and client.subscription_end.date() < timezone.now().date():
                     return HttpResponse(
                         "<h2>Subscription Expired</h2><p>Please renew to continue using the service.</p>",
                         status=402

@@ -80,7 +80,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "core_app.urls"
-PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
+#PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
+TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
+
 
 PUBLIC_SCHEMA_NAME = "public" 
 
