@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Backup Stats</title>
+
+    <style>
+        body { font-family: Arial; background: #f3f3f3; }
+        .container { width: 70%; margin: 40px auto; background: white; padding: 25px; border-radius: 8px; }
+        h1 { text-align: center; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Backup Status Overview</h1>
+
+    <canvas id="backupChart"></canvas>
+</div>
+
+<script>
+    const ctx = document.getElementById('backupChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [
+                {
+                    label: 'Success',
+                    data: {{ success_counts|safe }},
+                    backgroundColor: 'green'
+                },
+                {
+                    label: 'Failed',
+                    data: {{ failure_counts|safe }},
+                    backgroundColor: 'red'
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
