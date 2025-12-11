@@ -1,42 +1,30 @@
 #!/bin/bash
 
-# Weekly full backup - upload directly to Supabase Storage
 set -e
 
-# Correct PATH for pg_dump, psql, python
+# Correct PATH for pg_dump, python
 PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/sasiabburi/E--Commerce/venv/bin
 
-# Load environment variables
-if [ -f /Users/sasiabburi/E--Commerce/.env ]; then
-  source /Users/sasiabburi/E--Commerce/.env
-fi
+# Load environment variables from .env
+export $(grep -v '^#' /Users/sasiabburi/E--Commerce/.env | xargs)
 
-DATE=$(date +%Y-%m-%d)
+DATE=$(date +%Y-%m-%d_%H-%M)
+DB_NAME=$DB_NAME
 
 echo "🚀 Starting WEEKLY full backup for $DB_NAME on $DATE"
 
-# Query only tenant schemas (exclude PostgreSQL internal schemas)
-TENANT_SCHEMAS=$(psql "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
-  -t -c "SELECT schema_name 
-         FROM information_schema.schemata 
-         WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog')
-           AND schema_name NOT LIKE 'pg_%'
-           AND schema_name NOT LIKE 'pg_toast%'
-           AND schema_name NOT LIKE 'pg_temp_%';")
+# Temporary dump location
+DUMP_FILE="/tmp/weekly_${DATE}.dump"
 
-for schema in $TENANT_SCHEMAS; do
+# Run pg_dump
+pg_dump "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
+    -Fc -f "$DUMP_FILE"
 
-  schema=$(echo "$schema" | xargs)   # trim whitespace
-  echo "📦 Weekly backup: $schema"
+echo "📦 Weekly backup dump created → $DUMP_FILE"
 
-  # Pipe pg_dump → python upload
-  pg_dump "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
-      -n "$schema" -Fc \
-  | /Users/sasiabburi/E--Commerce/venv/bin/python3 \
-        /Users/sasiabburi/E--Commerce/backups/utils/upload_to_supabase.py "$schema-weekly" "$DATE" "weekly"
+# Upload to Supabase through Python (pipe dump file)
+cat "$DUMP_FILE" | /Users/sasiabburi/E--Commerce/venv/bin/python3 \
+    /Users/sasiabburi/E--Commerce/backups/utils/upload_to_supabase.py \
+    "$DB_NAME" "$DATE" "weekly"
 
-  echo "✅ Uploaded: $schema-weekly.dump → Supabase Storage"
-
-done
-
-echo "🎉 WEEKLY full backups completed & uploaded successfully!"
+echo "🎉 WEEKLY BACKUP COMPLETED"

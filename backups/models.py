@@ -1,7 +1,11 @@
 from django.db import models
 from django.conf import settings
+import timestamp
+from django.utils import timezone
 
-
+########----
+#Backup Models
+########----
 class Backup(models.Model):
     # per-tenant backup record (daily/weekly)
     TENANT = "tenant"
@@ -20,6 +24,7 @@ class Backup(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        db_table = "backup"
 
     def __str__(self):
         if self.type == self.GLOBAL:
@@ -27,10 +32,16 @@ class Backup(models.Model):
         return f"{self.tenant_schema} Backup {self.created_at:%Y-%m-%d %H:%M}"
 
 
+    """def make_aware_safe(dt):
+        return timezone.make_aware(dt) if timezone.is_naive(dt) else dt"""
+
+
 from django.db import models
 from django.conf import settings
 
-
+########----
+#Backup Log models
+########----
 
 class BackupLog(models.Model):
     LEVEL_INFO = "INFO"
@@ -54,6 +65,8 @@ class BackupLog(models.Model):
 
     class Meta:
         ordering = ["timestamp"]
+        db_table = "backup_log"
+
         verbose_name = "Backup Log"
         verbose_name_plural = "Backup Logs"
 
@@ -61,6 +74,9 @@ class BackupLog(models.Model):
         return f"[{self.level}] {self.timestamp:%Y-%m-%d %H:%M:%S}"
 
 
+########----
+#Global Backup models
+########----
 
 class GlobalBackup(models.Model):
     backup = models.OneToOneField(
@@ -74,8 +90,36 @@ class GlobalBackup(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        db_table = "globalbackup_log"
         verbose_name = "Global Backup Metadata"
         verbose_name_plural = "Global Backups"
 
     def __str__(self):
         return f"GlobalBackup (Retention: {self.retention_weeks} weeks)"
+
+
+
+########----
+# Backup Alerts
+########----
+
+class BackupAlert(models.Model):
+    backup = models.OneToOneField(
+        "Backup",
+        on_delete=models.CASCADE,
+        related_name="alert",
+    )
+
+    retention_weeks = models.PositiveIntegerField(default=4)
+    created_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        db_table = "backup_alert"
+        verbose_name = "Backup Alert"
+        verbose_name_plural = "Backup Alerts"
+
+    def __str__(self):
+        tenant = self.backup.tenant_schema or "GLOBAL"
+        return f"Alert for {tenant} (Backup ID: {self.backup.id})"

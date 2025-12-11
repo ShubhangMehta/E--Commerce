@@ -49,6 +49,25 @@ def upload_weekly_backup(schema: str, date: str, temp_file_path: str):
     print(f"✅ WEEKLY upload complete → {bucket_path}")
 
 
+
+# -------------------------------------------------------------
+# MASTER BACKUP UPLOAD FUNCTION
+# -------------------------------------------------------------
+def upload_master_backup(schema: str, date: str, temp_file_path: str):
+    file_name = f"master-{date}.dump"
+    bucket_path = f"tenants/master/{date}/{file_name}"
+
+    print(f"⬆️ Uploading MASTER backup → {bucket_path}")
+
+    supabase.storage.from_("backups").upload(
+        path=bucket_path,
+        file=temp_file_path,
+        file_options={"content-type": "application/octet-stream"},
+    )
+
+    print(f"✅ MASTER BACKUP UPLOADED → {bucket_path}")
+
+
 # -------------------------------------------------------------
 # MAIN SCRIPT
 # -------------------------------------------------------------
@@ -72,6 +91,9 @@ if __name__ == "__main__":
         upload_daily_backup(schema, date, temp.name)
     elif mode == "weekly":
         upload_weekly_backup(schema, date, temp.name)
+
+    elif mode == "master":
+        upload_master_backup(schema, date, temp.name)
     else:
         print("❌ Invalid mode! Choose 'daily' or 'weekly'")
         sys.exit(1)

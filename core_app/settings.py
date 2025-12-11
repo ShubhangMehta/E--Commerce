@@ -31,18 +31,16 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 SHARED_APPS = [
-    'unfold',
-    'django_tenants',  # mandatory
-    'customers',  # you must list the app where your tenant model resides in
-    'accounts',
-    'django_crontab',
+    "django_tenants",  # mandatory
+    "customers",  # you must list the app where your tenant model resides in
+    "accounts",
+    'backups',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
 ]
 
 TENANT_APPS = [
@@ -59,6 +57,9 @@ TENANT_APPS = [
     'users',
     "themes"
     'backups'
+    #'accounts',
+    'themes',
+    'django_crontab',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
@@ -117,20 +118,21 @@ ROOT_URLCONF = "core_app.urls_tenants"
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+import os
+
 DATABASES = {
     'default': {
         'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
-            'sslmode': 'require',
-        }
+            'sslmode': os.environ.get('DB_SSLMODE', 'require'),  # Supabase requires SSL
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -203,6 +205,20 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# PUBLIC_SCHEMA_URLCONF="customers.urls"
+# TENANT_SCHEMA_URLCONF="core_app.urls"
+
+CRONJOBS = [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
+
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]
+
+CRONJOBS += [
+    ('0 4 * * *', 'scripts.master_backup.sh'),  # Runs Sunday 4AM
+]
 
 # ----------------------------
 # Email / SMTP Configuration
@@ -217,25 +233,15 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
-# -----------------------------------
-# Payment And Billing Configuration
-# -----------------------------------
+######------
+#Email alerts
+######------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "abburisrinath09@gmail.com"
+EMAIL_HOST_PASSWORD = "1q2w3e"   # Use App Password, not raw PW
+BACKUP_ALERT_EMAIL = "abburisrinath09@gmail.com"
 
-RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
-RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
 
-BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
-BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
-
-BILLING_DEFAULT_SERVER_NAME = "primary"
-BILLING_DOMAIN_SUFFIX = ".localhost"
-
-# Cron job settings
-CRONJOBS = [
-    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
-]
-
-CRONJOBS += [
-    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
-]
