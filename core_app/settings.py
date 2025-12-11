@@ -53,7 +53,9 @@ TENANT_APPS = [
     #'accounts',
     'themes',
     'django_crontab',
-    'backups'
+    'backups',
+    # tenant-inventory app
+    'rest_framework'
 ]
 
 
