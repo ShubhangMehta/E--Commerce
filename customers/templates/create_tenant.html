@@ -5,12 +5,14 @@
     <title>Create Tenant</title>
 </head>
 <body>
-    <h2>Create Tenant Request</h2>
 
-    <form method="POST" action="">
-        {% csrf_token %}
-        <label>Tenant Name:</label><br>
-        <input type="text" name="tenant_name" required><br><br>
+<h2>Create Tenant & Subscribe</h2>
+
+<form id="tenantForm" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Tenant Name:</label><br>
+    <input type="text" id="tenant_name" required><br><br>
 
         <label>Domain Name (without .localhost):</label><br>
         <input type="text" name="domain_name" required><br><br>
@@ -46,8 +48,80 @@
         <button type="submit">Submit Request</button>
     </form>
 
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+function subscribe() {
+
+    const tenantName = document.getElementById("tenant_name").value;
+    const email = document.getElementById("email").value;
+    const domain = document.getElementById("domain").value;
+    const company = document.getElementById("company").value;
+    const address = document.getElementById("address").value;
+    const logo = document.getElementById("logo").files[0];
+    const planName = document.getElementById("plan").value;
+
+    // ⭐ NEW FIELDS
+    const brandColor = document.getElementById("brand_color").value;
+    const theme = document.getElementById("theme").value;
+
+    if (!tenantName || !email || !domain) {
+        alert("Tenant Name, Email & Domain are required");
+        return;
+    }
+
+    const interval = document.querySelector(
+        `#plan option[value="${planName}"]`
+    ).dataset.interval;
+
+    const fd = new FormData();
+    fd.append("tenant_name", tenantName);
+    fd.append("email", email);
+    fd.append("domain", domain);
+    fd.append("company", company);
+    fd.append("address", address);
+    fd.append("plan", planName);
+    fd.append("interval", interval);
+
+    // ⭐ NEW FIELDS ADDED TO REQUEST
+    fd.append("brand_color", brandColor);
+    fd.append("theme", theme);
+
+    if (logo) fd.append("logo", logo);
+
+    fetch("{% url 'rzp_start' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        body: fd
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.ok) {
+            alert(data.error || "Error starting subscription");
+            return;
+        }
+
+        const rzp = new Razorpay({
+            key: data.rzp_key,
+            subscription_id: data.razorpay_subscription_id,
+            name: "Your SaaS",
+            description: planName + " Subscription",
+            handler: function () {
+                alert("Payment successful! Tenant request submitted.");
+                window.location.href = "/";
+            }
+        });
+
+        rzp.open();
+    });
+}
+</script>
+
 </body>
 </html>
