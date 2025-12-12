@@ -416,7 +416,6 @@ class RefundRequest(models.Model):
 #     def __str__(self):
 #         return self.invoice_number
 
-
 class RzpPayment(models.Model):
     """
     Razorpay payment for a subscription invoice.
@@ -438,8 +437,6 @@ class RzpPayment(models.Model):
         return self.razorpay_payment_id
 
 
-
-
 class RzpWebhookEvent(models.Model):
     """
     Stores webhook events received from Razorpay.
@@ -453,8 +450,6 @@ class RzpWebhookEvent(models.Model):
 
     def __str__(self):
         return f"{self.event} @ {self.received_at}"
-
-
 
 
 class RzpRefund(models.Model):

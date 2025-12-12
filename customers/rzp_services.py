@@ -8,7 +8,7 @@ from .models import Client, SubscriptionPlan, ClientSubscription, Payment, Invoi
 
 # Initialize Razorpay client
 rzp_client = razorpay.Client(
-    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY)
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
 )
 
 
