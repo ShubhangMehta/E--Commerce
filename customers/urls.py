@@ -32,6 +32,7 @@ urlpatterns = [
     #path('update-plan/<int:subscription_id>/', views.update_plan, name='update_plan'),
     #path('mark-paid/<int:invoice_id>/', views.mark_invoice_paid, name='mark_invoice_paid'),
     path('create-tenant/', views.create_tenant,name='create_tenants'),
+<<<<<<< HEAD
     path('refund-request/', views.refund_request, name='refund_request'),
 
     # Razorpay billing from customers app
@@ -39,4 +40,11 @@ urlpatterns = [
     #path("billing/checkout/", views.checkout_view, name="rzp_checkout"),
     path("webhook/razorpay/", views.razorpay_webhook, name="razorpay_webhook"),
 >>>>>>> 69fec36 (Razorpay Integration)
+=======
+    path("admin/", admin.site.urls),
+    path('',views.home,name='home'),
+    path('raise-ticket/', views.raise_ticket, name='raise_ticket'),
+    path('razorpay/webhook/', rzp_webhook_views.razorpay_webhook, name='razorpay_webhook'),
+    #path("test-billing/", views.test_billing, name="test_billing"),
+>>>>>>> 015d193 (webhook is remaining razorpay working.)
 ]

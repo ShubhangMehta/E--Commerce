@@ -70,8 +70,82 @@ from .rzp_services import (
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
+<<<<<<< HEAD
 from django.contrib import messages
 from .models import TenantRequest, Domain, SubscriptionPlan
+=======
+from .models import TenantRequest, Domain, SubscriptionPlan, Ticket, Client 
+from core_app.emails.utils import send_html_email
+from django.contrib import messages
+from .rzp_services import create_subscription_checkout
+from django.db import connection
+from django.conf import settings
+
+
+def billing_plans(request):
+    """
+    Show available subscription plans to tenant.
+    """
+    schema = connection.schema_name
+
+    if schema == "public":
+        return HttpResponse(
+            "Plans must be viewed from tenant website.",
+            status=400
+        )
+
+    plans = SubscriptionPlan.objects.filter(status="active").order_by("price")
+
+    return render(
+        request,
+        "customers/plans.html",
+        {"plans": plans}
+    )
+
+
+def billing_renew(request):
+    schema = connection.schema_name
+
+    if schema == 'public':
+        return HttpResponse("Billing renewal is not available on the public schema.", status=400)
+
+    try:
+        client = Client.objects.get(schema_name=schema)
+    except Client.DoesNotExist:
+        return HttpResponse("Client not found.", status=404)
+    
+    plan_id = request.GET.get("plan")
+
+    if plan_id:
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id, status='active')
+        except SubscriptionPlan.DoesNotExist:
+            return HttpResponse("Invalid subscription plan.", status=404)
+    else:
+        plan = SubscriptionPlan.objects.filter(status='active').first()
+        if not plan:
+            return HttpResponse("No active subscription plans available.", status=500)
+    
+    result = create_subscription_checkout(client, plan)
+
+    context = {
+        "razorpay_key": settings.RAZORPAY_KEY_ID,
+        "order": result["razorpay_order"],
+        "client": client,
+        "plan": plan,
+        "amount": int(result["razorpay_order"]["amount"]),
+    }
+
+    return render(request, "customers/billing.html", context)
+
+
+def billing_success(request):
+    return render(request, "customers/billing_success.html")
+
+
+def billing_cancel(request):
+    return render(request, "customers/billing_cancel.html")
+>>>>>>> 015d193 (webhook is remaining razorpay working.)
 
 
 def create_tenant(request):
@@ -80,6 +154,49 @@ def create_tenant(request):
 
     return render(request, "create_tenant.html", {"plans": plans})
 
+<<<<<<< HEAD
+=======
+        # Prevent duplicate domains
+        full_domain = f"{domain_name}.localhost"
+        if Domain.objects.filter(domain=full_domain).exists() or TenantRequest.objects.filter(desired_domain=domain_name).exists():
+            return JsonResponse({'error': 'This domain is already taken.'}, status=400)
+
+        # Validate subscription plan
+        plan = SubscriptionPlan.objects.filter(id=plan_id).first()
+        if not plan:
+            return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+
+        # Store request
+        TenantRequest.objects.create(
+            tenant_name=tenant_name,
+            desired_domain=domain_name,
+            plan=plan,
+            payment_mode=payment_mode,
+            payment_plan=payment_plan,
+            email=email,
+            company=company,
+            address=address,
+            logo=logo
+        )
+
+        send_html_email(
+            subject="Your Tenant Request Has Been Received",
+            to_email=email,
+            template_name="emails/welcome.html",
+            context={
+                "name": tenant_name,
+                "tenant_name": tenant_name,
+                "domain": domain_name,
+                "company": company,
+                "email": email,
+                #"plan": plan_type,
+            }
+        )
+
+        return JsonResponse({'message': f'Request for {tenant_name} submitted for approval!'})
+
+    return render(request, 'customers/create_tenant.html')
+>>>>>>> 015d193 (webhook is remaining razorpay working.)
 
 
 def home(request):
@@ -129,6 +246,7 @@ def raise_ticket(request):
         else:
             messages.error(request, "Please fill all fields before submitting.")
 
+<<<<<<< HEAD
     return render(request, 'raise_ticket.html')
 >>>>>>> 69fec36 (Razorpay Integration)
 
@@ -703,3 +821,6 @@ def mark_invoice_paid(request, invoice_id):
 
 
 >>>>>>> 304533d (cleaned the unwanted files and folders)
+=======
+    return render(request, 'customers/raise_ticket.html')
+>>>>>>> 015d193 (webhook is remaining razorpay working.)

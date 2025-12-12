@@ -3,6 +3,7 @@ from themes import views as themes_views
 from dashboard import views as dashboard_views
 
 
+
 urlpatterns = [
     # path("", themes_views.index, name="themes_home"),
 
@@ -16,5 +17,5 @@ urlpatterns = [
     # path("dashboard/themes/", dashboard_views.themes, name="dashboard_themes"),
 
     path('', include('themes.urls')),
-    path('', include('dashboard.urls')),
+    path('', include('dashboard.urls')),   
 ]

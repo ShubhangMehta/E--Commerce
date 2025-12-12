@@ -17,6 +17,17 @@ All logic is preserved exactly as before — only improved readability and comme
 
 import razorpay
 from django.conf import settings
+<<<<<<< HEAD
+=======
+from django.utils import timezone
+
+from .models import Client, SubscriptionPlan, ClientSubscription, Payment, Invoice
+
+# Initialize Razorpay client
+rzp_client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+)
+>>>>>>> 015d193 (webhook is remaining razorpay working.)
 
 
 # -------------------------------------------------------------
