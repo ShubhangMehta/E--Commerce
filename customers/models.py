@@ -436,10 +436,9 @@ class TenantRequest(models.Model):
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, null=True, blank=True)
     pricing = models.ForeignKey(PlanPricing, on_delete=models.PROTECT,null=True,blank=True)
 
-    THEME_CHOICES = [
-        ('default', 'Default'),
-        ('minimal', 'Minimal'),
-        ('modern', 'Modern'),
+    PAYMENT_PLANS = [
+        ('Monthly', 'Monthly'), #499 999 1999
+        ('Yearly', 'Yearly'), 
     ]
 
     theme = models.CharField(

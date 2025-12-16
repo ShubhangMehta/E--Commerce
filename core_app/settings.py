@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 SHARED_APPS = [
+    'unfold',
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
 <<<<<<< HEAD
@@ -47,6 +48,10 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD
+=======
+    'rest_framework',
+>>>>>>> 14d4de4 ("User-App finished")
     
 ]
 
@@ -59,7 +64,11 @@ TENANT_APPS = [
     # 'django.contrib.staticfiles',
     'catalog',
     'orders',
+<<<<<<< HEAD
     'dashboard',
+=======
+    'users',
+>>>>>>> 14d4de4 ("User-App finished")
     'themes',
 ]
 
@@ -85,9 +94,13 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
+<<<<<<< HEAD
     "django_tenants.middleware.TenantMiddleware",
     "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
     "core_app.middleware.BlockTenantAdminMiddleware",
+=======
+    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
+>>>>>>> 14d4de4 ("User-App finished")
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -101,9 +114,13 @@ MIDDLEWARE = [
 ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
 ROOT_URLCONF = "core_app.urls_tenants"
 =======
+=======
+
+>>>>>>> 14d4de4 ("User-App finished")
 ROOT_URLCONF = "core_app.urls"
 #PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
 TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
