@@ -1,6 +1,7 @@
 from django.contrib import admin
 <<<<<<< HEAD:core_app/urls_public.py
 from django.urls import path,include
+from customers import rzp_webhook_views
 #admin.autodiscover()
 =======
 from django.urls import path, include
@@ -15,4 +16,5 @@ urlpatterns = [
     path("", home, name="public_home"),
     path("", include("accounts.urls")),
     path("", include("customers.urls")),
+    path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
 ]

@@ -63,6 +63,7 @@ def create_or_fetch_plan(plan):
     if plan.razorpay_plan_id:
         return plan.razorpay_plan_id
 
+<<<<<<< HEAD
     # Prepare payload for new Razorpay plan
     payload = {
         "period": "monthly" if plan.interval == "monthly" else "yearly",
@@ -70,6 +71,45 @@ def create_or_fetch_plan(plan):
         "item": {
             "name": f"{plan.name} ({plan.interval})",
             "amount": plan.amount_in_paise,
+=======
+    # 1) Create local Payment record (unpaid)
+    payment = Payment.objects.create(
+        client=client,
+        amount=amount,
+        method="UPI",                # or "CARD" or dynamic, your choice
+        payment_plan=payment_plan,
+        transaction_id="",           # will fill with Razorpay order_id
+        status="unpaid",
+    )
+
+    # 2) Create or update ClientSubscription
+    subscription = ClientSubscription.objects.create(
+        client=client,
+        plan=plan,
+        payment=payment,
+        # start_date/end_date will be set in save()
+        status="active",
+        auto_renew=False,
+    )
+
+    # 3) Create invoice
+    invoice = Invoice.objects.create(
+        client=client,
+        subscription=subscription,
+        payment=payment,
+        invoice_number=f"INV-{client.id}-{payment.id}",
+        invoice_type="auto",
+    )
+
+    # 4) Create Razorpay Order (amount in paise)
+    #amount_in_paise = int(amount * 100)
+    amount = int(plan.price)
+    
+
+    rzp_order = rzp_client.order.create(
+        {
+            "amount": amount * 100,
+>>>>>>> dbe9696 (Payment system configured and working from tenant endpoint)
             "currency": "INR",
         },
     }

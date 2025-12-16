@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from customers import views as customers_views, rzp_webhook_views
+from customers import views as customers_views
 
 urlpatterns = [
     #path("themes/", views.theme_settings, name="theme_settings"),
@@ -12,6 +12,6 @@ urlpatterns = [
     path("billing/plans/", customers_views.billing_plans, name="billing_plans"),
 
     #Razorpay webhook endpoint
-    path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
+    #path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
 
 ]
