@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
+#from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+#load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -36,6 +38,7 @@ SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +50,12 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
-    # your tenant-specific apps
+    # # your tenant-specific apps
+    # 'django.contrib.contenttypes',
+    # 'django.contrib.auth',
+    # 'django.contrib.sessions',
+    # 'django.contrib.messages',
+    # 'django.contrib.staticfiles',
     'catalog',
     'orders',
     'users',
@@ -55,7 +63,7 @@ TENANT_APPS = [
 ]
 
 
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -87,13 +95,16 @@ ROOT_URLCONF = "core_app.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR  / "templates"],
+        "DIRS": [
+            BASE_DIR / 'core_app/emails/templates',
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core_app.context_processors.tenant_settings",
             ],
         },
     },
@@ -164,9 +175,13 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-PUBLIC_SCHEMA_URLCONF="customers.urls"
-TENANT_SCHEMA_URLCONF="core_app.urls"
+CRONJOBS = [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
 
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]
 
 # ----------------------------
 # Email / SMTP Configuration
@@ -180,5 +195,19 @@ EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+# -----------------------------------
+# Payment And Billing Configuration
+# -----------------------------------
+
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
+
+BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
+
+BILLING_DEFAULT_SERVER_NAME = "primary"
+BILLING_DOMAIN_SUFFIX = ".localhost"
 
 

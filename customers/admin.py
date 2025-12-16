@@ -4,9 +4,11 @@ from django.db import connection
 from django_tenants.utils import schema_context
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
-    Ticket, ClientSubscription, Payment, Invoice, RefundRequest
+    Ticket, ClientSubscription, Payment, Invoice, RefundRequest,
+    RzpPayment, RzpWebhookEvent, RzpRefund
 )
 from django.utils import timezone
+from core_app.emails.utils import send_html_email
 
 # ----------------------------
 # Domain Admin
@@ -91,6 +93,7 @@ class TenantRequestAdmin(ModelAdmin):
         try:
             connection.set_autocommit(True)
 
+
             with schema_context('public'):
                 for tr in queryset.filter(is_approved=False):
                     schema_name = tr.tenant_name.lower().replace(" ", "_")
@@ -111,6 +114,7 @@ class TenantRequestAdmin(ModelAdmin):
                         address=tr.address,
                         logo=tr.logo
                     )
+
 
                     tenant.create_schema(check_if_exists=True)
 
@@ -140,8 +144,31 @@ class TenantRequestAdmin(ModelAdmin):
                         auto_renew=True
                     )
 
+                    print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
+                    
+                    send_html_email(
+                        subject="Your Tenant has been successfully created",
+                        to_email=tr.email,
+                        template_name="emails/tenant_created.html",
+                        context={
+                            "owner_name": tr.tenant_name,
+                            "tenant_name": tr.tenant_name,
+                            "company": tr.company,
+                            "email": tr.email,
+                            "address": tr.address,
+                            #"created_on": tenant_created_on,
+                            "domain": tr.desired_domain,
+                        }
+                    )    
+                    if not tr.email:
+                            print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
+                            continue
+                       
+                    print(f"email sent to {tr.email}")
+
             connection.set_autocommit(False)
             self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
+
 
         except Exception as e:
             import traceback
@@ -193,3 +220,21 @@ class RefundRequestAdmin(ModelAdmin):
     list_display = ('client', 'payment', 'refund_type', 'refund_policy', 'status', 'refund_amount', 'requested_at')
     list_filter = ('status', 'refund_type', 'refund_policy')
     search_fields = ('client__tenant_name', 'payment__transaction_id')
+
+# -----------------------------
+# Razorpay Related Admin Models
+# -----------------------------
+
+@admin.register(RzpPayment)
+class RzpPaymentAdmin(admin.ModelAdmin):
+    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
+
+
+@admin.register(RzpWebhookEvent)
+class RzpWebhookEventAdmin(admin.ModelAdmin):
+    list_display = ("event", "signature_ok", "received_at")
+
+
+@admin.register(RzpRefund)
+class RzpRefundAdmin(admin.ModelAdmin):
+    list_display = ("payment", "razorpay_refund_id", "status", "created_at")

@@ -40,3 +40,11 @@ class TwoFactorCode(models.Model):
     def generate_code():
         return str(random.randint(100000, 999999))  
     
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    last_login_email = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
