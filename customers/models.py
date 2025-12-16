@@ -290,8 +290,8 @@ class TenantRequest(models.Model):
     payment_mode = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='COD')
 
     PAYMENT_PLANS = [
-        ('Monthly', 'Monthly'),
-        ('Yearly', 'Yearly'),
+        ('Monthly', 'Monthly'), #499 999 1999
+        ('Yearly', 'Yearly'), 
     ]
     payment_plan = models.CharField(max_length=10, choices=PAYMENT_PLANS, default='Monthly')
 
