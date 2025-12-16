@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 SHARED_APPS = [
+    'unfold',
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
@@ -41,13 +42,15 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    
 ]
 
 TENANT_APPS = [
     # your tenant-specific apps
     'catalog',
     'orders',
-    #'accounts',
+    'users',
     'themes',
 ]
 
@@ -65,8 +68,7 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",
-    "core_app.middleware.BlockTenantAdminMiddleware",
+    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -74,7 +76,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    # Place your custom middleware AFTER auth
+    "core_app.middleware.BlockTenantAdminMiddleware",
 ]
+
 
 ROOT_URLCONF = "core_app.urls"
 
