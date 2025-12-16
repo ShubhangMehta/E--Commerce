@@ -1,0 +1,20 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block content %}
+<h1 class="text-2xl font-bold">Welcome, {{ tenant.owner_name }}</h1>
+
+<div class="grid grid-cols-4 gap-6 mt-6">
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="font-bold text-xl">{{ product_count }}</h2>
+        <p class="text-gray-500">Products</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="font-bold text-xl">{{ order_count }}</h2>
+        <p class="text-gray-500">Orders</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <h2 class="font-bold text-xl">{{ visitor_count }}</h2>
+        <p class="text-gray-500">Visitors</p>
+    </div>
+</div>
+{% endblock %}

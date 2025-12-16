@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 
-class BillingConfig(AppConfig):
+class CustomersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'billing'
-    verbose_name = 'Billing & Subscriptions'
+    name = 'customers'

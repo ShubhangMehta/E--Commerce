@@ -4,7 +4,8 @@ from django.db import connection
 from django_tenants.utils import schema_context
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
-    Ticket, ClientSubscription, Payment, Invoice, RefundRequest
+    Ticket, ClientSubscription, Payment, Invoice, RefundRequest,
+    RzpPayment, RzpWebhookEvent, RzpRefund
 )
 from django.utils import timezone
 from core_app.emails.utils import send_html_email
@@ -95,6 +96,7 @@ class TenantRequestAdmin(admin.ModelAdmin):
             print("🚀 ACTION EXECUTED >>>", queryset)
             connection.set_autocommit(True)
 
+
             with schema_context('public'):
                 for tr in queryset.filter(is_approved=False):
                     schema_name = tr.tenant_name.lower().replace(" ", "_")
@@ -115,6 +117,7 @@ class TenantRequestAdmin(admin.ModelAdmin):
                         address=tr.address,
                         logo=tr.logo
                     )
+
 
                     print(f"⚙️ Creating schema manually for: {schema_name}")
                     tenant.create_schema(check_if_exists=True)
@@ -222,3 +225,21 @@ class RefundRequestAdmin(admin.ModelAdmin):
     list_display = ('client', 'payment', 'refund_type', 'refund_policy', 'status', 'refund_amount', 'requested_at')
     list_filter = ('status', 'refund_type', 'refund_policy')
     search_fields = ('client__tenant_name', 'payment__transaction_id')
+
+# -----------------------------
+# Razorpay Related Admin Models
+# -----------------------------
+
+@admin.register(RzpPayment)
+class RzpPaymentAdmin(admin.ModelAdmin):
+    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
+
+
+@admin.register(RzpWebhookEvent)
+class RzpWebhookEventAdmin(admin.ModelAdmin):
+    list_display = ("event", "signature_ok", "received_at")
+
+
+@admin.register(RzpRefund)
+class RzpRefundAdmin(admin.ModelAdmin):
+    list_display = ("payment", "razorpay_refund_id", "status", "created_at")

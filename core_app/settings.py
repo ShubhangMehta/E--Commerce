@@ -37,6 +37,7 @@ SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,10 +48,15 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
-    # your tenant-specific apps
+    # # your tenant-specific apps
+    # 'django.contrib.contenttypes',
+    # 'django.contrib.auth',
+    # 'django.contrib.sessions',
+    # 'django.contrib.messages',
+    # 'django.contrib.staticfiles',
     'catalog',
     'orders',
-    #'accounts',
+    'dashboard',
     'themes',
     'django_crontab',
     'backups',
@@ -60,7 +66,7 @@ TENANT_APPS = [
 ]
 
 
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -74,6 +80,7 @@ DATABASE_ROUTERS = (
 
 MIDDLEWARE = [
     "django_tenants.middleware.TenantMiddleware",
+    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
     "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -84,7 +91,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "core_app.urls"
+PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -98,6 +106,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core_app.context_processors.tenant_settings",
             ],
         },
     },
@@ -168,9 +177,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# PUBLIC_SCHEMA_URLCONF="customers.urls"
-# TENANT_SCHEMA_URLCONF="core_app.urls"
-
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
 ]
@@ -191,5 +197,19 @@ EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+# -----------------------------------
+# Payment And Billing Configuration
+# -----------------------------------
+
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
+
+BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
+
+BILLING_DEFAULT_SERVER_NAME = "primary"
+BILLING_DOMAIN_SUFFIX = ".localhost"
 
 

@@ -1,8 +1,77 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
-from .models import TenantRequest, Domain, SubscriptionPlan, Ticket 
+from .models import TenantRequest, Domain, SubscriptionPlan, Ticket, Client 
 from core_app.emails.utils import send_html_email
 from django.contrib import messages
+from .rzp_services import create_subscription_checkout
+from django.db import connection
+from django.conf import settings
+
+
+def billing_plans(request):
+    """
+    Show available subscription plans to tenant.
+    """
+    schema = connection.schema_name
+
+    if schema == "public":
+        return HttpResponse(
+            "Plans must be viewed from tenant website.",
+            status=400
+        )
+
+    plans = SubscriptionPlan.objects.filter(status="active").order_by("price")
+
+    return render(
+        request,
+        "customers/plans.html",
+        {"plans": plans}
+    )
+
+
+def billing_renew(request):
+    schema = connection.schema_name
+
+    if schema == 'public':
+        return HttpResponse("Billing renewal is not available on the public schema.", status=400)
+
+    try:
+        client = Client.objects.get(schema_name=schema)
+    except Client.DoesNotExist:
+        return HttpResponse("Client not found.", status=404)
+    
+    plan_id = request.GET.get("plan")
+
+    if plan_id:
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id, status='active')
+        except SubscriptionPlan.DoesNotExist:
+            return HttpResponse("Invalid subscription plan.", status=404)
+    else:
+        plan = SubscriptionPlan.objects.filter(status='active').first()
+        if not plan:
+            return HttpResponse("No active subscription plans available.", status=500)
+    
+    result = create_subscription_checkout(client, plan)
+
+    context = {
+        "razorpay_key": settings.RAZORPAY_KEY_ID,
+        "order": result["razorpay_order"],
+        "client": client,
+        "plan": plan,
+        "amount": int(result["razorpay_order"]["amount"]),
+    }
+
+    return render(request, "customers/billing.html", context)
+
+
+def billing_success(request):
+    return render(request, "customers/billing_success.html")
+
+
+def billing_cancel(request):
+    return render(request, "customers/billing_cancel.html")
+
 
 def create_tenant(request):
     if request.method == 'POST':
@@ -58,7 +127,7 @@ def create_tenant(request):
 
         return JsonResponse({'message': f'Request for {tenant_name} submitted for approval!'})
 
-    return render(request, 'create_tenant.html')
+    return render(request, 'customers/create_tenant.html')
 
 
 def home(request):
@@ -83,4 +152,4 @@ def raise_ticket(request):
         else:
             messages.error(request, "Please fill all fields before submitting.")
 
-    return render(request, 'raise_ticket.html')
+    return render(request, 'customers/raise_ticket.html')

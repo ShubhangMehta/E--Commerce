@@ -3,33 +3,9 @@ from django_tenants.models import TenantMixin, DomainMixin
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 
 # Create your models here.
-# ---------------------------------------------
-#  Subscription Model
-# ---------------------------------------------
-class SubscriptionPlan(models.Model):
-    PLAN_CHOICES = [
-        ('basic', 'Basic'),
-        ('standard', 'Standard'),
-        ('premium', 'Premium'),
-    ]
-
-    STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('suspended', 'Suspended'),
-    ]
-
-    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    duration_days = models.PositiveIntegerField(default=30)
-    storage_limit_mb = models.PositiveIntegerField(default=500)  # Feature: storage per plan
-    description = models.TextField(blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
-
-    def __str__(self):
-        return f"{self.get_name_display()} - ₹{self.price} ({self.get_status_display()})"
 
 class Client(TenantMixin):
     tenant_name = models.CharField(max_length=100)
@@ -39,6 +15,8 @@ class Client(TenantMixin):
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
+    theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
+    brand_color = models.CharField(max_length=20, default='#2563eb')
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
@@ -94,12 +72,43 @@ class Client(TenantMixin):
     def created_on(self):
         latest_sub = self.clientsubscription_set.order_by('-start_date').first()
         return latest_sub.start_date.date() if latest_sub else None
-
-
     
 class Domain(DomainMixin):
     pass
+
+
+# ---------------------------------------------
+#  Subscription Model
+# ---------------------------------------------
+
+class SubscriptionPlan(models.Model):
+    PLAN_CHOICES = [
+        ('basic', 'Basic'),
+        ('standard', 'Standard'),
+        ('premium', 'Premium'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('suspended', 'Suspended'),
+    ]
+
+    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    duration_days = models.PositiveIntegerField(default=30)
+    storage_limit_mb = models.PositiveIntegerField(default=500)  # Feature: storage per plan
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+
+    def __str__(self):
+        return f"{self.get_name_display()} - ₹{self.price} ({self.get_status_display()})"
+
 class TenantRequest(models.Model):
+    """
+    Stores sign-up requests from businesses wanting to create a tenant.
+    """
+
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
     email = models.EmailField(null=True, blank=True)
@@ -127,11 +136,11 @@ class TenantRequest(models.Model):
     is_approved = models.BooleanField(default=False)
 
     STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
-        ('Rejected', 'Rejected'),
+        ("Pending", "Pending"),
+        ("Approved", "Approved"),
+        ("Rejected", "Rejected"),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
@@ -189,10 +198,6 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.client.tenant_name} - {self.method} - {self.status}"
-
-
-
-
     
 # ---------------------------------------------
 #  Client Subscription (Tracks active plan)
@@ -241,9 +246,6 @@ class ClientSubscription(models.Model):
     def __str__(self):
         plan_name = self.plan.name if self.plan else 'No Plan'
         return f"{self.client.tenant_name} - {plan_name} ({self.status})"
-
-
-
     
 # ---------------------------------------------
 #  Invoice Model
@@ -308,6 +310,175 @@ class RefundRequest(models.Model):
     def __str__(self):
         return f"Refund by {self.client.tenant_name} - {self.get_status_display()} ({self.get_refund_type_display()})"
 
- 
+# ================================================================
+#   RAZORPAY BILLING MODELS
+# ================================================================
+
+# PLAN_CHOICES = (
+#     ('basic', 'Basic'),
+#     ('standard', 'Standard'),
+#     ('premium', 'Premium'),
+# )
+
+# BILLING_INTERVALS = (
+#     ('monthly', 'Monthly'),
+#     ('yearly', 'Yearly'),
+# )
+
+# class RzpPlan(models.Model):
+#     """
+#     Razorpay plan created for automated billing.
+#     """
+
+#     name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
+#     interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
+
+#     amount_in_paise = models.PositiveIntegerField(
+#         help_text="100.00 INR → 10000 paise"
+#     )
+
+#     razorpay_plan_id = models.CharField(
+#         max_length=64, blank=True, null=True, help_text="Maps to an existing RZP plan if needed"
+#     )
+
+#     features = models.JSONField(default=dict, blank=True)
+
+#     def __str__(self):
+#         return f"{self.name} ({self.interval})"
 
 
+# class RzpSubscription(models.Model):
+
+#     client = models.ForeignKey(
+#         "customers.Client", on_delete=models.SET_NULL, blank=True, null=True
+#     )
+
+#     tenant_name = models.CharField(max_length=100)
+#     desired_domain = models.CharField(max_length=150)
+#     email = models.EmailField()
+
+#     # ⭐ ADD THESE TWO FIELDS
+#     brand_color = models.CharField(max_length=20, default="#000000")
+#     theme = models.CharField(max_length=50, default="default")
+
+
+#     plan = models.ForeignKey(RzpPlan, on_delete=models.PROTECT)
+#     interval = models.CharField(max_length=20, choices=BILLING_INTERVALS, default="monthly")
+
+#     status = models.CharField(
+#         max_length=20,
+#         choices=[
+#             ("created", "Created"),
+#             ("active", "Active"),
+#             ("pending", "Pending"),
+#             ("past_due", "Past Due"),
+#             ("cancelled", "Cancelled"),
+#             ("expired", "Expired"),
+#         ],
+#         default="created"
+#     )
+
+#     razorpay_subscription_id = models.CharField(max_length=64, unique=True, blank=True, null=True)
+
+#     started_at = models.DateTimeField(blank=True, null=True)
+#     current_period_start = models.DateTimeField(blank=True, null=True)
+#     current_period_end = models.DateTimeField(blank=True, null=True)
+#     cancel_at_period_end = models.BooleanField(default=False)
+#     cancelled_at = models.DateTimeField(blank=True, null=True)
+
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"{self.email} - {self.plan.name} ({self.status})"
+
+
+# class RzpInvoice(models.Model):
+#     """
+#     Razorpay invoice created for subscription billing.
+#     """
+
+#     subscription = models.ForeignKey(RzpSubscription, on_delete=models.CASCADE, related_name="invoices")
+
+#     invoice_number = models.CharField(max_length=50, unique=True)
+#     amount_in_paise = models.PositiveIntegerField()
+#     currency = models.CharField(max_length=10, default="INR")
+
+#     status = models.CharField(
+#         max_length=20,
+#         choices=[("pending", "Pending"), ("paid", "Paid"), ("refunded", "Refunded")],
+#         default="pending"
+#     )
+
+#     due_date = models.DateTimeField(blank=True, null=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     paid_at = models.DateTimeField(blank=True, null=True)
+
+#     def __str__(self):
+#         return self.invoice_number
+
+class RzpPayment(models.Model):
+    """
+    Razorpay payment for a subscription invoice.
+    """
+
+    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE, related_name="payments")
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True)
+
+    razorpay_payment_id = models.CharField(max_length=64, unique=True)
+    amount= models.PositiveIntegerField()
+    currency = models.CharField(max_length=10, default="INR")
+
+    captured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    meta = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return self.razorpay_payment_id
+
+
+class RzpWebhookEvent(models.Model):
+    """
+    Stores webhook events received from Razorpay.
+    Used for validating and syncing payment states.
+    """
+
+    event = models.CharField(max_length=80)
+    payload = models.JSONField()
+    signature_ok = models.BooleanField(default=False)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.event} @ {self.received_at}"
+
+
+class RzpRefund(models.Model):
+    """
+    Razorpay refund for a payment transaction.
+    """
+
+    payment = models.ForeignKey(RzpPayment, on_delete=models.CASCADE, related_name="refunds")
+
+    razorpay_refund_id = models.CharField(max_length=64, unique=True)
+    amount_in_paise = models.PositiveIntegerField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
+        default="pending"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="refunded_approvals",
+    )
+    approved_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Refund {self.id} - {self.payment}"
+    
