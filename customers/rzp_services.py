@@ -56,11 +56,13 @@ def create_subscription_checkout(client: Client, plan: SubscriptionPlan, payment
     )
 
     # 4) Create Razorpay Order (amount in paise)
-    amount_in_paise = int(amount * 100)
+    #amount_in_paise = int(amount * 100)
+    amount = int(plan.price)
+    
 
     rzp_order = rzp_client.order.create(
         {
-            "amount": amount_in_paise,
+            "amount": amount * 100,
             "currency": "INR",
             "payment_capture": 1,
             "notes": {

@@ -1,7 +1,7 @@
 import hmac
 import hashlib
 import json
-
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
@@ -23,11 +23,15 @@ def verify_razorpay_signature(body: bytes, received_signature: str) -> bool:
 
     return hmac.compare_digest(generated_signature, received_signature)
 
-
+@csrf_exempt
 def razorpay_webhook(request):
     """
     Handle Razorpay webhooks for subscription payments.
     """
+
+    print("🔥 RAZORPAY WEBHOOK HIT 🔥")
+    print(request.body)
+
     body = request.body
     received_signature = request.headers.get("X-Razorpay-Signature", "")
 
@@ -53,7 +57,7 @@ def razorpay_webhook(request):
 
         razorpay_payment_id = payment_entity["id"]
         razorpay_order_id = payment_entity.get("order_id")
-        amount_in_paise = payment_entity["amount"]
+        amount = payment_entity["amount"]
         currency = payment_entity.get("currency", "INR")
 
         # Notes we set when creating the order
@@ -103,7 +107,7 @@ def razorpay_webhook(request):
             subscription=subscription,
             invoice=invoice,
             razorpay_payment_id=razorpay_payment_id,
-            amount_in_paise=amount_in_paise,
+            amount=amount/100,
             currency=currency,
             captured=True,
             meta=payment_entity,

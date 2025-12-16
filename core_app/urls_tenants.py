@@ -1,6 +1,6 @@
 from django.urls import path, include
-from themes import views as themes_views
-from dashboard import views as dashboard_views
+# from themes import views as themes_views
+# from dashboard import views as dashboard_views
 
 
 

@@ -425,7 +425,7 @@ class RzpPayment(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True)
 
     razorpay_payment_id = models.CharField(max_length=64, unique=True)
-    amount_in_paise = models.PositiveIntegerField()
+    amount= models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="INR")
 
     captured = models.BooleanField(default=False)

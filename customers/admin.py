@@ -232,7 +232,7 @@ class RefundRequestAdmin(admin.ModelAdmin):
 
 @admin.register(RzpPayment)
 class RzpPaymentAdmin(admin.ModelAdmin):
-    list_display = ("razorpay_payment_id", "subscription", "amount_in_paise", "captured")
+    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
 
 
 @admin.register(RzpWebhookEvent)
