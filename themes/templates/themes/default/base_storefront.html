@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tenant.tenant_name }} Store</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-50" style="--brand-color: {{ tenant.brand_color }};">
+
+    <!-- NAVBAR -->
+    <nav class="bg-white shadow mb-6">
+        {% if tenant.logo %}
+            <img src="{{ tenant.logo.url }}" class="h-10">
+        {% else %}
+            <span class="font-bold text-xl"> {{ tenant.tenant_name }}</span>
+        {% endif %}
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between">
+            <a href="/" class="text-xl font-bold">
+                {{ tenant.tenant_name }}
+            </a>
+            <div class="space-x-4">
+                <a href="/products/" class="hover:text-blue-600">Products</a>
+                <a href="/cart/" class="hover:text-blue-600">Cart</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>
