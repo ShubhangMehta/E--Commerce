@@ -27,3 +27,4 @@ urlpatterns = [
     # Auth pages (signup view you added; login/logout can stay in accounts app)
     path("signup/", views.signup, name="signup"),
 ]
+

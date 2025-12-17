@@ -68,8 +68,12 @@ TENANT_APPS = [
     'dashboard',
 =======
     'users',
+<<<<<<< HEAD
 >>>>>>> 14d4de4 ("User-App finished")
     'themes',
+=======
+    "themes"
+>>>>>>> d1dc597 (deleted_themes)
 ]
 
 
@@ -120,6 +124,7 @@ ROOT_URLCONF = "core_app.urls_tenants"
 =======
 =======
 
+<<<<<<< HEAD
 >>>>>>> 14d4de4 ("User-App finished")
 ROOT_URLCONF = "core_app.urls"
 #PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
@@ -129,6 +134,9 @@ TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
 PUBLIC_SCHEMA_NAME = "public" 
 
 >>>>>>> 69fec36 (Razorpay Integration)
+=======
+ROOT_URLCONF = "core_app.urls_tenants"
+>>>>>>> d1dc597 (deleted_themes)
 
 TEMPLATES = [
     {
@@ -246,6 +254,7 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
