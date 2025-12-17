@@ -59,7 +59,7 @@ TENANT_APPS = [
     'catalog',
     'orders',
     'users',
-    'themes',
+    "themes"
 ]
 
 
@@ -90,7 +90,7 @@ MIDDLEWARE = [
 ]
 
 
-ROOT_URLCONF = "core_app.urls"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -174,6 +174,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
