@@ -6,6 +6,12 @@
     <button type="submit">Get Backup Link</button>
 </form>
 
+<!-- Correct Django URL for normal POST -->
+<form method="POST" action="{% url 'generate_backup_link_weekly' %}">
+    {% csrf_token %}
+    <button type="submit">Generate weekly Backup Link</button>
+</form>
+
 <div id="result"></div>
 
 <script>
@@ -14,8 +20,12 @@ document.getElementById("dailyForm").onsubmit = async function(e) {
 
     let formData = new FormData(this);
 
-    let res = await fetch("/backups/generate-daily-backup-link/", {
+    // 🔥 Use Django URL instead of relative path
+    let url = "{% url 'generate_backup_link_weekly' %}";
+
+    let res = await fetch(url, {
         method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }, 
         body: formData
     });
 

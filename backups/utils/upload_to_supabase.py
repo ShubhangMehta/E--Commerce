@@ -14,7 +14,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # -------------------------------------------------------------
-# DAILY BACKUP UPLOAD FUNCTION
+# DAILY BACKUP UPLOAD
 # -------------------------------------------------------------
 def upload_daily_backup(schema: str, date: str, temp_file_path: str):
     file_name = f"{schema}-daily.dump"
@@ -32,7 +32,7 @@ def upload_daily_backup(schema: str, date: str, temp_file_path: str):
 
 
 # -------------------------------------------------------------
-# WEEKLY BACKUP UPLOAD FUNCTION
+# WEEKLY BACKUP UPLOAD
 # -------------------------------------------------------------
 def upload_weekly_backup(schema: str, date: str, temp_file_path: str):
     file_name = f"{schema}-weekly.dump"
@@ -49,9 +49,8 @@ def upload_weekly_backup(schema: str, date: str, temp_file_path: str):
     print(f"✅ WEEKLY upload complete → {bucket_path}")
 
 
-
 # -------------------------------------------------------------
-# MASTER BACKUP UPLOAD FUNCTION
+# MASTER BACKUP UPLOAD
 # -------------------------------------------------------------
 def upload_master_backup(schema: str, date: str, temp_file_path: str):
     file_name = f"master-{date}.dump"
@@ -65,39 +64,45 @@ def upload_master_backup(schema: str, date: str, temp_file_path: str):
         file_options={"content-type": "application/octet-stream"},
     )
 
-    print(f"✅ MASTER BACKUP UPLOADED → {bucket_path}")
+    print(f"✅ MASTER upload complete → {bucket_path}")
 
 
 # -------------------------------------------------------------
-# MAIN SCRIPT
+# MAIN HANDLER
 # -------------------------------------------------------------
 if __name__ == "__main__":
-    # Args:
-    #   sys.argv[1] → schema
-    #   sys.argv[2] → date
-    #   sys.argv[3] → mode ("daily" or "weekly")
+    # sys.argv:
+    #   1 → schema
+    #   2 → date
+    #   3 → mode: daily | weekly | master
+
+    if len(sys.argv) < 4:
+        print("❌ Usage: python upload_to_supabase.py <schema> <date> <mode>")
+        sys.exit(1)
 
     schema = sys.argv[1]
     date = sys.argv[2]
-    mode = sys.argv[3]  # daily | weekly
+    mode = sys.argv[3].lower()
 
-    # create temp file from streamed input
+    # Read streamed pg_dump output → temp file
     temp = tempfile.NamedTemporaryFile(delete=False)
     temp.write(sys.stdin.buffer.read())
     temp.flush()
 
-    # Decide where to upload
+    # Decide upload target
     if mode == "daily":
         upload_daily_backup(schema, date, temp.name)
+
     elif mode == "weekly":
         upload_weekly_backup(schema, date, temp.name)
 
     elif mode == "master":
         upload_master_backup(schema, date, temp.name)
+
     else:
-        print("❌ Invalid mode! Choose 'daily' or 'weekly'")
+        print("❌ Invalid mode! Choose: daily | weekly | master")
         sys.exit(1)
 
-    # Cleanup
+    # Clean temp file
     temp.close()
     os.unlink(temp.name)

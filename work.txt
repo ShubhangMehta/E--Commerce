@@ -1,1 +1,10 @@
-psql "postgresql://postgres:bodakunta1@aws-1-ap-south-1.pooler.supabase.com:5432/DB_NAME?sslmode=require"
+from django.core.mail import send_mail
+from django.conf import settings
+
+send_mail(
+    subject="Test Email",
+    message="Backup system email test",
+    from_email=settings.DEFAULT_FROM_EMAIL,
+    recipient_list=[settings.],
+    fail_silently=False,
+)

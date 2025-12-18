@@ -230,18 +230,22 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 ######------
 #Email alerts
 ######------
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+'''EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "yourmail@gmail.com"
-EMAIL_HOST_PASSWORD = "1q2w3e"   # Use App Password, not raw PW
-BACKUP_ALERT_EMAIL = "yourmail@gmail.com"
+
+EMAIL_HOST_USER = "your_email@gmail.com"        # The email that sends alerts
+EMAIL_HOST_PASSWORD = "your_app_password"       # Gmail App Password
+
+ADMINS = [("Admin", "admin@example.com")]  '''     # Where alerts are sent
 
 

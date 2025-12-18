@@ -123,3 +123,29 @@ class BackupAlert(models.Model):
     def __str__(self):
         tenant = self.backup.tenant_schema or "GLOBAL"
         return f"Alert for {tenant} (Backup ID: {self.backup.id})"
+
+
+
+
+# backups/models.py
+from django.db import models
+
+# backups/models.py
+"""class BackupFailure(models.Model):
+    tenant_name = models.CharField(max_length=255)
+    backup_type = models.CharField(max_length=50)  # daily/weekly/master
+    status = models.CharField(max_length=10)  # success/failed
+    error_message = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "backup_failure_log"  # custom table name
+        ordering = ["-timestamp"]
+        verbose_name = "Backup Failure"
+        verbose_name_plural = "Backup Failures"
+
+    def __str__(self):
+        return f"{self.tenant_name} - {self.backup_type} - {self.status}"
+
+        
+        """
