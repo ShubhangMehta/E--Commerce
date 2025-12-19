@@ -1,7 +1,7 @@
 
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
-from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 <<<<<<< HEAD
@@ -216,18 +216,39 @@ class UserRefundRequest(models.Model):
 
 class Client(TenantMixin):
 <<<<<<< HEAD
+<<<<<<< HEAD
     name = models.CharField(max_length=100)
     paid_until = models.DateField()
     on_trial = models.BooleanField(default=True)
     created_on = models.DateField(auto_now_add=True)
+=======
+    tenant_name = models.CharField(max_length=100)
+    server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
+    desired_domain = models.CharField(max_length=150, blank=True, null=True)
+    email = models.EmailField(null=True, blank=True)
+    company = models.CharField(max_length=200, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
+    theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
+    has_used_trial = models.BooleanField(default=False)
+
+    # Usage & Analytics
+    storage_used_mb = models.FloatField(default=0.0)
+    product_count = models.IntegerField(default=0)
+    order_count = models.IntegerField(default=0)
+    visitor_count_7d = models.IntegerField(default=0)
+    visitor_count_30d = models.IntegerField(default=0)
+    active_users = models.IntegerField(default=0)
+    last_login = models.DateTimeField(null=True, blank=True)
+>>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
 
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
 
-    STATUS_CHOICES = [
-        ('Active', 'Active'),
-        ('Suspended', 'Suspended'),
-    ]
+   # STATUS_CHOICES = [
+    #    ('Active', 'Active'),
+     #   ('Suspended', 'Suspended'),
+    #]
 
     @property
     def status(self):
@@ -272,6 +293,63 @@ class Client(TenantMixin):
     
 class Domain(DomainMixin):
     pass
+<<<<<<< HEAD
+=======
+
+
+# ---------------------------------------------
+#  Subscription Model
+# ---------------------------------------------
+
+class SubscriptionPlan(models.Model):
+    PLAN_CHOICES = [
+        ('free_trial', 'Free Trial'),
+        ('basic', 'Basic'),
+        ('standard', 'Standard'),
+        ('premium', 'Premium'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('suspended', 'Suspended'),
+    ]
+
+    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    is_trial = models.BooleanField(default=False)
+    storage_limit_mb = models.PositiveIntegerField(default=500)  # Feature: storage per plan
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+
+    def __str__(self):
+        label = "🆓 Trial" if self.is_trial else "💳 Paid"
+        return f"{self.get_name_display()} ({label})"
+    
+class PlanPricing(models.Model):
+    BILLING_CHOICES = [
+        ('trial', 'Free Trial'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
+    billing_cycle = models.CharField(max_length=10, choices=BILLING_CHOICES)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    duration_days = models.PositiveIntegerField()
+    is_trial = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('plan', 'billing_cycle')
+
+    def __str__(self):
+        return f"{self.plan} - {self.get_billing_cycle_display()}"
+    def clean(self):
+        if self.billing_cycle == 'trial' and not self.plan.is_trial:
+            raise ValidationError("Only trial plans can have trial billing cycle")
+
+
+>>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
 class TenantRequest(models.Model):
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
@@ -281,14 +359,20 @@ class TenantRequest(models.Model):
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
-    
-    PAYMENT_METHODS = [
-        ('COD', 'Cash On Delivery'),
-        ('UPI', 'UPI'),
-        ('CARD', 'Credit/Debit Card'),
-    ]
-    payment_mode = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='COD')
+    pricing = models.ForeignKey(PlanPricing,on_delete=models.PROTECT,null=True,blank=True)
 
+    THEME_CHOICES = [
+        ('default', 'Default'),
+        ('minimal', 'Minimal'),
+        ('modern', 'Modern'),
+    ]
+
+    theme = models.CharField(
+        max_length=50,
+        choices=THEME_CHOICES,
+        default='default'
+    )
+    
     PAYMENT_PLANS = [
         ('Monthly', 'Monthly'), #499 999 1999
         ('Yearly', 'Yearly'), 
@@ -348,7 +432,6 @@ class Ticket(models.Model):
 class Payment(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
-    method = models.CharField(max_length=20, choices=TenantRequest.PAYMENT_METHODS)
     payment_plan = models.CharField(max_length=20, choices=TenantRequest.PAYMENT_PLANS)
     transaction_id = models.CharField(max_length=100, unique=True)
     status_choices = [
@@ -361,11 +444,15 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+<<<<<<< HEAD
         return f"{self.client.tenant_name} - {self.method} - {self.status}"
 
 
 
 
+=======
+        return f"{self.client.tenant_name} - {self.payment_plan} - {self.status}"
+>>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
     
 # ---------------------------------------------
 #  Client Subscription (Tracks active plan)
@@ -380,6 +467,7 @@ class ClientSubscription(models.Model):
 
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
     plan = models.ForeignKey('SubscriptionPlan', on_delete=models.SET_NULL, null=True)
+    pricing = models.ForeignKey(PlanPricing,on_delete=models.PROTECT,null=True,blank=True)
     payment = models.ForeignKey('Payment', on_delete=models.SET_NULL, null=True, blank=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -398,8 +486,8 @@ class ClientSubscription(models.Model):
             # Set subscription start and end dates if not provided
             if not self.start_date:
                 self.start_date = timezone.now()
-            if self.plan and not self.end_date:
-                self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
+            if self.pricing and not self.end_date:
+                self.end_date = self.start_date + timedelta(days=self.pricing.duration_days)
 
             # Update subscription status based on current date
             now = timezone.now()
