@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 SHARED_APPS = [
+    'unfold',
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
@@ -44,6 +45,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     
 ]
 
@@ -56,8 +58,8 @@ TENANT_APPS = [
     # 'django.contrib.staticfiles',
     'catalog',
     'orders',
-    'dashboard',
-    'themes',
+    'users',
+    "themes"
 ]
 
 
@@ -74,9 +76,7 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",
-    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
-    "core_app.middleware.BlockTenantAdminMiddleware",
+    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -84,9 +84,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    # Place your custom middleware AFTER auth
+    "core_app.middleware.BlockTenantAdminMiddleware",
 ]
 
-PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
+
 ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
@@ -171,6 +174,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
 CRONJOBS = [
     ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
