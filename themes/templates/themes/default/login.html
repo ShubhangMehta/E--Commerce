@@ -1,62 +1,11 @@
-{% extends "themes/default/storefront.html" %}
+{% extends "themes/default/base_storefront.html" %}
 
-{% block title %}Login | Default Store{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-      <div class="card p-4 p-md-5">
-        <h1 class="h4 fw-bold mb-2">Sign in</h1>
-        <p class="text-muted2 mb-4">Access your account and manage your storefront.</p>
-
-        {# Works with Django's built-in auth LoginView OR your custom view #}
-        <form method="post" novalidate>
-          {% csrf_token %}
-
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-              {{ form.non_field_errors }}
-            </div>
-          {% endif %}
-
-          <div class="mb-3">
-            <label class="form-label">Username or Email</label>
-            {{ form.username }}
-            {% if form.username.errors %}
-              <div class="text-danger small mt-1">{{ form.username.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            {{ form.password }}
-            {% if form.password.errors %}
-              <div class="text-danger small mt-1">{{ form.password.errors }}</div>
-            {% endif %}
-          </div>
-
-          {# Preserve next redirect if present #}
-          {% if next %}
-            <input type="hidden" name="next" value="{{ next }}">
-          {% endif %}
-
-          <button type="submit" class="btn btn-brand w-100">Login</button>
-        </form>
-
-        <div class="d-flex justify-content-between mt-3">
-          <a class="small text-decoration-none" href="{% url 'password_reset' %}">Forgot password?</a>
-          {# If you have signup #}
-          <a class="small text-decoration-none" href="{% url 'signup' %}">Create account</a>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="text-muted2 small">
-          Tip: If you’re stuck in a login loop, confirm your auth middleware + redirect URLs and that the tenant domain is correct.
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<h2 class="text-2xl font-bold">Login</h2>
+<form method="post" class="mt-4">
+{% csrf_token %}
+{{ form.as_p }}
+<button class="bg-blue-600 text-white px-4 py-2">Login</button>
+</form>
 {% endblock %}
