@@ -1,1 +1,23 @@
-ECHO is on.
+{% extends "themes/default/base_storefront.html" %}
+
+{% block title %}Order Confirmed | {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+
+<div class="text-center py-20">
+
+    <div class="text-brandGold text-6xl mb-6">★
+
+    <h1 class="serif text-5xl text-brandViolet mb-4">Thank You # 
+
+    <p class="text-gray-500 mb-10">Your order has been placed successfully. A confirmation email is on its way.
+
+    <a href="/products/" class="inline-block px-10 py-4 bg-brandViolet text-white font-semibold tracking-widest uppercase text-xs">
+
+        Continue Shopping
+
+    
+
+{% endblock %}
+
+```
