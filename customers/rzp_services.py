@@ -30,7 +30,6 @@ def create_subscription_checkout(client: Client, plan: SubscriptionPlan, payment
     payment = Payment.objects.create(
         client=client,
         amount=amount,
-        method="UPI",                # or "CARD" or dynamic, your choice
         payment_plan=payment_plan,
         transaction_id="",           # will fill with Razorpay order_id
         status="unpaid",
