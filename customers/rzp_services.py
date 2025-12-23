@@ -75,7 +75,7 @@ def create_or_fetch_plan(plan):
     # 1) Create local Payment record (unpaid)
     payment = Payment.objects.create(
         client=client,
-        amount=amount,
+        amount=amount,               # or "CARD" or dynamic, your choice
         payment_plan=payment_plan,
         transaction_id="",           # will fill with Razorpay order_id
         status="unpaid",
