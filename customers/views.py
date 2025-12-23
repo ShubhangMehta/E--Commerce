@@ -73,44 +73,67 @@ def billing_cancel(request):
     return render(request, "customers/billing_cancel.html")
 
 
+
 def create_tenant(request):
     if request.method == 'POST':
         tenant_name = request.POST.get('tenant_name')
         domain_name = request.POST.get('domain_name')
-        plan_id = request.POST.get('plan_type')
-        payment_mode = request.POST.get('payment_mode')
-        payment_plan = request.POST.get('payment_plan')
+        plan_name = request.POST.get('plan')  # basic / standard / premium
+        subscription_type = request.POST.get('subscription_type')  # trial / paid
+        payment_plan = request.POST.get('payment_plan')  # monthly / yearly (only if paid)
+        theme = request.POST.get('theme')  # default / minimal / modern
+
         email = request.POST.get('email')
         company = request.POST.get('company')
         address = request.POST.get('address')
         logo = request.FILES.get('logo')
 
-        if not tenant_name or not domain_name:
-            return JsonResponse({'error': 'Tenant name and domain name required'}, status=400)
+        if not tenant_name or not domain_name or not plan_name:
+            return JsonResponse(
+                {'error': 'Tenant name, domain name, and plan are required'},
+                status=400
+            )
 
         # Prevent duplicate domains
         full_domain = f"{domain_name}.localhost"
-        if Domain.objects.filter(domain=full_domain).exists() or TenantRequest.objects.filter(desired_domain=domain_name).exists():
-            return JsonResponse({'error': 'This domain is already taken.'}, status=400)
+        if (
+            Domain.objects.filter(domain=full_domain).exists() or
+            TenantRequest.objects.filter(desired_domain=domain_name).exists()
+        ):
+            return JsonResponse(
+                {'error': 'This domain is already taken.'},
+                status=400
+            )
 
-        # Validate subscription plan
-        plan = SubscriptionPlan.objects.filter(id=plan_id).first()
+        # Fetch subscription plan by name
+        plan = SubscriptionPlan.objects.filter(name__iexact=plan_name).first()
         if not plan:
-            return JsonResponse({'error': 'Invalid plan selected.'}, status=400)
+            return JsonResponse(
+                {'error': 'Invalid plan selected.'},
+                status=400
+            )
 
-        # Store request
+        # Trial vs Paid handling
+        is_trial = subscription_type == 'trial'
+
+        if is_trial:
+            payment_plan = None  # no billing cycle for trial
+
+        # Store tenant request
         TenantRequest.objects.create(
             tenant_name=tenant_name,
             desired_domain=domain_name,
             plan=plan,
-            payment_mode=payment_mode,
+            is_trial=is_trial,
             payment_plan=payment_plan,
+            theme=theme,
             email=email,
             company=company,
             address=address,
             logo=logo
         )
 
+        # Send confirmation email
         send_html_email(
             subject="Your Tenant Request Has Been Received",
             to_email=email,
@@ -120,14 +143,17 @@ def create_tenant(request):
                 "tenant_name": tenant_name,
                 "domain": domain_name,
                 "company": company,
-                "email": email,
-                #"plan": plan_type,
+                "plan": plan.name,
+                "is_trial": is_trial,
             }
         )
 
-        return JsonResponse({'message': f'Request for {tenant_name} submitted for approval!'})
+        return JsonResponse(
+            {'message': f'Request for {tenant_name} submitted for approval!'}
+        )
 
-    return render(request, 'customers/create_tenant.html')
+    return render(request, 'create_tenant.html')
+
 
 
 def home(request):
