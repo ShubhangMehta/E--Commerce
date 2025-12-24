@@ -37,7 +37,6 @@ SHARED_APPS = [
     "django_tenants",  # mandatory
     "customers",  # you must list the app where your tenant model resides in
     "accounts",
-    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,8 +60,10 @@ TENANT_APPS = [
     'django_crontab',
     'backups',
     # tenant-inventory app
-    'rest_framework',
-    'tenant_app.inventory',
+    #'rest_framework',
+    # Tenant apps
+    
+    'tenant_app',
 ]
 
 
