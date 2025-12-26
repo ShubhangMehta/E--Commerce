@@ -178,6 +178,8 @@ class ClientSubscription(models.Model):
     
     @property
     def has_successful_payment(self):
+        if not self.pk:
+            return False
         return self.payments.filter(status='captured').exists()
     
     def activate_from_payment(self):
@@ -207,6 +209,11 @@ class ClientSubscription(models.Model):
     def save(self, *args, **kwargs):
 
         now = timezone.now()
+        is_new = self.pk is None
+
+        if is_new:
+            super().save(*args, **kwargs)
+            return
 
         if not self.manual_override:
             # Set subscription start and end dates if not provided
