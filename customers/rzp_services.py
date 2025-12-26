@@ -21,7 +21,7 @@ from django.conf import settings
 =======
 from django.utils import timezone
 
-from .models import Client, SubscriptionPlan, ClientSubscription, Payment, Invoice
+from .models import Client, SubscriptionPlan, ClientSubscription, RzpPayment, Invoice
 
 # Initialize Razorpay client
 rzp_client = razorpay.Client(
@@ -73,7 +73,7 @@ def create_or_fetch_plan(plan):
             "amount": plan.amount_in_paise,
 =======
     # 1) Create local Payment record (unpaid)
-    payment = Payment.objects.create(
+    payment = RzpPayment.objects.create(
         client=client,
         amount=amount,               # or "CARD" or dynamic, your choice
         payment_plan=payment_plan,
