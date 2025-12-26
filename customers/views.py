@@ -124,7 +124,6 @@ def create_tenant(request):
             tenant_name=tenant_name,
             desired_domain=domain_name,
             plan=plan,
-            is_trial=is_trial,
             payment_plan=payment_plan,
             theme=theme,
             email=email,
@@ -156,7 +155,7 @@ def create_tenant(request):
 
 
 def home(request):
-    return HttpResponse("<h1> Public Index </h1>")
+    return HttpResponse("<h1> E-Cartel Public Schema </h1>")
 
 
 def raise_ticket(request):
