@@ -4,7 +4,7 @@ import razorpay
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Client, SubscriptionPlan, ClientSubscription, Payment, Invoice
+from .models import Client, SubscriptionPlan, ClientSubscription, RzpPayment, Invoice
 
 # Initialize Razorpay client
 rzp_client = razorpay.Client(
@@ -27,9 +27,9 @@ def create_subscription_checkout(client: Client, plan: SubscriptionPlan, payment
         amount = plan.price
 
     # 1) Create local Payment record (unpaid)
-    payment = Payment.objects.create(
+    payment = RzpPayment.objects.create(
         client=client,
-        amount=amount,               # or "CARD" or dynamic, your choice
+        amount=amount,
         payment_plan=payment_plan,
         transaction_id="",           # will fill with Razorpay order_id
         status="unpaid",

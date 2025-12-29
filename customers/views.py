@@ -151,12 +151,11 @@ def create_tenant(request):
             {'message': f'Request for {tenant_name} submitted for approval!'}
         )
 
-    return render(request, 'create_tenant.html')
-
+    return render(request, 'customers/create_tenant.html')
 
 
 def home(request):
-    return HttpResponse("<h1> Public Index </h1>")
+    return HttpResponse("<h1> E-Cartel Public Schema </h1>")
 
 
 def raise_ticket(request):
