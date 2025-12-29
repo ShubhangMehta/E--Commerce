@@ -124,7 +124,6 @@ def create_tenant(request):
             tenant_name=tenant_name,
             desired_domain=domain_name,
             plan=plan,
-            is_trial=is_trial,
             payment_plan=payment_plan,
             theme=theme,
             email=email,
@@ -144,7 +143,7 @@ def create_tenant(request):
                 "domain": domain_name,
                 "company": company,
                 "plan": plan.name,
-                "is_trial": is_trial,
+                
             }
         )
 

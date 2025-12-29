@@ -56,7 +56,7 @@ TENANT_APPS = [
     # 'django.contrib.sessions',
     # 'django.contrib.messages',
     # 'django.contrib.staticfiles',
-    'catalog',
+    'catalog',#products
     'orders',
     'users',
     "themes"

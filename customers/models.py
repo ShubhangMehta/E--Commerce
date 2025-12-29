@@ -83,10 +83,15 @@ class Domain(DomainMixin):
 
 class SubscriptionPlan(models.Model):
     PLAN_CHOICES = [
-        ('free_trial', 'Free Trial'),
         ('basic', 'Basic'),
         ('standard', 'Standard'),
         ('premium', 'Premium'),
+    ]
+
+    BILLING_CHOICES = [
+        ('trial', 'Free Trial'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
     ]
 
     STATUS_CHOICES = [
@@ -95,38 +100,31 @@ class SubscriptionPlan(models.Model):
         ('suspended', 'Suspended'),
     ]
 
-    name = models.CharField(max_length=50, choices=PLAN_CHOICES, unique=True)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    is_trial = models.BooleanField(default=False)
-    storage_limit_mb = models.PositiveIntegerField(default=500)  # Feature: storage per plan
-    description = models.TextField(blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
+    # Plan identity
+    name = models.CharField(max_length=50, choices=PLAN_CHOICES)
 
-    def __str__(self):
-        label = "🆓 Trial" if self.is_trial else "💳 Paid"
-        return f"{self.get_name_display()} ({label})"
-    
-class PlanPricing(models.Model):
-    BILLING_CHOICES = [
-        ('trial', 'Free Trial'),
-        ('monthly', 'Monthly'),
-        ('yearly', 'Yearly'),
-    ]
-
-    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
+    # Pricing + billing (merged)
     billing_cycle = models.CharField(max_length=10, choices=BILLING_CHOICES)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration_days = models.PositiveIntegerField()
-    is_trial = models.BooleanField(default=False)
+
+    # Features
+    storage_limit_mb = models.PositiveIntegerField(default=500)
+    description = models.TextField(blank=True)
+
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='active')
 
     class Meta:
-        unique_together = ('plan', 'billing_cycle')
+        unique_together = ('name', 'billing_cycle')
+
+    @property
+    def is_trial(self):
+        return self.price == 0
 
     def __str__(self):
-        return f"{self.plan} - {self.get_billing_cycle_display()}"
-    def clean(self):
-        if self.billing_cycle == 'trial' and not self.plan.is_trial:
-            raise ValidationError("Only trial plans can have trial billing cycle")
+        label = "🆓 Trial" if self.is_trial else "💳 Paid"
+        return f"{self.get_name_display()} - {self.get_billing_cycle_display()} ({label})"
+
 
 
 class TenantRequest(models.Model):
@@ -142,7 +140,7 @@ class TenantRequest(models.Model):
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
-    pricing = models.ForeignKey(PlanPricing,on_delete=models.PROTECT,null=True,blank=True)
+    #pricing = models.ForeignKey(SubscriptionPlan,on_delete=models.PROTECT,null=True,blank=True)
 
     THEME_CHOICES = [
         ('default', 'Default'),
@@ -242,7 +240,7 @@ class ClientSubscription(models.Model):
 
     client = models.ForeignKey('Client', on_delete=models.CASCADE)
     plan = models.ForeignKey('SubscriptionPlan', on_delete=models.SET_NULL, null=True)
-    pricing = models.ForeignKey(PlanPricing,on_delete=models.PROTECT,null=True,blank=True)
+    #pricing = models.ForeignKey(SubscriptionPlan,on_delete=models.PROTECT,null=True,blank=True)
     payment = models.ForeignKey('Payment', on_delete=models.SET_NULL, null=True, blank=True)
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
@@ -262,7 +260,7 @@ class ClientSubscription(models.Model):
             if not self.start_date:
                 self.start_date = timezone.now()
             if self.pricing and not self.end_date:
-                self.end_date = self.start_date + timedelta(days=self.pricing.duration_days)
+                self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
 
             # Update subscription status based on current date
             now = timezone.now()
