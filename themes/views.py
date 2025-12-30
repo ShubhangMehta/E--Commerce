@@ -24,4 +24,7 @@ def cart(request):
 def checkout(request):
     theme = request.tenant.theme
     return render(request, f"themes/{theme}/checkout.html")
+def profile(request):
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/profile.html")
 

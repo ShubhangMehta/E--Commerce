@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
 
-from .models import Payment, ClientSubscription, Invoice, RzpPayment, RzpWebhookEvent
+from .models import ClientSubscription, Invoice, RzpPayment, RzpWebhookEvent
 
 def verify_razorpay_signature(body: bytes, received_signature: str) -> bool:
     """

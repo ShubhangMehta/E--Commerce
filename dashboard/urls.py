@@ -10,8 +10,4 @@ urlpatterns = [
     path("billing/success/", customers_views.billing_success, name="billing_success"),
     path("billing/cancel/", customers_views.billing_cancel, name="billing_cancel"),
     path("billing/plans/", customers_views.billing_plans, name="billing_plans"),
-
-    #Razorpay webhook endpoint
-    #path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
-
 ]
