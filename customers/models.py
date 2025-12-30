@@ -117,36 +117,6 @@ class PlanPricing(models.Model):
     def __str__(self):
         return f"{self.plan} - {self.get_billing_cycle_display()}"
     
-    # def clean(self):
-    #     if self.billing_cycle == 'trial' and not self.plan.is_trial:
-    #         raise ValidationError("Only trial plans can have trial billing cycle")
-# ---------------------------------------------
-#  Payment Details
-# ---------------------------------------------
-# class Payment(models.Model):
-#     client = models.ForeignKey(Client, on_delete=models.CASCADE)
-#     amount = models.DecimalField(max_digits=8, decimal_places=2)
-    
-#     PAYMENT_PLANS = [
-#         ('Monthly', 'Monthly'), #499 999 1999
-#         ('Yearly', 'Yearly'), 
-#     ]
-#     payment_plan = models.CharField(max_length=10, choices=PAYMENT_PLANS, default='Monthly')
-#     #payment_plan = models.CharField(max_length=20, choices=TenantRequest.PAYMENT_PLANS)
-
-#     transaction_id = models.CharField(max_length=100, unique=True)
-#     status_choices = [
-#         ('paid', 'Paid'),
-#         ('unpaid', 'Unpaid'),
-#         ('failed', 'Failed'),
-#         ('refunded', 'Refunded'),
-#     ]
-#     status = models.CharField(max_length=20, choices=status_choices, default='unpaid')
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.client.tenant_name} - {self.payment_plan} - {self.status}"
-
 # ---------------------------------------------
 #  Client Subscription (Tracks active plan)
 # ---------------------------------------------
@@ -196,11 +166,11 @@ class ClientSubscription(models.Model):
 
     def clean(self):
         #trial will never have payment
-        if self.is_trial and self.payment:
+        if self.is_trial and self.has_successful_payment:
             raise ValidationError("Trail subscriptions must not have payment")
         
         #Paid plans must have payment before activations
-        if not self.is_trial and self.pricing and not self.payment and self.status == 'active':
+        if not self.is_trial and self.pricing and not self.has_successful_payment and self.status == 'active':
             raise ValidationError("Paid subscription require payments to be active")
         
     class Meta:
@@ -211,6 +181,7 @@ class ClientSubscription(models.Model):
         now = timezone.now()
         is_new = self.pk is None
 
+        #First Save - ensure PK exists
         if is_new:
             super().save(*args, **kwargs)
             return
@@ -227,6 +198,8 @@ class ClientSubscription(models.Model):
                 #Enforce trial duration (7 days)
                 if not self.end_date:
                     self.end_date = self.start_date + timedelta(days=7)
+                
+                self.status = 'expired' if self.end_date < now else 'active'
 
             #-------------
             #Paid Logic (subscription)
@@ -243,7 +216,7 @@ class ClientSubscription(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        plan_name = self.plan.name if self.plan else 'No Plan'
+        plan_name = self.plan.get_name_display() if self.plan else 'No Plan'
         return f"{self.client.tenant_name} - {plan_name} ({self.status})"
     
 
@@ -321,6 +294,27 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+# ---------------------------------------------
+#  Invoice Model
+# ---------------------------------------------
+class Invoice(models.Model):
+    INVOICE_TYPE = [
+        ('manual', 'Manually Generated'),
+        ('auto', 'Auto Generated'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE)
+    #payment = models.OneToOneField(RzpPayment, on_delete=models.CASCADE)
+    invoice_number = models.CharField(max_length=20, unique=True)
+    invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default='auto')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
+
+
 # ================================================================
 #   RAZORPAY BILLING MODELS
 # ================================================================
@@ -346,7 +340,7 @@ class RzpPayment(models.Model):
     ]
 
     subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE, related_name="payments")
-    #invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True)
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True, related_name="payments")
 
     razorpay_payment_id = models.CharField(max_length=64, blank=True, null=True)
     amount= models.PositiveIntegerField()
@@ -415,23 +409,4 @@ class RzpRefund(models.Model):
     def __str__(self):
         return f"Refund {self.id} - {self.payment}"
     
-
-# ---------------------------------------------
-#  Invoice Model
-# ---------------------------------------------
-class Invoice(models.Model):
-    INVOICE_TYPE = [
-        ('manual', 'Manually Generated'),
-        ('auto', 'Auto Generated'),
-    ]
-
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE)
-    payment = models.OneToOneField(RzpPayment, on_delete=models.CASCADE)
-    invoice_number = models.CharField(max_length=20, unique=True)
-    invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default='auto')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
 
