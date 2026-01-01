@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 # Create your models here.
 
@@ -224,7 +225,6 @@ class TenantRequest(models.Model):
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
-
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
     email = models.EmailField(null=True, blank=True)
@@ -232,7 +232,15 @@ class TenantRequest(models.Model):
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
-    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True)
+    STATUS_CHOICES = [
+        ('pending_payment', 'Pending Payment'),
+        ('trial_created', 'Trial Created'),
+        ('paid_created', 'Paid Created'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, null=True, blank=True)
     pricing = models.ForeignKey(PlanPricing, on_delete=models.PROTECT,null=True,blank=True)
 
     THEME_CHOICES = [
@@ -251,12 +259,16 @@ class TenantRequest(models.Model):
     requested_on = models.DateField(default=timezone.now)
     is_approved = models.BooleanField(default=False)
 
-    STATUS_CHOICES = [
-        ("Pending", "Pending"),
-        ("Approved", "Approved"),
-        ("Rejected", "Rejected"),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending_payment")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['desired_domain'], 
+                condition=Q(status__in=['pending_payment', 'trial_created', 'paid_created']),
+                name='uniq_reserved_domain_active_requests', 
+                )
+        ]
 
     def __str__(self):
         return f"{self.tenant_name} ({self.status})"
@@ -304,15 +316,29 @@ class Invoice(models.Model):
         ('auto', 'Auto Generated'),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE)
-    #payment = models.OneToOneField(RzpPayment, on_delete=models.CASCADE)
+    STATUS_CHOICES = [
+        ('issued', 'Issued'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+    ]
+    tenant_request = models.ForeignKey(TenantRequest, on_delete=models.CASCADE, related_name='invoices')
+
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
+    subscription = models.ForeignKey(ClientSubscription, on_delete=models.SET_NULL, null=True, blank=True)
+
     invoice_number = models.CharField(max_length=20, unique=True)
     invoice_type = models.CharField(max_length=10, choices=INVOICE_TYPE, default='auto')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='issued')
+
+    amount = models.PositiveIntegerField()
+    currency = models.CharField(max_length=10, default="INR")
+
+    razorpay_order_id = models.CharField(max_length=64, blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Invoice {self.invoice_number} ({self.get_invoice_type_display()})"
+        return f"Invoice {self.invoice_number} ({self.status})"
 
 
 # ================================================================
@@ -343,22 +369,30 @@ class RzpPayment(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True, related_name="payments")
 
     razorpay_payment_id = models.CharField(max_length=64, blank=True, null=True)
+    razorpay_order_id = models.CharField(max_length=64, blank=True, null=True)
+
     amount= models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="INR")
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
-
     event = models.CharField(max_length=50, choices=EVENT_CHOICES, blank=True)
 
     captured = models.BooleanField(default=False)
     failure_reason=models.TextField(blank=True)
 
     created_at = models.DateTimeField(default=timezone.now)
-
     meta = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['-created_at']
+        #Preventing dupilcate payments rows
+        constraints = [
+            models.UniqueConstraint(
+                fields=['razorpay_payment_id'],
+                condition=Q(razorpay_payment_id__isnull=False),
+                name='uniq_rzp_payment_id__nonnull'
+            )
+        ]
 
     def __str__(self):
         return self.razorpay_payment_id or f"RZP Attempt {self.id}"

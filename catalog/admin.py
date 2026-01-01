@@ -8,17 +8,17 @@ class SingleProductImageInline(admin.TabularInline):
     fields = ("image", "is_primary")
 
 
-@admin.register(SingleProduct)
-class SingleProductAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "brand_name",
-        "price",
-        "availability",
-        "seller",
-        "refundable",
-        "returnable",
-    )
-    list_filter = ("availability", "refundable", "returnable")
-    search_fields = ("name", "brand_name")
-    inlines = [SingleProductImageInline]
+# @admin.register(SingleProduct)
+# class SingleProductAdmin(admin.ModelAdmin):
+#     list_display = (
+#         "name",
+#         "brand_name",
+#         "price",
+#         "availability",
+#         "seller",
+#         "refundable",
+#         "returnable",
+#     )
+#     list_filter = ("availability", "refundable", "returnable")
+#     search_fields = ("name", "brand_name")
+#     inlines = [SingleProductImageInline]
