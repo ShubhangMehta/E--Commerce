@@ -131,21 +131,6 @@ class TenantRequestAdmin(ModelAdmin):
                         is_primary=True
                     )
 
-                    # # Payment
-                    # if pricing.is_trial:
-                    #     amount = 0
-                    #     payment_status = 'trial'
-                    # else:
-                    #     amount = pricing.price
-                    #     payment_status = 'paid'
-                    
-                    # payment = Payment.objects.create(
-                    #     client=tenant,
-                    #     amount=amount,
-                    #     payment_plan=pricing.billing_cycle,
-                    #     transaction_id=f"TXN-{tenant.id}-{timezone.now().timestamp()}",
-                    #     status=payment_status
-                    # )
                     # Subscription
                     start_date = timezone.now()
                     end_date = start_date + timedelta(days=pricing.duration_days)
@@ -161,11 +146,7 @@ class TenantRequestAdmin(ModelAdmin):
                         status = 'Active'
                         #auto_renew=not pricing.is_trial
                     )
-                    # if pricing.is_trial:
-                    #     tenant.has_used_trial = True
-                    #     tenant.save()
-                   
-
+                
                     print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
                     if tr.email:
                         send_html_email(
@@ -212,13 +193,6 @@ class TicketAdmin(ModelAdmin):
     search_fields = ('client__tenant_name', 'subject', 'assigned_to')
 
 
-# @admin.register(Payment)
-# class PaymentAdmin(ModelAdmin):
-#     list_display = ('client', 'amount', 'payment_plan', 'status', 'transaction_id', 'created_at')
-#     list_filter = ('payment_plan', 'status')
-#     search_fields = ('client__tenant_name', 'transaction_id')
-
-
 @admin.register(ClientSubscription)
 class ClientSubscriptionAdmin(ModelAdmin):
     list_display = ('client', 'plan', 'status', 'start_date', 'end_date', 'auto_renew')
@@ -229,9 +203,19 @@ class ClientSubscriptionAdmin(ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
-    list_display = ('invoice_number', 'client', 'subscription', 'payment', 'invoice_type', 'created_at')
+    list_display = ('invoice_number', 'client', 'subscription', 'payment_count', 'is_paid', 'invoice_type', 'created_at')
     list_filter = ('invoice_type',)
     search_fields = ('invoice_number', 'client__tenant_name')
+
+    def payment_count(self, obj):
+        return obj.payments.count()
+    payment_count.short_description = 'Payments'
+
+    def is_paid(self, obj):
+        return obj.payments.filter(status='captured').exists()
+    is_paid.boolean = True
+    is_paid.short_description = "Paid"
+    
 
 
 @admin.register(PlanPricing)
