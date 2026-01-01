@@ -2,30 +2,56 @@ from django.http import HttpResponseForbidden, HttpResponse
 from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 
 GRACE_PERIOD_DAYS = 7  # Number of grace period days after subscription end
 
 class BlockTenantAdminMiddleware:
     """
-    Middleware to block access to the admin site for tenant schemas.
-    Only the public schema should have access to the admin site.
+    Block access to the SUPER ADMIN site for tenant schemas.
+    Allow tenant admin access during development.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Check current schema
-        current_schema = connection.schema_name
-        print("Current Schema >>>> ", connection.schema_name)
+        schema = connection.schema_name
 
-        #if not current_schema == 'public' block it
-        if current_schema != 'public' and request.path.startswith('/admin/'):
-            return HttpResponseForbidden("<h2> Access Denied </h2>" 
-                "<p>Access to Super admin site is restricted for tenant schemas.</p>"
+        # Allow everything in development
+        if settings.DEBUG:
+            return self.get_response(request)
+
+        # Block tenant admin in production
+        if schema != "public" and request.path.startswith("/admin/"):
+            return HttpResponseForbidden(
+                "<h2>Access Denied</h2>"
+                "<p>Tenant admin access is restricted.</p>"
             )
-        
+
         return self.get_response(request)
+
+# class BlockTenantAdminMiddleware:
+#     """
+#     Middleware to block access to the admin site for tenant schemas.
+#     Only the public schema should have access to the admin site.
+#     """
+
+#     def __init__(self, get_response):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         # Check current schema
+#         current_schema = connection.schema_name
+#         print("Current Schema >>>> ", connection.schema_name)
+
+#         #if not current_schema == 'public' block it
+#         if current_schema != 'public' and request.path.startswith('/admin/'):
+#             return HttpResponseForbidden("<h2> Access Denied </h2>" 
+#                 "<p>Access to Super admin site is restricted for tenant schemas.</p>"
+#             )
+        
+#         return self.get_response(request)
     
 
 
