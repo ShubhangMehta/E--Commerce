@@ -1,20 +1,22 @@
 from django.contrib import admin
-from django_tenants.admin import TenantAdminMixin
+from unfold.admin import ModelAdmin   # ✓ Unfold Admin
 from django.db import connection
+from django.contrib import messages
 from django_tenants.utils import schema_context
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
-    Ticket, ClientSubscription, Payment, Invoice, RefundRequest
+    Ticket, ClientSubscription, Invoice,
+    RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing
 )
 from django.utils import timezone
+from datetime import timedelta
 from core_app.emails.utils import send_html_email
-
 
 # ----------------------------
 # Domain Admin
 # ----------------------------
 @admin.register(Domain)
-class DomainAdmin(admin.ModelAdmin):
+class DomainAdmin(ModelAdmin):
     list_display = ('domain', 'tenant_name_display', 'is_primary', 'tenant_status_display')
     list_filter = ('is_primary',)
     search_fields = ('desired_domain', 'tenant__tenant_name', 'tenant__schema_name')
@@ -32,34 +34,36 @@ class DomainAdmin(admin.ModelAdmin):
 # Client Admin
 # ----------------------------
 @admin.register(Client)
-class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
+class ClientAdmin(ModelAdmin):
     list_display = (
         'tenant_name',
         'schema_name',
-        'status',           # from @property
-        'current_plan',     # from @property
+        'status',
+        'theme',
+        'current_plan',
         'subscription_start',
         'subscription_end',
         'created_on',
-        )
+    )
+
     readonly_fields = (
-    'created_on',
-    'status',
-    'current_plan',
-    'subscription_start',
-    'subscription_end',
-    'storage_used_mb',
-    'product_count',
-    'order_count',
-    'visitor_count_7d',
-    'visitor_count_30d',
-    'active_users',
-    'last_login',
-)
-    list_filter = ('desired_domain',)
+        'created_on',
+        'status',
+        'current_plan',
+        'subscription_start',
+        'subscription_end',
+        'storage_used_mb',
+        'product_count',
+        'order_count',
+        'visitor_count_7d',
+        'visitor_count_30d',
+        'active_users',
+        'last_login',
+    )
+
+    list_filter = ('desired_domain','theme')
     search_fields = ('tenant_name', 'schema_name')
     ordering = ('-clientsubscription__start_date',)
-
 
     fieldsets = (
         ('🏢 Core Tenant Information', {
@@ -75,36 +79,37 @@ class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
             ),
             'classes': ('collapse',),
         }),
+        ('🎨 Branding & Theme', {
+            'fields': ('theme',),
+            }),
     )
-
 
 
 # ----------------------------
 # Tenant Request Admin
 # ----------------------------
 @admin.register(TenantRequest)
-class TenantRequestAdmin(admin.ModelAdmin):
+class TenantRequestAdmin(ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
     list_filter = ('status',)
     actions = ['approve_selected_tenants']
-    #print("🔍 TenantRequestAdmin loaded successfully")
 
     @admin.action(description='Approve selected tenants')
     def approve_selected_tenants(self, request, queryset):
         try:
-            print("🚀 ACTION EXECUTED >>>", queryset)
             connection.set_autocommit(True)
 
             with schema_context('public'):
                 for tr in queryset.filter(is_approved=False):
                     schema_name = tr.tenant_name.lower().replace(" ", "_")
-
-                    # 1️⃣ Mark request approved
+                    pricing = tr.pricing
+                        
+                    # Mark approved ONLY if valid
                     tr.is_approved = True
                     tr.status = "Approved"
                     tr.save()
 
-                    # 2️⃣ Create Tenant
+                    # Create Tenant
                     tenant = Client.objects.create(
                         schema_name=schema_name,
                         tenant_name=tr.tenant_name,
@@ -113,63 +118,58 @@ class TenantRequestAdmin(admin.ModelAdmin):
                         email=tr.email,
                         company=tr.company,
                         address=tr.address,
-                        logo=tr.logo
+                        logo=tr.logo,
+                        theme=tr.theme
                     )
-
-                    print(f"⚙️ Creating schema manually for: {schema_name}")
+                    
                     tenant.create_schema(check_if_exists=True)
 
-                    # 3️⃣ Create Domain
-                    domain = Domain.objects.create(
+                    # Create Domain
+                    Domain.objects.create(
                         domain=f"{tr.desired_domain}.localhost",
                         tenant=tenant,
                         is_primary=True
                     )
 
-                    # 4️⃣ Create Payment
-                    amount = tr.plan.price
-                    payment = Payment.objects.create(
-                        client=tenant,
-                        amount=amount,
-                        method=tr.payment_mode,
-                        payment_plan=tr.payment_plan,
-                        transaction_id=f"TXN-{tenant.id}-{timezone.now().timestamp()}",
-                        status='paid'
-                    )
-
-                    # 5️⃣ Create Subscription
-                    subscription = ClientSubscription.objects.create(
-                        client=tenant,
-                        plan=tr.plan,
-                        payment=payment,
-                        auto_renew=True
-                    )
-
-                    print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
+                    # Subscription
+                    start_date = timezone.now()
+                    end_date = start_date + timedelta(days=pricing.duration_days)
                     
-                    send_html_email(
-                        subject="Your Tenant has been successfully created",
-                        to_email=tr.email,
-                        template_name="emails/tenant_created.html",
-                        context={
-                            "owner_name": tr.tenant_name,
-                            "tenant_name": tr.tenant_name,
-                            "company": tr.company,
-                            "email": tr.email,
-                            "address": tr.address,
-                            #"created_on": tenant_created_on,
-                            "domain": tr.desired_domain,
-                        }
-                    )    
-                    if not tr.email:
+                    plan=pricing.plan
+                    ClientSubscription.objects.create(
+                        client=tenant,
+                        plan=plan,
+                        pricing=pricing,
+                        #payment=payment,
+                        start_date=start_date,
+                        end_date=end_date,
+                        status = 'Active'
+                        #auto_renew=not pricing.is_trial
+                    )
+                
+                    print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
+                    if tr.email:
+                        send_html_email(
+                            subject="Your Tenant has been successfully created",
+                            to_email=tr.email,
+                            template_name="emails/tenant_created.html",
+                            context={
+                                "owner_name": tr.tenant_name,
+                                "tenant_name": tr.tenant_name,
+                                "company": tr.company,
+                                "email": tr.email,
+                                "address": tr.address,
+                                #"created_on": tenant_created_on,
+                                "domain": tr.desired_domain,
+                            }
+                        )
+                        print(f"email sent to {tr.email}")   
+                    else:
                             print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
                             continue
-                       
-                    print(f"email sent to {tr.email}")
-
+                    
             connection.set_autocommit(False)
             self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
-
 
         except Exception as e:
             import traceback
@@ -180,45 +180,66 @@ class TenantRequestAdmin(admin.ModelAdmin):
 # ----------------------------
 # Other Admin Registrations
 # ----------------------------
-
 @admin.register(SubscriptionPlan)
-class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'duration_days', 'storage_limit_mb', 'status')
-    list_filter = ('status',)
-    search_fields = ('name',)
+class SubscriptionPlanAdmin(ModelAdmin):
+    list_display = ('name', 'storage_limit_mb', 'status')
+    list_filter = ('status',)   #Dont delete comma , it becomes a string
+    search_fields = ('name',)   #Dont delete comma , it becomes a string
 
 
 @admin.register(Ticket)
-class TicketAdmin(admin.ModelAdmin):
+class TicketAdmin(ModelAdmin):
     list_display = ('client', 'subject', 'category', 'priority', 'status', 'assigned_to', 'created_at')
     list_filter = ('category', 'priority', 'status')
     search_fields = ('client__tenant_name', 'subject', 'assigned_to')
 
 
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('client', 'amount', 'method', 'payment_plan', 'status', 'transaction_id', 'created_at')
-    list_filter = ('method', 'payment_plan', 'status')
-    search_fields = ('client__tenant_name', 'transaction_id')
-
-
 @admin.register(ClientSubscription)
-class ClientSubscriptionAdmin(admin.ModelAdmin):
+class ClientSubscriptionAdmin(ModelAdmin):
     list_display = ('client', 'plan', 'status', 'start_date', 'end_date', 'auto_renew')
     list_filter = ('status', 'plan', 'auto_renew')
     search_fields = ('client__tenant_name', 'plan__name')
-    ordering = ['-end_date']  # reflect latest subscription first
+    ordering = ['-end_date']
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ('invoice_number', 'client', 'subscription', 'payment', 'invoice_type', 'created_at')
+class InvoiceAdmin(ModelAdmin):
+    list_display = ('invoice_number', 'client', 'subscription', 'payment_count', 'is_paid', 'invoice_type', 'created_at')
     list_filter = ('invoice_type',)
     search_fields = ('invoice_number', 'client__tenant_name')
 
+    def payment_count(self, obj):
+        return obj.payments.count()
+    payment_count.short_description = 'Payments'
 
-@admin.register(RefundRequest)
-class RefundRequestAdmin(admin.ModelAdmin):
-    list_display = ('client', 'payment', 'refund_type', 'refund_policy', 'status', 'refund_amount', 'requested_at')
-    list_filter = ('status', 'refund_type', 'refund_policy')
-    search_fields = ('client__tenant_name', 'payment__transaction_id')
+    def is_paid(self, obj):
+        return obj.payments.filter(status='captured').exists()
+    is_paid.boolean = True
+    is_paid.short_description = "Paid"
+    
+
+
+@admin.register(PlanPricing)
+class PlanPricingAdmin(ModelAdmin):
+    list_display = ('plan', 'billing_cycle', 'price', 'duration_days')
+    list_filter = ('plan', 'billing_cycle')
+    search_fields = ('plan__name',)
+    ordering = ('plan', 'billing_cycle')
+
+# -----------------------------
+# Razorpay Related Admin Models
+# -----------------------------
+
+@admin.register(RzpPayment)
+class RzpPaymentAdmin(admin.ModelAdmin):
+    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
+
+
+@admin.register(RzpWebhookEvent)
+class RzpWebhookEventAdmin(admin.ModelAdmin):
+    list_display = ("event", "signature_ok", "received_at")
+
+
+@admin.register(RzpRefund)
+class RzpRefundAdmin(admin.ModelAdmin):
+    list_display = ("payment", "razorpay_refund_id", "status", "created_at")

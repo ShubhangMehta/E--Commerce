@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Store{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandViolet: '#2D1B4D', // Deep, rich violet
+                        brandGold: '#D4AF37',   // Classic metallic gold
+                        softGold: '#F9F1D0',    // Light cream-gold for backgrounds
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+        
+        /* Subtle gradient background */
+        .bg-royal {
+            background: linear-gradient(135deg, #2D1B4D 0%, #1a102d 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+
+    <header class="bg-white border-b-2 border-brandGold/20 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+        <a href="/" class="serif text-2xl font-bold tracking-tight text-brandViolet">
+            <span class="text-brandGold">★</span> {{ request.tenant.name|default:"LUXE" }}
+        </a>
+        
+        <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-[0.2em]">
+            <a href="/products/" class="text-gray-600 hover:text-brandGold transition-colors">Shop</a>
+            <a href="/cart/" class="text-gray-600 hover:text-brandGold transition-colors">Cart</a>
+            <a href="/orders/" class="text-gray-600 hover:text-brandGold transition-colors">Orders</a>
+            
+            <div class="h-4 w-[1px] bg-brandGold/30"></div>
+
+            <a href="/login/" class="text-brandViolet hover:text-brandGold transition-colors">Login</a>
+            <a href="/signup/" class="px-5 py-2 border border-brandViolet text-brandViolet hover:bg-brandViolet hover:text-white transition-all shadow-sm">Signup</a>
+        </nav>
+    </div>
+</header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-12 w-full">
+        {% block content %}
+        <div class="text-center py-20">
+            <h1 class="serif text-5xl text-brandViolet mb-4">Exquisite Collection</h1>
+            <p class="text-gray-500 max-w-md mx-auto">Discover the intersection of tradition and luxury.</p>
+            <button class="mt-8 px-8 py-3 bg-brandGold text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform">
+                Browse Catalog
+            </button>
+        </div>
+        {% endblock %}
+    </main>
+
+    <footer class="bg-brandViolet text-white border-t-4 border-brandGold">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
+                <div>
+                    <h3 class="serif text-xl text-brandGold mb-4 uppercase tracking-widest">{{ request.tenant.name|default:"LUXE" }}</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Curating the finest goods for the modern connoisseur.</p>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest mb-4">Links</h4>
+                    <ul class="text-gray-400 space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-brandGold transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brandGold transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-brandGold transition-colors">Shipping Info</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest mb-4">Contact</h4>
+                    <p class="text-gray-400 text-sm">support@luxe.com</p>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-white/10 text-center text-xs text-gray-500 tracking-widest">
+                © 2025 {{ request.tenant.name|default:"LUXE" }}. ALL RIGHTS RESERVED.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

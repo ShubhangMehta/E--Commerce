@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ request.tenant.name }}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        noir: '#121212', 
+                        champagne: '#E7D192',
+                        alabaster: '#F9F9F9',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Tenor+Sans&display=swap');
+        
+        .serif-fancy { font-family: 'Cormorant Garamond', serif; }
+        .sans-fancy { font-family: 'Tenor Sans', sans-serif; }
+        
+        body { background-color: #F9F9F9; color: #121212; }
+        
+        /* Smooth fade-in animation */
+        .fade-in { animation: fadeIn 1.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col sans-fancy">
+    <header class="border-b border-noir/5 sticky top-0 z-50 bg-alabaster/80 backdrop-blur-md">
+        <div class="max-w-[1400px] mx-auto px-10 py-8 flex justify-between items-center">
+            <nav class="hidden md:flex space-x-12 text-[10px] uppercase tracking-[0.4em]">
+                <a href="/products/" class="hover:text-champagne transition-colors">Archive</a>
+                <a href="/about/" class="hover:text-champagne transition-colors">Philosophy</a>
+            </nav>
+
+            <a href="/" class="serif-fancy text-4xl tracking-widest uppercase font-light">
+                {{ request.tenant.name }}
+            </a>
+
+            <nav class="hidden md:flex space-x-12 text-[10px] uppercase tracking-[0.4em]">
+                <a href="/login/" class="hover:text-champagne transition-colors">Account</a>
+                <a href="/cart/" class="relative group">
+                    Cart <span class="text-champagne">/ 0</span>
+                    <span class="absolute -bottom-1 left-0 w-0 h-[1px] bg-noir group-hover:w-full transition-all duration-500"></span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow fade-in">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-noir text-alabaster py-24">
+        <div class="max-w-7xl mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-10">
+            <p class="text-[9px] uppercase tracking-[0.5em] opacity-40">Est. 2025</p>
+            <h2 class="serif-fancy text-3xl italic font-light tracking-widest">{{ request.tenant.name }}</h2>
+            <p class="text-[9px] uppercase tracking-[0.5em] opacity-40 text-center">All Rights Reserved</p>
+        </div>
+    </footer>
+</body>
+</html>
