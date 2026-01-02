@@ -365,10 +365,10 @@ class RzpPayment(models.Model):
         ('refund.processed', 'Refund Processed'),
     ]
 
-    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE, related_name="payments")
+    subscription = models.ForeignKey(ClientSubscription, on_delete=models.CASCADE, related_name="payments", null=True, blank=True)
     invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, blank=True, null=True, related_name="payments")
 
-    razorpay_payment_id = models.CharField(max_length=64, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
     razorpay_order_id = models.CharField(max_length=64, blank=True, null=True)
 
     amount= models.PositiveIntegerField()

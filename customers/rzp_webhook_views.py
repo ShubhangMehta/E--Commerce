@@ -69,9 +69,9 @@ def razorpay_webhook(request):
         # Try locating our Payment either via notes or via order_id
         try:
             if payment_id:
-                payment = Payment.objects.get(id=payment_id)
+                payment = Payments.objects.get(id=payment_id)
             else:
-                payment = Payment.objects.get(transaction_id=razorpay_order_id)
+                payment = Payments.objects.get(transaction_id=razorpay_order_id)
         except Payment.DoesNotExist:
             # We got a payment for which we can't find a record; log and exit
             return HttpResponse("Payment record not found", status=200)

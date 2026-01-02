@@ -7,6 +7,4 @@ urlpatterns=[
     path("admin/", admin.site.urls),
     path('',views.home,name='home'),
     path('raise-ticket/', views.raise_ticket, name='raise_ticket'),
-    #path('razorpay/webhook/', rzp_webhook_views.razorpay_webhook, name='razorpay_webhook'),
-    #path("test-billing/", views.test_billing, name="test_billing"),
 ]

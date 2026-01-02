@@ -167,6 +167,7 @@ class TenantRequestAdmin(ModelAdmin):
                     else:
                             print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
                             continue
+                    
             connection.set_autocommit(False)
             self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
 

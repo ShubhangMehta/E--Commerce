@@ -56,6 +56,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 pricing=pricing,
                 status='expired'  # webhook capture will activate
             )
+        
 
     # 4) (Optional) Run tenant migrations explicitly if your setup requires it
     # Some projects rely on auto_create_schema=True, others run migrations manually.
