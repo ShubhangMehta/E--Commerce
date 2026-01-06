@@ -26,5 +26,6 @@ urlpatterns = [
     path('', include('customers.urls')),
     path("users/", include("users.urls")),
 
+    path('backups/', include('backups.urls')),
 ]
 >>>>>>> 14d4de4 ("User-App finished")

@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 This is a Intership Project, creating SaaS platform for client to meet requirements of hosting E-commerce website along with organising PostgreSQL Database in Supabase platform.
 
 
@@ -12,7 +10,6 @@ Anshad Mohammad - Dev
 Venkatesh Bodakunta - Dev
 
 
->>>>>>> b3daced (Revise README with project details and team info)
 SaaS + E-Commerce Platform:
 
 A powerful multi-tenant SaaS platform built that enables businesses to launch and manage their own customized e-commerce websites and service platforms — all without writing code.
@@ -48,7 +45,3 @@ Role-Based Access — Super Admin, Staff, Tenant Admin, and Customer user levels
 Automated Backups & SSL — Incremental + full backups, Let’s Encrypt for SSL.
 
 Template System — Pre-built website templates that can be customized per tenant.
-<<<<<<< HEAD
-=======
-
->>>>>>> b3daced (Revise README with project details and team info)

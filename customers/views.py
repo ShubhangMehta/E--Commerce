@@ -151,7 +151,7 @@ def create_tenant(request):
             {'message': f'Request for {tenant_name} submitted for approval!'}
         )
 
-    return render(request, 'create_tenant.html')
+    return render(request, 'customers/create_tenant.html')
 
 
 

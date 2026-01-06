@@ -39,20 +39,14 @@ SHARED_APPS = [
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
 
     "accounts",
-    'backups',
     'django_crontab',
-
-    #'billing.apps.BillingConfig',    #Billing and Subscription app
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
-
     
 ]
 
@@ -65,23 +59,13 @@ TENANT_APPS = [
     # 'django.contrib.staticfiles',
     'catalog',
     'orders',
-
-    'dashboard',
-
     'users',
-
-
-    'themes',
-
-
-
+    "themes"
 ]
 
 
 
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
-#INSTALLED_APPS = SHARED_APPS + TENANT_APPS
-
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -98,13 +82,7 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-
-    "django_tenants.middleware.TenantMiddleware",
-    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
-    "core_app.middleware.BlockTenantAdminMiddleware",
-
     "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
-
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -118,22 +96,7 @@ MIDDLEWARE = [
 ]
 
 
-PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
 ROOT_URLCONF = "core_app.urls_tenants"
-
-
-
-ROOT_URLCONF = "core_app.urls"
-#PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
-TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
-
-
-PUBLIC_SCHEMA_NAME = "public" 
-
-
-
-ROOT_URLCONF = "core_app.urls_tenants"
-
 
 TEMPLATES = [
     {
@@ -259,5 +222,16 @@ BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
 
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
+
+######------
+#Email alerts
+######------
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "yourmail@gmail.com"
+EMAIL_HOST_PASSWORD = "1q2w3e"   # Use App Password, not raw PW
+BACKUP_ALERT_EMAIL = "yourmail@gmail.com"
 
 
