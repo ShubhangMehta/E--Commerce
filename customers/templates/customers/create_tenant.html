@@ -85,11 +85,39 @@
         }
     </style>
 
+    <!-- JAVASCRIPT -->
     <script>
-        function togglePayment(show) {
-            document.getElementById("payment-section").style.display =
-                show ? "block" : "none";
-        }
+    function selectTrial() {
+        // Show/hide sections
+        document.getElementById("trial-section").style.display = "block";
+        document.getElementById("paid-section").style.display = "none";
+
+        // Enable trial inputs
+        document.getElementById("trial-plan").disabled = false;
+        document.getElementById("trial-payment").disabled = false;
+
+        // Disable paid inputs
+        document.getElementById("paid-plan").disabled = true;
+        document.getElementById("paid-payment").disabled = true;
+}
+
+    function selectPaid() {
+        document.getElementById("trial-section").style.display = "none";
+        document.getElementById("paid-section").style.display = "block";
+
+        // Disable trial inputs
+        document.getElementById("trial-plan").disabled = true;
+        document.getElementById("trial-payment").disabled = true;
+
+        // Enable paid inputs
+        document.getElementById("paid-plan").disabled = false;
+        document.getElementById("paid-payment").disabled = false;
+    }
+
+    function enableFieldsBeforeSubmit() {
+        // IMPORTANT: disabled inputs are not submitted
+        document.getElementById("plan-select").disabled = false;
+    }
     </script>
 </head>
 
@@ -97,69 +125,153 @@
 <div class="container">
     <h2>Create Tenant Request</h2>
 
-    <form method="POST">
+    <form method="POST" onsubmit="enableFieldsBeforeSubmit()">
         {% csrf_token %}
 
-        <label>Tenant Name</label>
-        <input type="text" name="tenant_name" required>
+        {% if not show_payment %}
 
-        <label>Domain Name</label>
-        <input type="text" name="domain_name" required>
+            <!-- Owner Name -->
+            <label>Owner Name</label>
+            <input type="text" name="owner_name" required>
 
-        <label>Email</label>
-        <input type="email" name="email" required>
+            <!-- Tenant Name -->
+            <label>Tenant Name</label>
+            <input type="text" name="tenant_name" required>
 
-        <label>Company</label>
-        <input type="text" name="company">
+            <!-- Domain -->
+            <label>Domain Name</label>
+            <input type="text" name="domain_name" required>
 
-        <label>Address</label>
-        <input type="text" name="address">
+            <!-- Email -->
+            <label>Email</label>
+            <input type="email" name="email" required>
 
-        <!-- PLAN -->
-        <label>Select Plan</label>
-        <select name="plan" required>
-            <option value="">-- Select --</option>
-            <option value="basic">Basic</option>
-            <option value="standard">Standard</option>
-            <option value="premium">Premium</option>
-        </select>
-        <!-- THEME -->
-        <label>Select Theme</label>
-        <select name="theme" required>
-            <option value="default">Default</option>
-            <option value="minimal">Minimal</option>
-            <option value="modern">Modern</option>
-        </select>
+            <!-- Company -->
+            <label>Company</label>
+            <input type="text" name="company">
 
-        <!-- TRIAL OR PAID -->
-        <label>How do you want to start?</label>
-        <div class="choice-box">
-            <label class="choice">
-                <input type="radio" name="subscription_type" value="trial"
-                       onclick="togglePayment(false)" required>
-                Trial
-                <div class="note">Try before you pay</div>
-            </label>
+            <!-- Address -->
+            <label>Address</label>
+            <input type="text" name="address">
 
-            <label class="choice">
-                <input type="radio" name="subscription_type" value="paid"
-                       onclick="togglePayment(true)">
-                Subscription
-                <div class="note">Monthly or Yearly billing</div>
-            </label>
-        </div>
-
-        <!-- PAYMENT OPTIONS -->
-        <div id="payment-section" class="payment-section">
-            <label>Billing Cycle</label>
-            <select name="payment_plan">
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly (Save 10% more) </option>
+            <!-- THEME -->
+            <label>Select Theme</label>
+            <select name="theme" required>
+                <option value="default">Default</option>
+                <option value="minimal">Minimal</option>
+                <option value="modern">Modern</option>
             </select>
-        </div>
 
-        <button type="submit">Submit Request</button>
+            <!-- TRIAL OR PAID -->
+            <label>How do you want to start?</label>
+            <div class="choice-box">
+                <label>
+                    <input type="radio"
+                       name="subscription_type"
+                       value="trial"
+                       onclick="selectTrial()"
+                       required>
+                    Start with Trial
+                </label>
+
+                <label>
+                    <input type="radio"
+                            name="subscription_type"
+                            value="paid"
+                            onclick="selectPaid()">
+                        Start with Subscription
+                </label>
+            </div>
+
+            <!-- TRIAL INFO -->
+            <div id="trial-section" style="display:none;">
+                <p><strong>Free Trial</strong></p>
+                <ul>
+                    <li>No credit card required</li>
+                    <li>Full access during trial period</li>
+                    <li>Upgrade anytime</li>
+                </ul>
+
+                <!-- hidden but submitted -->
+                <input type="hidden" name="plan" id="trial-plan" value="trial">
+                <input type="hidden" name="payment_plan" id="trial-payment" value="trial">
+            </div>
+
+            <!-- PAID SUBSCRIPTION OPTIONS -->
+            <div id="paid-section" style="display:none;">
+                <label>Select Plan</label>
+                <select name="plan" id="paid-plan">
+                    <option value="">-- Select --</option>
+                    <option value="basic">Basic</option>
+                    <option value="standard">Standard</option>
+                    <option value="premium">Premium</option>
+                </select>
+
+                <label>Billing Cycle</label>
+                <select name="payment_plan" id="payment-plan">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+
+                <p>
+                    You will be redirected to secure payment after submission.
+                </p>
+            </div>
+
+            <button type="submit">
+                Create Tenant
+            </button>
+
+        {% endif %}
     </form>
+
+
+    {% if show_payment %}
+    <hr>
+
+    <h3>Complete Payment</h3>
+
+    <p><strong>Tenant:</strong> {{ tenant_request.tenant_name }}</p>
+    <p><strong>Domain:</strong> {{ tenant_request.desired_domain }}</p>
+    <p><strong>Plan:</strong> {{ plan.get_name_display }}</p>
+    <p><strong>Invoice:</strong> {{ invoice.invoice_number }}</p>
+    <p><strong>Amount:</strong> ₹ {{ amount|floatformat:"2" }}</p>
+
+    <button id="pay-btn">Pay Now</button>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        var options = {
+            "key": "{{ razorpay_key }}",
+            "amount": "{{ amount }}",
+            "currency": "INR",
+            "name": "Your SaaS Platform",
+            "description": "Subscription Payment",
+            "order_id": "{{ order_id }}",
+            "handler": function (response) {
+                window.location.href = "/billing/success/";   //?invoice={{ invoice.id }}
+            },
+            "modal": {
+                "ondismiss": function () {
+                    alert("Payment not completed. You can retry using the same invoice.");
+                    window.location.href = "/billing/cancel/?invoice={{ invoice.id }}";
+                }
+            }
+        };
+
+        document.getElementById("pay-btn").onclick = function () {
+            var rzp = new Razorpay(options);
+            rzp.open();
+        };
+    </script>
+
+    <p style="color: #555; font-size: 0.9em;">
+        Do not refresh this page.  
+        If payment fails, you can retry using the same invoice.
+    </p>
+
+    {% endif %}
 
     {% if message %}
         <p>{{ message }}</p>

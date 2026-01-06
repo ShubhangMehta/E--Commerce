@@ -1,7 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin   # ✓ Unfold Admin
 from django.db import connection
-from django.contrib import messages
 from django_tenants.utils import schema_context
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
@@ -203,19 +202,19 @@ class ClientSubscriptionAdmin(ModelAdmin):
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(ModelAdmin):
-    list_display = ('invoice_number', 'client', 'subscription', 'payment_count', 'is_paid', 'invoice_type', 'created_at')
-    list_filter = ('invoice_type',)
-    search_fields = ('invoice_number', 'client__tenant_name')
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ('invoice_number',
+                    'tenant_request', 
+                    'status', 
+                    'amount', 
+                    'razorpay_order_id',
+                    'created_at'
+                    )
+    list_filter = ('status',)
+    search_fields = ('invoice_number', 'razorpay_order_id', 'tenant_request__desired_domain')
 
-    def payment_count(self, obj):
-        return obj.payments.count()
-    payment_count.short_description = 'Payments'
-
-    def is_paid(self, obj):
-        return obj.payments.filter(status='captured').exists()
-    is_paid.boolean = True
-    is_paid.short_description = "Paid"
+    def has_add_permission(self, request):
+        return False
     
 
 
@@ -232,12 +231,32 @@ class PlanPricingAdmin(ModelAdmin):
 
 @admin.register(RzpPayment)
 class RzpPaymentAdmin(admin.ModelAdmin):
-    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
+    list_display = (
+        "razorpay_payment_id",
+        "invoice",
+        "status",
+        "event",
+        "captured",
+        "created_at",
+    )
+
+    list_filter = ("status", "captured", "event")
+    search_fields = ("razorpay_payment_id", "razorpay_order_id")
+    readonly_fields = ("created_at",)
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(RzpWebhookEvent)
 class RzpWebhookEventAdmin(admin.ModelAdmin):
-    list_display = ("event", "signature_ok", "received_at")
+    list_display = ("event", "created_at")
+    readonly_fields = ("event", "payload", "created_at")
+    ordering = ("-created_at",)
+    
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(RzpRefund)
