@@ -1,14 +1,17 @@
 import os
 import subprocess
 import tempfile
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.conf import settings
 
 from backups.models import Backup, BackupLog
 from backups.utils.supabase_upload import upload_backup_file
 from backups.utils.alerts import send_backup_failure_alert
+from backups.utils.mailer import send_backup_status_email
 
-from django.conf import settings
+from customers.models import Client
 
 
 class Command(BaseCommand):
@@ -59,8 +62,18 @@ class Command(BaseCommand):
                     message=f"Master backup failed: {process.stderr}",
                 )
 
-                send_backup_failure_alert(backup, process.stderr)
+                # 🔴 Failure email to tenants
+                for client in Client.objects.exclude(email__isnull=True).exclude(email=""):
+                    send_backup_status_email(
+                        to_email=client.email,
+                        tenant_name=client.tenant_name,
+                        schema="GLOBAL",
+                        backup_type="master",
+                        status="failed",
+                        error_message=process.stderr,
+                    )
 
+                send_backup_failure_alert(backup, process.stderr)
                 return self.stdout.write(self.style.ERROR("❌ Master backup FAILED."))
 
             # 3. Upload dump to Supabase
@@ -79,6 +92,17 @@ class Command(BaseCommand):
                 message="Master backup completed successfully.",
             )
 
+            # ✅ Success email to all tenants
+            for client in Client.objects.exclude(email__isnull=True).exclude(email=""):
+                send_backup_status_email(
+                    to_email=client.email,
+                    tenant_name=client.tenant_name,
+                    schema="GLOBAL",
+                    backup_type="master",
+                    status="success",
+                    file_path=uploaded_path,
+                )
+
             self.stdout.write(self.style.SUCCESS("✅ Master backup DONE!"))
 
         except Exception as e:
@@ -93,6 +117,16 @@ class Command(BaseCommand):
                 message=str(e),
             )
 
-            send_backup_failure_alert(backup, str(e))
+            # 🔴 Failure email (exception case)
+            for client in Client.objects.exclude(email__isnull=True).exclude(email=""):
+                send_backup_status_email(
+                    to_email=client.email,
+                    tenant_name=client.tenant_name,
+                    schema="GLOBAL",
+                    backup_type="master",
+                    status="failed",
+                    error_message=str(e),
+                )
 
+            send_backup_failure_alert(backup, str(e))
             self.stdout.write(self.style.ERROR(f"❌ Master backup ERROR: {e}"))

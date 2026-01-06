@@ -40,3 +40,10 @@ for schema in $TENANT_SCHEMAS; do
 done
 
 echo "🎉 All tenant DAILY backups completed successfully!"
+
+echo "📧 Sending backup status emails..."
+
+source /Users/sasiabburi/E--Commerce/venv/bin/activate
+cd /Users/sasiabburi/E--Commerce
+
+python manage.py send_backup_status --type=daily --date="$DATE"
