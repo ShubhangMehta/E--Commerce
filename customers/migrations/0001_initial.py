@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Client',
             fields=[
-<<<<<<< HEAD
+
                 (
                     "id",
                     models.BigAutoField(
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                 ("visitor_count_30d", models.IntegerField(default=0)),
                 ("active_users", models.IntegerField(default=0)),
                 ("last_login", models.DateTimeField(blank=True, null=True)),
-=======
+
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('schema_name', models.CharField(db_index=True, max_length=63, unique=True, validators=[django_tenants.postgresql_backend.base._check_schema_name])),
                 ('tenant_name', models.CharField(max_length=100)),
@@ -105,7 +105,7 @@ class Migration(migrations.Migration):
                 ('visitor_count_30d', models.IntegerField(default=0)),
                 ('active_users', models.IntegerField(default=0)),
                 ('last_login', models.DateTimeField(blank=True, null=True)),
-<<<<<<< HEAD
+
                 ('paid_until', models.DateField(blank=True, null=True)),
                 ('on_trial', models.BooleanField(default=True)),
                 ('created_on', models.DateField(auto_now_add=True)),
