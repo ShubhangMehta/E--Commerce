@@ -18,7 +18,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from .models import RzpSubscription, RzpPlan, Client
+#from .models import RzpSubscription, RzpPlan, Client
+from .models import ClientSubscription, Client
 
 
 # ============================================================================
@@ -71,8 +72,8 @@ def _safe_make_aware(dt):
 # Subscription → Client Sync
 # ============================================================================
 
-@receiver(post_save, sender=RzpSubscription)
-def subscription_updates_client(sender, instance: RzpSubscription, created, **kwargs):
+@receiver(post_save, sender=ClientSubscription)
+def subscription_updates_client(sender, instance: ClientSubscription, created, **kwargs):
     """
     Sync Client fields whenever a subscription becomes active or its period changes.
 
@@ -161,7 +162,7 @@ def client_updates_subscription(sender, instance: Client, created, **kwargs):
 
     # Fetch the most recent subscription for this client
     sub = (
-        RzpSubscription.objects
+        ClientSubscription.objects
         .filter(client=instance)
         .order_by("-started_at", "-id")
         .first()

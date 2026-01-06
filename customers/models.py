@@ -11,13 +11,12 @@ from django.core.exceptions import ValidationError
 # Create your models here.
 
 class Client(TenantMixin):
-<<<<<<< HEAD
-<<<<<<< HEAD
+
     name = models.CharField(max_length=100)
     paid_until = models.DateField()
     on_trial = models.BooleanField(default=True)
     created_on = models.DateField(auto_now_add=True)
-=======
+
     tenant_name = models.CharField(max_length=100)
     server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
@@ -36,7 +35,7 @@ class Client(TenantMixin):
     visitor_count_30d = models.IntegerField(default=0)
     active_users = models.IntegerField(default=0)
     last_login = models.DateTimeField(null=True, blank=True)
->>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
+
 
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
@@ -82,8 +81,7 @@ class Client(TenantMixin):
     
 class Domain(DomainMixin):
     pass
-<<<<<<< HEAD
-=======
+
 
 # ---------------------------------------------
 #  Subscription Model

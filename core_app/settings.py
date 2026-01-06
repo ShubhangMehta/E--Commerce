@@ -35,23 +35,22 @@ SHARED_APPS = [
     'unfold',
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
-<<<<<<< HEAD
+
     "accounts",
     'backups',
     'django_crontab',
-=======
+
     #'billing.apps.BillingConfig',    #Billing and Subscription app
->>>>>>> 69fec36 (Razorpay Integration)
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
-=======
+
     'rest_framework',
->>>>>>> 14d4de4 ("User-App finished")
+
     
 ]
 
@@ -64,47 +63,45 @@ TENANT_APPS = [
     # 'django.contrib.staticfiles',
     'catalog',
     'orders',
-<<<<<<< HEAD
+
     'dashboard',
-=======
+
     'users',
-<<<<<<< HEAD
->>>>>>> 14d4de4 ("User-App finished")
+
+
     'themes',
-=======
-    "themes"
->>>>>>> d1dc597 (deleted_themes)
+
+
+
 ]
 
 
-<<<<<<< HEAD
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
-=======
+
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 #INSTALLED_APPS = SHARED_APPS + TENANT_APPS
->>>>>>> 69fec36 (Razorpay Integration)
+
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
-<<<<<<< HEAD
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-=======
 
->>>>>>> 69fec36 (Razorpay Integration)
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+
+
 
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",
 )
 
 MIDDLEWARE = [
-<<<<<<< HEAD
+
     "django_tenants.middleware.TenantMiddleware",
     "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
     "core_app.middleware.BlockTenantAdminMiddleware",
-=======
+
     "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
->>>>>>> 14d4de4 ("User-App finished")
+
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -117,15 +114,12 @@ MIDDLEWARE = [
     "core_app.middleware.BlockTenantAdminMiddleware",
 ]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
 ROOT_URLCONF = "core_app.urls_tenants"
-=======
-=======
 
-<<<<<<< HEAD
->>>>>>> 14d4de4 ("User-App finished")
+
+
 ROOT_URLCONF = "core_app.urls"
 #PUBLIC_SCHEMA_URLCONF = "core_app.public_urls"
 TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
@@ -133,10 +127,10 @@ TENANT_SCHEMA_URLCONF = "core_app.tenant_urls"
 
 PUBLIC_SCHEMA_NAME = "public" 
 
->>>>>>> 69fec36 (Razorpay Integration)
-=======
+
+
 ROOT_URLCONF = "core_app.urls_tenants"
->>>>>>> d1dc597 (deleted_themes)
+
 
 TEMPLATES = [
     {

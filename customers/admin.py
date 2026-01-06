@@ -1,15 +1,6 @@
 from django.contrib import admin
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-=======
 from unfold.admin import ModelAdmin   # ✓ Unfold Admin
->>>>>>> 14d4de4 ("User-App finished")
 from django.db import connection
-<<<<<<< HEAD
-=======
 from django.contrib import messages
 from django_tenants.utils import schema_context
 from .models import (
@@ -17,7 +8,6 @@ from .models import (
     Ticket, ClientSubscription, Invoice,
     RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing
 )
->>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
 from django.utils import timezone
 from datetime import timedelta
 from core_app.emails.utils import send_html_email
@@ -98,7 +88,6 @@ class ClientAdmin(ModelAdmin):
 # ----------------------------
 # Tenant Request Admin
 # ----------------------------
->>>>>>> 14d4de4 ("User-App finished")
 @admin.register(TenantRequest)
 class TenantRequestAdmin(ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
@@ -120,9 +109,7 @@ class TenantRequestAdmin(ModelAdmin):
                     tr.status = "Approved"
                     tr.save()
 
->>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
                     # Create Tenant
->>>>>>> 14d4de4 ("User-App finished")
                     tenant = Client.objects.create(
                         schema_name=schema_name,
                         tenant_name=tr.tenant_name,
@@ -137,32 +124,13 @@ class TenantRequestAdmin(ModelAdmin):
                     
                     tenant.create_schema(check_if_exists=True)
 
-<<<<<<< HEAD
-                    # 3️⃣ Create Domain
-=======
                     # Create Domain
->>>>>>> 14d4de4 ("User-App finished")
                     Domain.objects.create(
                         domain=f"{tr.desired_domain}.localhost",
                         tenant=tenant,
                         is_primary=True
                     )
 
-                    # # Payment
-                    # if pricing.is_trial:
-                    #     amount = 0
-                    #     payment_status = 'trial'
-                    # else:
-                    #     amount = pricing.price
-                    #     payment_status = 'paid'
-                    
-                    # payment = Payment.objects.create(
-                    #     client=tenant,
-                    #     amount=amount,
-                    #     payment_plan=pricing.billing_cycle,
-                    #     transaction_id=f"TXN-{tenant.id}-{timezone.now().timestamp()}",
-                    #     status=payment_status
-                    # )
                     # Subscription
                     start_date = timezone.now()
                     end_date = start_date + timedelta(days=pricing.duration_days)
@@ -178,14 +146,7 @@ class TenantRequestAdmin(ModelAdmin):
                         status = 'Active'
                         #auto_renew=not pricing.is_trial
                     )
-                    # if pricing.is_trial:
-                    #     tenant.has_used_trial = True
-                    #     tenant.save()
-                   
-
-<<<<<<< HEAD
->>>>>>> 14d4de4 ("User-App finished")
-=======
+                
                     print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
                     if tr.email:
                         send_html_email(
@@ -206,6 +167,7 @@ class TenantRequestAdmin(ModelAdmin):
                     else:
                             print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
                             continue
+                    
             connection.set_autocommit(False)
             self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
 
@@ -215,56 +177,6 @@ class TenantRequestAdmin(ModelAdmin):
             self.message_user(request, f"❌ Error approving tenants: {e}", level='error')
 
 
-<<<<<<< HEAD
-@admin.register(ClientRefundRequest)
-class ClientRefundRequestAdmin(admin.ModelAdmin):
-    list_display = (
-        "client",
-        "payment",
-        "refund_amount",
-        "refund_type",
-        "refund_policy",
-        "status",
-        "requested_at",
-        "processed_at",
-    )
-    list_filter = ("status", "refund_type", "refund_policy")
-    search_fields = ("client__tenant_name", "reason", "payment__transaction_id")
-
-# -----------------------------
-# Razorpay Related Admin Models
-# -----------------------------
-
-@admin.register(RzpPlan)
-class RzpPlanAdmin(admin.ModelAdmin):
-    list_display = ("name", "interval", "amount_in_paise")
-
-
-@admin.register(RzpSubscription)
-class RzpSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("email", "plan", "status", "current_period_start", "current_period_end")
-
-
-@admin.register(RzpInvoice)
-class RzpInvoiceAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "subscription", "amount_in_paise", "status")
-
-
-@admin.register(RzpPayment)
-class RzpPaymentAdmin(admin.ModelAdmin):
-    list_display = ("razorpay_payment_id", "subscription", "amount", "captured")
-
-
-@admin.register(RzpWebhookEvent)
-class RzpWebhookEventAdmin(admin.ModelAdmin):
-    list_display = ("event", "signature_ok", "received_at")
-
-
-@admin.register(RzpRefund)
-class RzpRefundAdmin(admin.ModelAdmin):
-    list_display = ("payment", "razorpay_refund_id", "status", "created_at")
->>>>>>> defaf09 (subscription and billing integration(razorpay) changed from billing app to customers app)
-=======
 # ----------------------------
 # Other Admin Registrations
 # ----------------------------
@@ -282,13 +194,6 @@ class TicketAdmin(ModelAdmin):
     search_fields = ('client__tenant_name', 'subject', 'assigned_to')
 
 
-# @admin.register(Payment)
-# class PaymentAdmin(ModelAdmin):
-#     list_display = ('client', 'amount', 'payment_plan', 'status', 'transaction_id', 'created_at')
-#     list_filter = ('payment_plan', 'status')
-#     search_fields = ('client__tenant_name', 'transaction_id')
-
-
 @admin.register(ClientSubscription)
 class ClientSubscriptionAdmin(ModelAdmin):
     list_display = ('client', 'plan', 'status', 'start_date', 'end_date', 'auto_renew')
@@ -299,9 +204,19 @@ class ClientSubscriptionAdmin(ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
-    list_display = ('invoice_number', 'client', 'subscription', 'payment', 'invoice_type', 'created_at')
+    list_display = ('invoice_number', 'client', 'subscription', 'payment_count', 'is_paid', 'invoice_type', 'created_at')
     list_filter = ('invoice_type',)
     search_fields = ('invoice_number', 'client__tenant_name')
+
+    def payment_count(self, obj):
+        return obj.payments.count()
+    payment_count.short_description = 'Payments'
+
+    def is_paid(self, obj):
+        return obj.payments.filter(status='captured').exists()
+    is_paid.boolean = True
+    is_paid.short_description = "Paid"
+    
 
 
 @admin.register(PlanPricing)
@@ -328,4 +243,3 @@ class RzpWebhookEventAdmin(admin.ModelAdmin):
 @admin.register(RzpRefund)
 class RzpRefundAdmin(admin.ModelAdmin):
     list_display = ("payment", "razorpay_refund_id", "status", "created_at")
->>>>>>> 5e291d5 (Themes_Updated_and_django_unfold)
