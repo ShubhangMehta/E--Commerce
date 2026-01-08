@@ -43,6 +43,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
 
             domain = Domain.objects.create(
                 domain=full_domain,
+                owner_name=tenant_request.owner_name,
                 tenant=tenant,
                 is_primary=True
             )
