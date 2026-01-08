@@ -18,7 +18,7 @@ class Client(TenantMixin):
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
-    has_used_trial = models.BooleanField(default=False)
+    used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)

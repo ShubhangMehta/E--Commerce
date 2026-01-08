@@ -37,13 +37,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 desired_domain=full_domain,
                 email=tenant_request.email,
                 company=tenant_request.company,
-
                 theme=tenant_request.theme,
-                # current_plan=tenant_request.plan,
-                # subscription_start=timezone.now(),
-                # subscription_end=timezone.now() + timedelta(days=settings.BILLING_TRIAL_DAYS),
-                # status='active',
-                # created_on=timezone.now(),
             )
 
             domain = Domain.objects.create(
@@ -61,6 +55,8 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     end_date=timezone.now() + timedelta(days=settings.BILLING_TRIAL_DAYS),
                     status='active'
                 )
+                tenant.used_trial = True
+                tenant.save(update_fields=['used_trial'])
             else:
                 subscription = ClientSubscription.objects.create(
                     client=tenant,

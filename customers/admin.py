@@ -1,7 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from unfold.admin import ModelAdmin   # ✓ Unfold Admin
 from django.db import connection
 from django_tenants.utils import schema_context
+from django.db import transaction
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
     Ticket, ClientSubscription, Invoice,
@@ -10,6 +11,7 @@ from .models import (
 from django.utils import timezone
 from datetime import timedelta
 from core_app.emails.utils import send_html_email
+from customers.services.provisioning import provision_tenant_from_request
 
 # ----------------------------
 # Domain Admin
@@ -43,6 +45,7 @@ class ClientAdmin(ModelAdmin):
         'subscription_start',
         'subscription_end',
         'created_on',
+        'used_trial',
     )
 
     readonly_fields = (
@@ -51,6 +54,7 @@ class ClientAdmin(ModelAdmin):
         'current_plan',
         'subscription_start',
         'subscription_end',
+        'used_trial',
         'storage_used_mb',
         'product_count',
         'order_count',
@@ -91,89 +95,131 @@ class ClientAdmin(ModelAdmin):
 class TenantRequestAdmin(ModelAdmin):
     list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
     list_filter = ('status',)
-    actions = ['approve_selected_tenants']
+    actions = ['provision_tenant']
 
-    @admin.action(description='Approve selected tenants')
-    def approve_selected_tenants(self, request, queryset):
-        try:
-            connection.set_autocommit(True)
+    @admin.action(description="Provision tenant ")
+    def provision_tenant(modeladmin, request, queryset):
+        success = 0
+        failed = 0
 
-            with schema_context('public'):
-                for tr in queryset.filter(is_approved=False):
-                    schema_name = tr.tenant_name.lower().replace(" ", "_")
-                    pricing = tr.pricing
+        for tr in queryset:
+            if tr.status == "approved":
+                modeladmin.message_user(
+                    request,
+                    f"{tr.desired_domain} already provisioned",
+                    level=messages.WARNING
+                )
+                continue
+
+            try:
+                with transaction.atomic():
+                    tenant, domain, subscription = provision_tenant_from_request(
+                        tenant_request=tr,
+                        plan=tr.plan,
+                        pricing=tr.pricing,
+                    )
+
+                    tr.status = "approved"
+                    tr.save(update_fields=["status"])
+
+                    success += 1
+
+            except Exception as e:
+                failed += 1
+                modeladmin.message_user(
+                    request,
+                    f"Failed to provision {tr.desired_domain}: {e}",
+                    level=messages.ERROR
+                )
+
+        modeladmin.message_user(
+            request,
+            f"Provisioning complete. Success: {success}, Failed: {failed}",
+            level=messages.INFO
+        )
+
+
+    # @admin.action(description='Provision Tenant')
+    # def provision_tenant(self, request, queryset):
+    #     try:
+    #         connection.set_autocommit(True)
+
+    #         with schema_context('public'):
+    #             for tr in queryset.filter(is_approved=False):
+    #                 schema_name = tr.tenant_name.lower().replace(" ", "_")
+    #                 pricing = tr.pricing
                         
-                    # Mark approved ONLY if valid
-                    tr.is_approved = True
-                    tr.status = "Approved"
-                    tr.save()
+    #                 # Mark approved ONLY if valid
+    #                 tr.is_approved = True
+    #                 tr.status = "Approved"
+    #                 tr.save()
 
-                    # Create Tenant
-                    tenant = Client.objects.create(
-                        schema_name=schema_name,
-                        tenant_name=tr.tenant_name,
-                        server_name="VPS-001",
-                        desired_domain=tr.desired_domain,
-                        email=tr.email,
-                        company=tr.company,
-                        address=tr.address,
-                        logo=tr.logo,
-                        theme=tr.theme
-                    )
+    #                 # Create Tenant
+    #                 tenant = Client.objects.create(
+    #                     schema_name=schema_name,
+    #                     tenant_name=tr.tenant_name,
+    #                     server_name="VPS-001",
+    #                     desired_domain=tr.desired_domain,
+    #                     email=tr.email,
+    #                     company=tr.company,
+    #                     address=tr.address,
+    #                     logo=tr.logo,
+    #                     theme=tr.theme
+    #                 )
                     
-                    tenant.create_schema(check_if_exists=True)
+    #                 tenant.create_schema(check_if_exists=True)
 
-                    # Create Domain
-                    Domain.objects.create(
-                        domain=f"{tr.desired_domain}.localhost",
-                        tenant=tenant,
-                        is_primary=True
-                    )
+    #                 # Create Domain
+    #                 Domain.objects.create(
+    #                     domain=f"{tr.desired_domain}.localhost",
+    #                     tenant=tenant,
+    #                     is_primary=True
+    #                 )
 
-                    # Subscription
-                    start_date = timezone.now()
-                    end_date = start_date + timedelta(days=pricing.duration_days)
+    #                 # Subscription
+    #                 start_date = timezone.now()
+    #                 end_date = start_date + timedelta(days=pricing.duration_days)
                     
-                    plan=pricing.plan
-                    ClientSubscription.objects.create(
-                        client=tenant,
-                        plan=plan,
-                        pricing=pricing,
-                        #payment=payment,
-                        start_date=start_date,
-                        end_date=end_date,
-                        status = 'Active'
-                        #auto_renew=not pricing.is_trial
-                    )
+    #                 plan=pricing.plan
+    #                 ClientSubscription.objects.create(
+    #                     client=tenant,
+    #                     plan=plan,
+    #                     pricing=pricing,
+    #                     #payment=payment,
+    #                     start_date=start_date,
+    #                     end_date=end_date,
+    #                     status = 'Active'
+    #                     #auto_renew=not pricing.is_trial
+    #                 )
                 
-                    print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
-                    if tr.email:
-                        send_html_email(
-                            subject="Your Tenant has been successfully created",
-                            to_email=tr.email,
-                            template_name="emails/tenant_created.html",
-                            context={
-                                "owner_name": tr.tenant_name,
-                                "tenant_name": tr.tenant_name,
-                                "company": tr.company,
-                                "email": tr.email,
-                                "address": tr.address,
-                                #"created_on": tenant_created_on,
-                                "domain": tr.desired_domain,
-                            }
-                        )
-                        print(f"email sent to {tr.email}")   
-                    else:
-                            print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
-                            continue
+    #                 print(f"✅ Subscription created for tenant: {tenant.tenant_name}")
+    #                 if tr.email:
+    #                     send_html_email(
+    #                         subject="Your Tenant has been successfully created",
+    #                         to_email=tr.email,
+    #                         template_name="emails/tenant_created.html",
+    #                         context={
+    #                             "owner_name": tr.tenant_name,
+    #                             "tenant_name": tr.tenant_name,
+    #                             "company": tr.company,
+    #                             "email": tr.email,
+    #                             "address": tr.address,
+    #                             #"created_on": tenant_created_on,
+    #                             "domain": tr.desired_domain,
+    #                         }
+    #                     )
+    #                     print(f"email sent to {tr.email}")   
+    #                 else:
+    #                         print(f"⚠️ No email provided for tenant request ID {tr.id}, skipping email notification.")
+    #                         continue
                     
-            connection.set_autocommit(False)
-            self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
+    #         connection.set_autocommit(False)
+    #         self.message_user(request, "🎉 Tenants approved and all resources created successfully.")
 
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            self.message_user(request, f"❌ Error approving tenants: {e}", level='error')
+    #     except Exception as e:
+    #         import traceback
+    #         traceback.print_exc()
+    #         self.message_user(request, f"❌ Error approving tenants: {e}", level='error')
 
 
 # ----------------------------

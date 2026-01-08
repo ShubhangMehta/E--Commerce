@@ -1,4 +1,5 @@
 from decimal import Decimal
+import email
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, JsonResponse
@@ -135,6 +136,13 @@ def create_tenant(request):
     if not plan:
         return JsonResponse({"error": "Invalid plan selected."}, status=400)
 
+    if data["subscription_type"] == "trial":
+        if Client.objects.filter(email=data["email"], used_trial=True).exists():
+            return JsonResponse(
+                {"error": "Trial has already been used. Please choose a paid plan."},
+                status=400
+            )
+    
     pricing = _find_pricing(
         plan=plan,
         subscription_type=data["subscription_type"],
