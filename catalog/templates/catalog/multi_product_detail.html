@@ -1,0 +1,19 @@
+<h1>{{ product.name }}</h1>
+<p>{{ product.description }}</p>
+
+{% for image in product.images.all %}
+    <img src="{{ image.image.url }}" style="max-width:150px;">
+{% endfor %}
+
+<h3>Variants</h3>
+
+<form method="post">
+    {% csrf_token %}
+    {% for variant in product.variants.all %}
+        <label>
+            <input type="radio" name="variant" value="{{ variant.id }}">
+            {{ variant.variant_value }} - ₹{{ variant.price }}
+        </label><br>
+    {% endfor %}
+    <button>Add to Cart</button>
+</form>

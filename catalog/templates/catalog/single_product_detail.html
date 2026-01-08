@@ -39,5 +39,15 @@
 <p><strong>Refundable:</strong> {{ product.refundable|yesno:"Yes,No" }}</p>
 <p><strong>Returnable:</strong> {{ product.returnable|yesno:"Yes,No" }}</p>
 
+<form method="post" action="{% url 'add-to-cart' product.id %}">
+    {% csrf_token %}
+    <button type="submit">Add to Cart</button>
+</form>
+
+<form method="get" action="/checkout/">
+    <button type="submit">Place Order</button>
+</form>
+
+
 </body>
 </html>

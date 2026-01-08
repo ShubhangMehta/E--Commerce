@@ -1,43 +1,12 @@
-{% comment %} {% for product in products %}
-<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
-
-    <h2>{{ product.name }}</h2>
-
-    <!-- PRIMARY IMAGE -->
-    {% with product.images.all|first as primary_image %}
-        {% if primary_image %}
-            <img src="{{ primary_image.image.url }}"
-                 alt="{{ product.name }}"
-                 style="max-width:200px; display:block; margin-bottom:10px;">
-        {% endif %}
-    {% endwith %}
-
-    <p><strong>Brand:</strong> {{ product.brand_name }}</p>
-    <p><strong>Price:</strong> ₹{{ product.price }}</p>
-    <p><strong>Description:</strong> {{ product.description }}</p>
-    <p><strong>Seller:</strong> {{ product.seller }}</p>
-    <p><strong>Estimated Delivery:</strong> {{ product.estimated_delivery }}</p>
-
-    <p><strong>Refundable:</strong> {{ product.refundable|yesno:"Yes,No" }}</p>
-    <p><strong>Returnable:</strong> {{ product.returnable|yesno:"Yes,No" }}</p>
-
-    <!-- OTHER IMAGES -->
-    {% if product.images.count > 1 %}
-        <div>
-            <strong>More Images:</strong><br>
-            {% for image in product.images.all %}
-                {% if not image.is_primary %}
-                    <img src="{{ image.image.url }}"
-                         style="max-width:80px; margin:5px;">
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% endif %}
-
-</div>
-{% endfor %} {% endcomment %}
-
 <h1>Available Products</h1>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Search products..."
+           value="{{ query }}">
+    <button type="submit">Search</button>
+</form>
+
+<hr>
 
 {% for product in products %}
 <a href="{% url 'single-product-detail' product.id %}"
@@ -47,19 +16,21 @@
 
     <h2>{{ product.name }}</h2>
 
+    {% if product.subcategory %}
+        <p><strong>Category:</strong> {{ product.subcategory.name }}</p>
+    {% endif %}
+
     {% with product.images.all|first as primary_image %}
         {% if primary_image %}
             <img src="{{ primary_image.image.url }}"
-                 alt="{{ product.name }}"
-                 style="max-width:200px; display:block; margin-bottom:10px;">
+                 style="max-width:200px;">
         {% endif %}
     {% endwith %}
 
-    <p><strong>Brand:</strong> {{ product.brand_name }}</p>
     <p><strong>Price:</strong> ₹{{ product.price }}</p>
 
 </div>
 </a>
 {% empty %}
-<p>No products available.</p>
+<p>No products found.</p>
 {% endfor %}
