@@ -9,9 +9,9 @@ from django.db.models import Q
 # Create your models here.
 
 class Client(TenantMixin):
-    #owner_name = models.CharField(max_length=100)
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
-    server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
+    #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
@@ -226,7 +226,7 @@ class TenantRequest(models.Model):
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
-    #owner_name = models.CharField(max_length=100)
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
     email = models.EmailField(null=True, blank=True)
@@ -257,7 +257,7 @@ class TenantRequest(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
-    is_approved = models.BooleanField(default=False)
+    #is_approved = models.BooleanField(default=False)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 

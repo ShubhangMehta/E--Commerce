@@ -18,9 +18,13 @@ from customers.services.provisioning import provision_tenant_from_request
 # ----------------------------
 @admin.register(Domain)
 class DomainAdmin(ModelAdmin):
-    list_display = ('domain', 'tenant_name_display', 'is_primary', 'tenant_status_display')
+    list_display = ('domain', 'tenant_owner_name', 'tenant_name_display', 'is_primary', 'tenant_status_display')
     list_filter = ('is_primary',)
-    search_fields = ('desired_domain', 'tenant__tenant_name', 'tenant__schema_name')
+    search_fields = ('desired_domain', 'tenant__tenant_name')
+
+    def tenant_owner_name(self, obj):
+        return obj.tenant.owner_name
+    tenant_owner_name.short_description = 'Owner Name'
 
     def tenant_name_display(self, obj):
         return obj.tenant.tenant_name
@@ -38,14 +42,13 @@ class DomainAdmin(ModelAdmin):
 class ClientAdmin(ModelAdmin):
     list_display = (
         'tenant_name',
-        'schema_name',
+        'owner_name',
         'status',
         'theme',
         'current_plan',
         'subscription_start',
         'subscription_end',
-        'created_on',
-        'used_trial',
+        
     )
 
     readonly_fields = (
@@ -68,24 +71,24 @@ class ClientAdmin(ModelAdmin):
     search_fields = ('tenant_name', 'schema_name')
     ordering = ('-clientsubscription__start_date',)
 
-    fieldsets = (
-        ('🏢 Core Tenant Information', {
-            'fields': (('tenant_name', 'schema_name'), 'server_name', 'desired_domain', 'status'),
-        }),
-        ('💳 Subscription & Billing', {
-            'fields': (('current_plan', 'subscription_end'), 'subscription_start'),
-        }),
-        ('📊 Usage & Performance Metrics', {
-            'fields': (
-                ('storage_used_mb', 'product_count', 'order_count'),
-                ('visitor_count_7d', 'visitor_count_30d', 'active_users', 'last_login')
-            ),
-            'classes': ('collapse',),
-        }),
-        ('🎨 Branding & Theme', {
-            'fields': ('theme',),
-            }),
-    )
+    # fieldsets = (
+    #     ('🏢 Core Tenant Information', {
+    #         'fields': (('tenant_name', 'schema_name'), 'server_name', 'desired_domain', 'status'),
+    #     }),
+    #     ('💳 Subscription & Billing', {
+    #         'fields': (('current_plan', 'subscription_end'), 'subscription_start'),
+    #     }),
+    #     ('📊 Usage & Performance Metrics', {
+    #         'fields': (
+    #             ('storage_used_mb', 'product_count', 'order_count'),
+    #             ('visitor_count_7d', 'visitor_count_30d', 'active_users', 'last_login')
+    #         ),
+    #         'classes': ('collapse',),
+    #     }),
+    #     ('🎨 Branding & Theme', {
+    #         'fields': ('theme',),
+    #         }),
+    #)
 
 
 # ----------------------------
@@ -93,7 +96,7 @@ class ClientAdmin(ModelAdmin):
 # ----------------------------
 @admin.register(TenantRequest)
 class TenantRequestAdmin(ModelAdmin):
-    list_display = ('tenant_name', 'desired_domain', 'is_approved', 'requested_on')
+    list_display = ('tenant_name', 'desired_domain', 'owner_name', 'requested_on')
     list_filter = ('status',)
     actions = ['provision_tenant']
 

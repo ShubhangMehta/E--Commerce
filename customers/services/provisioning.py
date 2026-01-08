@@ -32,6 +32,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
             schema_name = full_domain.split('.')[0].replace('-', '_')
 
             tenant = Client.objects.create(
+                owner_name=tenant_request.owner_name,
                 tenant_name=tenant_request.tenant_name,
                 schema_name=schema_name,
                 desired_domain=full_domain,

@@ -166,6 +166,7 @@ def create_tenant(request):
 
     if not tr:
         tr = TenantRequest.objects.create(
+            owner_name=data["owner_name"],
             tenant_name=data["tenant_name"],
             desired_domain=full_domain,
             plan=plan,
@@ -178,6 +179,7 @@ def create_tenant(request):
             status="pending",
         )
     else:
+        tr.owner_name = data["owner_name"]
         tr.tenant_name = data["tenant_name"]
         tr.plan = plan
         tr.pricing = pricing
