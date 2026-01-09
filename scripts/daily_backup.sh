@@ -46,4 +46,4 @@ echo "📧 Sending backup status emails..."
 source /Users/sasiabburi/E--Commerce/venv/bin/activate
 cd /Users/sasiabburi/E--Commerce
 
-python manage.py send_backup_status --type=daily --date="$DATE"
+python manage.py send_backup_status_email --type=daily --date="$DATE"
