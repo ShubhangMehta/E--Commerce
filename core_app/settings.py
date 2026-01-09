@@ -12,12 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
-#from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-#load_dotenv()
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -29,7 +26,6 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -46,7 +42,6 @@ SHARED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    
 ]
 
 TENANT_APPS = [
@@ -56,6 +51,7 @@ TENANT_APPS = [
     # 'django.contrib.sessions',
     # 'django.contrib.messages',
     # 'django.contrib.staticfiles',
+    'dashboard',
     'catalog',#products
     'orders',
     'users',
@@ -64,7 +60,6 @@ TENANT_APPS = [
     #'inventory'
 ]
 
-
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 TENANT_MODEL = "customers.Client"  # app.Model
@@ -72,13 +67,12 @@ TENANT_DOMAIN_MODEL = "customers.Domain"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
+    "django_tenants.middleware.TenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -90,9 +84,6 @@ MIDDLEWARE = [
     # Place your custom middleware AFTER auth
     #"core_app.middleware.BlockTenantAdminMiddleware",
 ]
-
-
-ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -114,6 +105,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core_app.wsgi.application"
 
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -174,17 +167,8 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
-CRONJOBS = [
-    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
-]
-
-CRONJOBS += [
-    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
-]
 
 # ----------------------------
 # Email / SMTP Configuration
@@ -213,4 +197,11 @@ BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
 
+# Cron job settings
+CRONJOBS = [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
 
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]
