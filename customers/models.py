@@ -17,7 +17,7 @@ class Client(TenantMixin):
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
-    has_used_trial = models.BooleanField(default=False)
+    #has_used_trial = models.BooleanField(default=False)
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
@@ -118,7 +118,7 @@ class PlanPricing(models.Model):
     #is_trial = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('name', 'billing_cycle')
+        unique_together = ('plan', 'billing_cycle')
 
     @property
     def is_trial(self):

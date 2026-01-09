@@ -9,4 +9,5 @@ urlpatterns = [
 
     path('', include('themes.urls')),
     path('', include('dashboard.urls')),   
+    path("users/", include("users.urls", namespace="users")),
 ]

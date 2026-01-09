@@ -59,7 +59,9 @@ TENANT_APPS = [
     'catalog',#products
     'orders',
     'users',
-    "themes"
+    "themes",
+    'dashboard',
+    #'inventory'
 ]
 
 
@@ -86,7 +88,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     # Place your custom middleware AFTER auth
-    "core_app.middleware.BlockTenantAdminMiddleware",
+    #"core_app.middleware.BlockTenantAdminMiddleware",
 ]
 
 
