@@ -3,9 +3,9 @@ from catalog.models import Product
 
 # Create your views here.
 
-def index(request):
+"""def index(request):
     theme = request.tenant.theme
-    return render(request, f"themes/{theme}/index.html")
+    return render(request, f"themes/{theme}/index.html")"""
 
 def product_list(request):
     theme = request.tenant.theme

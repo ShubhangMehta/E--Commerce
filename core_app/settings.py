@@ -50,7 +50,7 @@ SHARED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-
+    "backups",
     
 ]
 
@@ -67,12 +67,7 @@ TENANT_APPS = [
     'dashboard',
 
     'users',
-
-
-    'themes',
-
-
-
+    "themes",
 ]
 
 
@@ -272,7 +267,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
-ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
+#ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
@@ -285,9 +280,12 @@ RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
 RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
 
 BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
-BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=7)
 
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
+
+
+
 
 

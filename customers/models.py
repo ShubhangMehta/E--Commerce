@@ -12,13 +12,13 @@ from django.core.exceptions import ValidationError
 
 class Client(TenantMixin):
 
-    name = models.CharField(max_length=100)
+    """name = models.CharField(max_length=100)
     paid_until = models.DateField()
     on_trial = models.BooleanField(default=True)
-    created_on = models.DateField(auto_now_add=True)
+    created_on = models.DateField(auto_now_add=True)"""
 
     tenant_name = models.CharField(max_length=100)
-    server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
+    #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
