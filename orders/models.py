@@ -10,19 +10,19 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    client = models.ForeignKey(User, on_delete=models.CASCADE)
-    order_number = models.CharField(max_length=50, unique=True)
+    tenant = models.CharField(max_length=100)  # tenant schema or tenant name
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.order_number
+        return f"Order #{self.id} - {self.customer.username}"
 
-class Order(models.Model):
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=50, default='Pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Order {self.order_number} - {self.customer_name}"
+#class Order(models.Model):
+#    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+#    status = models.CharField(max_length=50, default='Pending')
+#    created_at = models.DateTimeField(auto_now_add=True)
+#
+#    def __str__(self):
+#        return f"Order {self.order_number} - {self.customer_name}"

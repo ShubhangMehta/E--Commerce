@@ -1,10 +1,10 @@
 from django.urls import path
-from .views.order_create import order_create
-from .views.order_list import order_list
-from .views.order_detail import order_detail
+from tenant_app.orders.views.order_list import OrderListView
+from tenant_app.orders.views.order_create import OrderCreateView
+from tenant_app.orders.views.order_detail import OrderDetailView
 
 urlpatterns = [
-    path("create/", order_create, name="order-create"),
-    path("list/", order_list, name="order-list"),
-    path("<int:order_id>/", order_detail, name="order-detail"),
+    path("", OrderListView().get, name="order-list"),
+    path("create/", OrderCreateView().get, name="order-create"),
+    path("<int:pk>/", OrderDetailView().get, name="order-detail"),
 ]

@@ -1,5 +1,7 @@
-from tenant_app.orders.models import Order
+from .order_service import OrderService
 
-class TenantOrderService:
-    def list_orders(self):
-        return Order.objects.all()
+class TenantOrderService(OrderService):
+    def update_status(self, order, status):
+        order.status = status
+        order.save()
+        return order
