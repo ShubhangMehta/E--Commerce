@@ -2,86 +2,113 @@
 
 import razorpay
 from django.conf import settings
-from django.utils import timezone
 
-from .models import Client, SubscriptionPlan, ClientSubscription, RzpPayment, Invoice
+from .models import Invoice
 
 # Initialize Razorpay client
 rzp_client = razorpay.Client(
     auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
 )
 
-
-def create_subscription_checkout(client: Client, plan: SubscriptionPlan, payment_plan: str = "Monthly"):
+def get_or_create_order_for_invoice(invoice: Invoice) -> dict:
     """
-    Create a Razorpay 'order' and corresponding local Payment / ClientSubscription / Invoice records.
-
-    payment_plan: "Monthly" or "Yearly" (matches TenantRequest.PAYMENT_PLANS choices)
+    Resume-same-invoice behavior:
+    - If invoice already has razorpay_order_id, reuse it (client can retry).
+    - Otherwise create a new Razorpay Order and save it on the invoice.
     """
+    if invoice.razorpay_order_id:
+        return {"id": invoice.razorpay_order_id}
 
-    # Determine amount based on monthly/yearly
-    if payment_plan.lower() == "yearly" and plan.duration_days == 30:
-        # Simple example: 12x monthly price; you can adjust
-        amount = plan.price * 12
-    else:
-        amount = plan.price
+    tr = invoice.tenant_request
 
-    # 1) Create local Payment record (unpaid)
-    payment = RzpPayment.objects.create(
-        client=client,
-        amount=amount,
-        payment_plan=payment_plan,
-        transaction_id="",           # will fill with Razorpay order_id
-        status="unpaid",
-    )
+    rzp_order = rzp_client.order.create({
+        "amount": invoice.amount*100,           # paise
+        "currency": invoice.currency,       # INR
+        "payment_capture": 1,
+        "receipt": invoice.invoice_number,
+        "notes": {
+            "invoice_id": str(invoice.id),
+            "tenant_request_id": str(tr.id),
+            "desired_domain": str(tr.desired_domain),
+        },
+    })
 
-    # 2) Create or update ClientSubscription
-    subscription = ClientSubscription.objects.create(
-        client=client,
-        plan=plan,
-        payment=payment,
-        # start_date/end_date will be set in save()
-        status="active",
-        auto_renew=False,
-    )
+    invoice.razorpay_order_id = rzp_order["id"]
+    invoice.save(update_fields=["razorpay_order_id"])
 
-    # 3) Create invoice
-    invoice = Invoice.objects.create(
-        client=client,
-        subscription=subscription,
-        payment=payment,
-        invoice_number=f"INV-{client.id}-{payment.id}",
-        invoice_type="auto",
-    )
+    return rzp_order
 
-    # 4) Create Razorpay Order (amount in paise)
-    #amount_in_paise = int(amount * 100)
-    amount = int(plan.price)
+# def create_subscription_checkout(client: Client, plan: SubscriptionPlan, payment_plan: str = "Monthly"):
+#     """
+#     Create a Razorpay 'order' and corresponding local Payment / ClientSubscription / Invoice records.
+
+#     payment_plan: "Monthly" or "Yearly" (matches TenantRequest.PAYMENT_PLANS choices)
+#     """
+
+#     # Determine amount based on monthly/yearly
+#     if payment_plan.lower() == "yearly" and plan.duration_days == 30:
+#         # Simple example: 12x monthly price; you can adjust
+#         amount = plan.price * 12
+#     else:
+#         amount = plan.price
+
+#     # 1) Create local Payment record (unpaid)
+#     payment = RzpPayment.objects.create(
+#         client=client,
+#         amount=amount,
+#         payment_plan=payment_plan,
+#         transaction_id="",           # will fill with Razorpay order_id
+#         status="unpaid",
+#     )
+
+#     # 2) Create or update ClientSubscription
+#     subscription = ClientSubscription.objects.create(
+#         client=client,
+#         plan=plan,
+#         payment=payment,
+#         # start_date/end_date will be set in save()
+#         status="active",
+#         auto_renew=False,
+#     )
+
+#     # 3) Create invoice
+#     invoice = Invoice.objects.create(
+#         client=client,
+#         subscription=subscription,
+#         payment=payment,
+#         invoice_number=f"INV-{client.id}-{payment.id}",
+#         invoice_type="auto",
+#     )
+
+#     # 4) Create Razorpay Order (amount in paise)
+#     #amount_in_paise = int(amount * 100)
+#     amount = int(plan.price)
     
 
-    rzp_order = rzp_client.order.create(
-        {
-            "amount": amount * 100,
-            "currency": "INR",
-            "payment_capture": 1,
-            "notes": {
-                "client_id": client.id,
-                "subscription_id": subscription.id,
-                "payment_id": payment.id,
-                "invoice_id": invoice.id,
-            },
-        }
-    )
+#     rzp_order = rzp_client.order.create(
+#         {
+#             "amount": amount * 100,
+#             "currency": "INR",
+#             "payment_capture": 1,
+#             "notes": {
+#                 "client_id": client.id,
+#                 "subscription_id": subscription.id,
+#                 "payment_id": payment.id,
+#                 "invoice_id": invoice.id,
+#             },
+#         }
+#     )
 
-    razorpay_order_id = rzp_order["id"]
+#     razorpay_order_id = rzp_order["id"]
 
-    # Store Razorpay order id in Payment.transaction_id
-    payment.transaction_id = razorpay_order_id
-    payment.save(update_fields=["transaction_id"])
+#     # Store Razorpay order id in Payment.transaction_id
+#     payment.transaction_id = razorpay_order_id
+#     payment.save(update_fields=["transaction_id"])
 
-    return {
-        "razorpay_order": rzp_order,
-        "subscription": subscription,
-        "payment": payment,
-        "invoice": invoice,
-    }
+#     return {
+#         "razorpay_order": rzp_order,
+#         "subscription": subscription,
+#         "payment": payment,
+#         "invoice": invoice,
+#     }
+
