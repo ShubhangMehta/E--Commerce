@@ -54,7 +54,6 @@ TENANT_APPS = [
     'dashboard',
     'catalog',
     'orders',
-    'dashboard',
     'themes',
     'django_crontab',
     'backups',

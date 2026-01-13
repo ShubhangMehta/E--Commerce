@@ -10,8 +10,8 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    tenant = models.CharField(max_length=100)  # tenant schema or tenant name
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    tenant = models.CharField(max_length=100, default="default")  # tenant schema or tenant name
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
