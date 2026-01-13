@@ -2,7 +2,7 @@
 <html>
 <body style="font-family: Arial; background:#f4f4f4; padding:20px;">
     <div style="max-width:600px; margin:auto; background:white; padding:20px; border-radius:10px;">
-        <h2>Your Tenant Has Been Created</h2>
+        <h2>Your Tenant/Store Has Been Created ✅🎆✨🎉🎊</h2>
 
         <p>Hello {{ owner_name }},</p>
         <p>Your SaaS store has been successfully created.</p>
@@ -11,9 +11,8 @@
         <ul>
             <li><strong>Tenant Name:</strong> {{ tenant_name }}</li>
             <li><strong>Company:</strong> {{ company }}</li>
+            <li><strong>Plan:</strong> {{ plan }}</li>
             <li><strong>Email:</strong> {{ email }}</li>
-            <li><strong>Address:</strong> {{ address }}</li>
-            <li><strong>Domain:</strong> {{ domain }}</li>
         </ul>
 
         <h3>Domain Details:</h3>
@@ -21,7 +20,20 @@
             <li><strong>Domain:</strong> {{ domain }}</li>
         </ul>
 
-        <p style="margin-top:20px;">You can now start building your store.</p>
+        <p>
+            You can access your store dashboard here: 
+            <a href="{{ dashboard_url }}" style="color:blue;">{{ dashboard_url }}</a>
+        </p>
+        <p>
+            Your login URL is: 
+            <a href="{{ login_url }}" style="color:blue;">{{ login_url }}</a>
+        </p>
+
+        {%if is_trial %}
+        <p> <strong> Trial Period: </strong> {{ trial_days }} days </p>
+        {% endif %}
+
+        <p style="margin-top:20px;">You can now start adding your products in store.</p>
 
         <p style="margin-top:20px;">Regards,<br>SaaS Platform Team</p>
     </div>
