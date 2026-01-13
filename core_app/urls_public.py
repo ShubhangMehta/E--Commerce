@@ -10,6 +10,6 @@ urlpatterns = [
     path("billing/success/", lambda r: HttpResponse("Payment successful. Provisioning your site…"),
         name="billing_success"),
     path("billing/cancel/", lambda r: HttpResponse("Payment cancelled."), name="billing_cancel"),
-    path("admin/", admin.site.urls),
+    #path("admin/", admin.site.urls),
     path("", include("customers.urls")),
 ]

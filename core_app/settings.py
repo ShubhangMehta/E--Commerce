@@ -31,9 +31,9 @@ ALLOWED_HOSTS = ['*']
 
 SHARED_APPS = [
     'unfold',
-    "django_tenants",  # mandatory
-    "customers",  # you must list the app where your tenant model resides in
-    "accounts",
+    'django_tenants',  # mandatory
+    'customers',  # you must list the app where your tenant model resides in
+    'accounts',
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db import connection
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
-from .rzp_services import get_or_create_order_for_invoice #create_subscription_checkout
+from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
 from core_app.emails.utils import send_html_email
 
@@ -17,60 +17,12 @@ def home(request):
 
 
 def billing_plans(request):
-    """
-    Show available subscription plans to tenant.
-    """
-    schema = connection.schema_name
-
-    if schema == "public":
-        return HttpResponse(
-            "Plans must be viewed from tenant website.",
-            status=400
-        )
-
-    plans = SubscriptionPlan.objects.filter(status="active").order_by("price")
-
-    return render(
-        request,
-        "customers/plans.html",
-        {"plans": plans}
-    )
+    plans = SubscriptionPlan.objects.all()
+    return render(request, "customers/billing_plans.html", {"plans": plans})
 
 
 def billing_renew(request):
-    schema = connection.schema_name
-
-    if schema == 'public':
-        return HttpResponse("Billing renewal is not available on the public schema.", status=400)
-
-    try:
-        client = Client.objects.get(schema_name=schema)
-    except Client.DoesNotExist:
-        return HttpResponse("Client not found.", status=404)
-    
-    plan_id = request.GET.get("plan")
-
-    if plan_id:
-        try:
-            plan = SubscriptionPlan.objects.get(id=plan_id, status='active')
-        except SubscriptionPlan.DoesNotExist:
-            return HttpResponse("Invalid subscription plan.", status=404)
-    else:
-        plan = SubscriptionPlan.objects.filter(status='active').first()
-        if not plan:
-            return HttpResponse("No active subscription plans available.", status=500)
-    
-    result = create_subscription_checkout(client, plan)
-
-    context = {
-        "razorpay_key": settings.RAZORPAY_KEY_ID,
-        "order": result["razorpay_order"],
-        "client": client,
-        "plan": plan,
-        "amount": int(result["razorpay_order"]["amount"]),
-    }
-
-    return render(request, "customers/billing.html", context)
+    return render(request, "customers/billing_renew.html")
 
 
 def billing_success(request):
