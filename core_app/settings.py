@@ -33,18 +33,33 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
+# SHARED_APPS = [
+#     "django_tenants",  # mandatory
+#     "customers",  # you must list the app where your tenant model resides in
+#     "accounts",
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+    
+# ]
+
+
+
 SHARED_APPS = [
-    "django_tenants",  # mandatory
-    "customers",  # you must list the app where your tenant model resides in
-    "accounts",
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "customers",
+    "orders",
     
 ]
+
 
 TENANT_APPS = [
     # # your tenant-specific apps
@@ -69,6 +84,28 @@ TENANT_APPS = [
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
+
+INSTALLED_APPS = [
+    # Django core apps (DO NOT REMOVE)
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    # Your apps (backend work)
+    "accounts",
+    "orders",
+    "catalog",
+    "dashboard",
+
+    # Disabled temporarily (Postgres-only)
+    # "customers",
+    # "backups",
+    # "django_tenants",
+]
+
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
@@ -76,13 +113,10 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
 DATABASE_ROUTERS = (
-    "django_tenants.routers.TenantSyncRouter",
+    # "django_tenants.routers.TenantSyncRouter",
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",
-    "core_app.middleware.SubscriptionEnforcementMiddleware", # Enforce subscription checks
-    "core_app.middleware.BlockTenantAdminMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -91,6 +125,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 PUBLIC_SCHEMA_URLCONF="core_app.urls_public"
 ROOT_URLCONF = "core_app.urls_tenants"
@@ -122,17 +157,21 @@ WSGI_APPLICATION = "core_app.wsgi.application"
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django_tenants.postgresql_backend',
+#         'NAME': env('DB_NAME', default='testdb'),
+#         'USER': env('DB_USER', default='postgres'),
+#         'PASSWORD': env('DB_PASSWORD', default='postgres'),
+#         'HOST': env('DB_HOST', default='localhost'),
+#         'PORT': env('DB_PORT', default='5432'),
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        }
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -203,10 +242,12 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 # Payment And Billing Configuration
 # -----------------------------------
 
-RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET")
-RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET")
+# Razorpay Configuration
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID", default="")
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET", default="")
+RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET", default="")
 
+# Billing Configuration
 BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
 BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
 
@@ -214,3 +255,8 @@ BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
 
 
+
+ROOT_URLCONF = "core_app.urls"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

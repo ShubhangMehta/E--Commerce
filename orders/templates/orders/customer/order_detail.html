@@ -1,1 +1,29 @@
 <h2>Order Details</h2>
+
+<p><strong>Order No:</strong> {{ order.order_number }}</p>
+<p><strong>Status:</strong> {{ order.status }}</p>
+<p><strong>Total:</strong> {{ order.total_amount }}</p>
+
+<hr>
+
+<h3>Items</h3>
+
+{% for item in order.items.all %}
+    <div style="margin-bottom: 20px;">
+        <img 
+            src="{{ item.product_image.url }}" 
+            alt="{{ item.product_name }}" 
+            width="120"
+        >
+        <p><strong>{{ item.product_name }}</strong></p>
+        <p>Price: ₹{{ item.price }}</p>
+    </div>
+{% empty %}
+    <p>No items found.</p>
+{% endfor %}
+
+<hr>
+
+<a href="/invoice/{{ order.id }}/pdf/">Download Invoice (PDF)</a>
+
+

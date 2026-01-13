@@ -1,5 +1,17 @@
 <h2>Create Order</h2>
+
 <form method="post">
-  {% csrf_token %}
-  <button type="submit">Place Order</button>
+    {% csrf_token %}
+
+    <p>
+        Order Number:<br>
+        <input type="text" name="order_number">
+    </p>
+
+    <p>
+        Total Amount:<br>
+        <input type="number" step="0.01" name="total_amount">
+    </p>
+
+    <button type="submit">Create Order</button>
 </form>
