@@ -85,11 +85,11 @@ def verify_2fa_view(request):
             valid.is_used = True
             valid.save()
             login(request, user)
-            LoginSession.objects.create(
-                user=user, 
-                ip_address=get_client_ip(request), 
-                user_agent=request.META.get('HTTP_USER_AGENT', 'unknown')
-            )
+            # LoginSession.objects.create(
+            #     user=user, 
+            #     ip_address=get_client_ip(request), 
+            #     user_agent=request.META.get('HTTP_USER_AGENT', 'unknown')
+            # )
             request.session.pop('pending_user', None)
             return redirect('/admin/') ##or tenant dashboard
         else:
@@ -115,5 +115,3 @@ def logout_all_devices_view(request):
     )
     logout(request)
     return redirect('/login/')
-
-#this is a test comment deleted in next commit
