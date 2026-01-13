@@ -13,7 +13,15 @@ from .services.provisioning import provision_tenant_from_request
 from core_app.emails.utils import send_html_email
 
 def home(request):
-    return HttpResponse("<h1> E-Cartel Public Schema </h1>")
+    context = {
+        "page_title": "E-Cartel",
+        "hero_title": "Launch your online store in minutes",
+        "hero_subtitle": "A multi-tenant e-commerce platform with subscriptions, themes, and scalable infrastructure.",
+        "cta_primary": "Start Free Trial",
+        "cta_secondary": "View Plans",
+    }
+    return render(request, "customers/home.html", context)
+    #return HttpResponse("<h1> E-Cartel Public Schema </h1>")
 
 
 def billing_plans(request):
