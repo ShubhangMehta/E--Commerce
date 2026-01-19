@@ -7,7 +7,6 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from .models import UserProfile
-
 from core_app.emails.utils import send_html_email
 
 

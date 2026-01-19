@@ -6,7 +6,6 @@ from customers import rzp_webhook_views
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 
 def admin_login_redirect(request):
-    # preserve ?next=/admin/.... so user returns after 2FA
     next_url = request.GET.get("next", "/admin/")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         next_url = "/admin/"

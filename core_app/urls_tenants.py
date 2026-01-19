@@ -18,8 +18,8 @@ urlpatterns = [
 
     path("", include("themes.urls")),
 
-    path("", include("catalog.urls")),
+    # path("", include("catalog.urls")),
 
-    path("", include("dashboard.urls")),
+    # path("", include("dashboard.urls")),
 ]
 
