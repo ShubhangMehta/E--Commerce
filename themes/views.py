@@ -40,3 +40,4 @@ def checkout(request):
 def profile(request):
     theme = request.tenant.theme
     return render(request, f"themes/{theme}/profile.html")
+
