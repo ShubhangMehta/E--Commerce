@@ -1,5 +1,3 @@
-
-
 def tenant_theme(request):
     """
     Makes the tenant's theme base templates available to any template.

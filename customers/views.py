@@ -1,16 +1,15 @@
 from decimal import Decimal
-import email
 from django.conf import settings
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
-from django.db import connection
+
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
 from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
-from core_app.emails.utils import send_html_email
+
 
 def home(request):
     context = {
@@ -22,24 +21,6 @@ def home(request):
     }
     return render(request, "customers/home.html", context)
     #return HttpResponse("<h1> E-Cartel Public Schema </h1>")
-
-
-def billing_plans(request):
-    plans = SubscriptionPlan.objects.all()
-    return render(request, "customers/billing_plans.html", {"plans": plans})
-
-
-def billing_renew(request):
-    return render(request, "customers/billing_renew.html")
-
-
-def billing_success(request):
-    return render(request, "customers/billing_success.html")
-
-
-def billing_cancel(request):
-    return render(request, "customers/billing_cancel.html")
-
 
 def _to_full_domain(domain_name: str) -> str:
     # Your current local setup

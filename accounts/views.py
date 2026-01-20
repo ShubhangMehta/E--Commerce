@@ -92,7 +92,7 @@ def verify_2fa_view(request):
             login(request, user)
             next_url = request.session.pop('pending_next')
             request.session.pop('pending_user', None)
-            return redirect(next_url)
+            return redirect("/admin/")
         else:
             messages.error(request, 'Invalid or expired code.')
     return render(request, 'accounts/verify_2fa.html')

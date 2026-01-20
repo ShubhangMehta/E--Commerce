@@ -8,7 +8,7 @@ from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 def admin_login_redirect(request):
     next_url = request.GET.get("next", "/admin/")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        next_url = "/admin/"
+        next_url = "/login/"
     return redirect("/login/?" + urlencode({"next": next_url}))                                   
 
 urlpatterns = [
