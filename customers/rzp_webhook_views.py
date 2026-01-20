@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
+from django.shortcuts import redirect
 
 from .models import Invoice, RzpPayment, RzpWebhookEvent
 from .services.provisioning import provision_tenant_from_request
@@ -127,9 +128,11 @@ def razorpay_webhook(request):
         # Mark request paid_created
         tr.status = "approved"
         tr.save(update_fields=["status"])
+        if tr.status == "approved":
+            return JsonResponse({"ok": True, "provisioned": True, "tenant_domain": domain.domain})
 
-        return JsonResponse({"ok": True, "provisioned": True, "tenant_domain": domain.domain})
-
+        return redirect(f"http://domain.domain:8000/")
+    
     # Other events can be recorded if you want (authorized, created)
     return JsonResponse({"ok": True, "ignored_event": event})
 

@@ -162,7 +162,7 @@ def create_tenant(request):
         )
         tr.status = "approved"
         tr.save(update_fields=["status"])
-        return redirect(f"http://{domain.domain}:8000/")
+        return redirect(f"http://{domain.domain}:8000/") #Redirecting to index page of domain/website
 
     # ------------------------------------------------------------------
     # PAID: reuse same invoice + same order (resume behavior)

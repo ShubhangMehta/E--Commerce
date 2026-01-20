@@ -97,6 +97,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
+                "themes.context_processors.tenant_theme",
             ],
         },
     },
@@ -105,6 +106,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "core_app.wsgi.application"
 
 PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
+TENANT_URLCONF = "core_app.urls_tenants"
 ROOT_URLCONF = "core_app.urls_tenants"
 
 # Database

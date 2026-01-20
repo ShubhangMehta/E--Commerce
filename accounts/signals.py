@@ -9,7 +9,6 @@ from django.db.models.signals import post_save
 from .models import UserProfile
 from core_app.emails.utils import send_html_email
 
-
 @receiver(user_logged_in, dispatch_uid="accounts_user_logged_in_unique")
 def log_user_login(sender, request, user, **kwargs):
     # After login() Django rotates the session; ensure there is a key
@@ -23,6 +22,7 @@ def log_user_login(sender, request, user, **kwargs):
         user_agent=request.META.get('HTTP_USER_AGENT', 'unknown'),
         session_key=request.session.session_key,
     )
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

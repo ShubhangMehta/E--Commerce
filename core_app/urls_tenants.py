@@ -4,9 +4,9 @@ from django.shortcuts import redirect
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 
 def admin_login_redirect(request):
-    next_url = request.GET.get("next", "/base_storefront")
+    next_url = request.GET.get("next", "/index/")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        next_url = "/base_storefront/"
+        next_url = "/login/"
     return redirect("/login/?" + urlencode({"next": next_url}))
 
 
@@ -18,8 +18,9 @@ urlpatterns = [
 
     path("", include("themes.urls")),
 
-    # path("", include("catalog.urls")),
+    path("", include("catalog.urls")),
 
-    # path("", include("dashboard.urls")),
+    path("dashboard/", include("dashboard.urls")),
 ]
+
 

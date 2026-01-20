@@ -10,11 +10,10 @@ from django.shortcuts import render, get_object_or_404
 from .models import LoginSession, TwoFactorCode
 from django.conf import settings
 
-
 # Create your views here.
 
 def login_view(request):
-    next_url = request.GET.get('next') or request.POST.get('next') or '/'
+    next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
 
     if request.method == 'POST':
         username = request.POST['username']
@@ -91,7 +90,7 @@ def verify_2fa_view(request):
             valid.is_used = True
             valid.save()
             login(request, user)
-            next_url = request.session.pop('pending_next', '/')
+            next_url = request.session.pop('pending_next')
             request.session.pop('pending_user', None)
             return redirect(next_url)
         else:

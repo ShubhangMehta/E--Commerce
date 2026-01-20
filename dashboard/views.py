@@ -1,17 +1,15 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
-def index(request):
-    theme = request.tenant.theme
-    return render(request, f"themes/{theme}/index.html")
-
-def theme_settings(request):
-    selected_theme = request.GET.get("theme")
-
-    if selected_theme:
-        tenant = request.tenant
-        tenant.theme = selected_theme
-        tenant.save()
-
-    return render(request, "dashboard/themes.html")
+@login_required
+def dashboard(request):
+    """
+    Render dashboard page.
+    """
+    context = {}
+    # if not request.user.is_staff:
+    #     raise PermissionDenied
+    return render(request, "dashboard/dashboard.html", context)
 

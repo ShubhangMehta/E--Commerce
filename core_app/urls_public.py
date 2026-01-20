@@ -25,4 +25,4 @@ urlpatterns = [
     path("", include("customers.urls")),
     path("", include("accounts.urls")),
 ]
-
+ 
