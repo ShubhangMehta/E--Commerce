@@ -13,10 +13,7 @@ def admin_login_redirect(request):
 
 urlpatterns = [
     path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
-    path("billing/success/", lambda r: HttpResponse("Payment successful. Provisioning your site…"),
-         name="billing_success"),
-    path("billing/cancel/", lambda r: HttpResponse("Payment cancelled."), name="billing_cancel"),
-
+    
     # Keep admin enabled
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),

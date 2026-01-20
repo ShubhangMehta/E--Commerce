@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
+from django.views.decorators.http import require_GET
 
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
@@ -176,6 +177,44 @@ def create_tenant(request):
         "message": "Complete the payment to finish setting up your store.",
     }
     return render(request, "customers/create_tenant.html", context)
+
+
+@require_GET
+def billing_success(request):
+    invoice_id = request.GET.get("invoice_id") or request.GET.get("invoice")
+    if not invoice_id:
+        return JsonResponse({"error": "Missing invoice_id/invoice", "received_query_params": dict(request.GET)}, status=400)
+
+    invoice = Invoice.objects.filter(id=invoice_id).select_related("client").first()
+    if not invoice:
+        return JsonResponse({"error": "Invoice not found", "invoice_id": invoice_id}, status=404)
+
+    # Make status check case-tolerant (in case your choices store "Paid")
+    if (invoice.status or "").lower() == "paid" and invoice.client_id:
+        # Try primary first, then fallback to any domain
+        primary_domain = Domain.objects.filter(tenant_id=invoice.client_id, is_primary=True).first()
+        if not primary_domain:
+            primary_domain = Domain.objects.filter(tenant_id=invoice.client_id).order_by("-is_primary", "id").first()
+
+        if primary_domain:
+            scheme = "https" if request.is_secure() else "http"
+
+            # DEV: if you’re running tenants on :8000, include it
+            return redirect(f"{scheme}://{primary_domain.domain}:8000/")
+
+        # If paid but no domain, show debug on page (temporary)
+        return JsonResponse({
+            "error": "Invoice paid but no domain found",
+            "invoice_id": invoice.id,
+            "client_id": invoice.client_id,
+            "domains": list(Domain.objects.filter(tenant_id=invoice.client_id).values("domain", "is_primary")),
+        }, status=500)
+
+    return render(request, "customers/billing_success.html", {"invoice_id": invoice_id})
+
+@require_GET
+def billing_cancel(request):
+    return render(request, "customers/billing_cancel.html")
 
 
 def raise_ticket(request):

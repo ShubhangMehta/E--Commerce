@@ -86,7 +86,7 @@ def razorpay_webhook(request):
             invoice=invoice,
             razorpay_payment_id=rzp_payment_id,
             razorpay_order_id=rzp_order_id,
-            amount=amount or invoice.amount,
+            amount=(amount/100) or (invoice.amount/100),
             currency=currency,
             status="failed",
             event="payment.failed",
@@ -108,7 +108,7 @@ def razorpay_webhook(request):
             invoice=invoice,
             razorpay_payment_id=rzp_payment_id,
             razorpay_order_id=rzp_order_id,
-            amount=amount or invoice.amount,
+            amount=(amount/100) or (invoice.amount/100),
             currency=currency,
             status="captured",
             event="payment.captured",
@@ -128,10 +128,8 @@ def razorpay_webhook(request):
         # Mark request paid_created
         tr.status = "approved"
         tr.save(update_fields=["status"])
-        if tr.status == "approved":
-            return JsonResponse({"ok": True, "provisioned": True, "tenant_domain": domain.domain})
 
-        return redirect(f"http://domain.domain:8000/")
+        return JsonResponse({"ok": True, "provisioned": True, "tenant_domain": domain.domain})
     
     # Other events can be recorded if you want (authorized, created)
     return JsonResponse({"ok": True, "ignored_event": event})
