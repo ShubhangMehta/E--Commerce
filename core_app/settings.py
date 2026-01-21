@@ -46,9 +46,9 @@ ALLOWED_HOSTS = ['*']
 
 SHARED_APPS = [
     'unfold',
-    "django_tenants",  # mandatory
-    "customers",  # you must list the app where your tenant model resides in
-    "accounts",
+    'django_tenants',  # mandatory
+    'customers',  # you must list the app where your tenant model resides in
+    'accounts',
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,12 +61,13 @@ SHARED_APPS = [
 
 
 TENANT_APPS = [
-    # # your tenant-specific apps
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.auth',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'accounts',
     'dashboard',
     'catalog',
     'orders',
@@ -74,7 +75,7 @@ TENANT_APPS = [
     "themes"
 ]
 
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
+INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
 
 
 INSTALLED_APPS = [
@@ -134,6 +135,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
+                "themes.context_processors.tenant_theme",
             ],
         },
     },
@@ -142,6 +144,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "core_app.wsgi.application"
 
 PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
+TENANT_URLCONF = "core_app.urls_tenants"
 ROOT_URLCONF = "core_app.urls_tenants"
 
 # Database
@@ -186,6 +189,37 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "filters": {
+#         "tenant_schema": {
+#             "()": "customers.logging_filters.TenantSchemaFilter",
+#         },
+#     },
+#     "formatters": {
+#         "verbose_with_origin": {
+#             "format": (
+#                 "%(asctime)s | %(levelname)s | schema=%(schema_name)s | "
+#                 "%(name)s:%(lineno)d | %(funcName)s | %(message)s"
+#             )
+#         },
+#     },
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "filters": ["tenant_schema"],
+#             "formatter": "verbose_with_origin",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "INFO",
+#     },
+# }
+
 
 
 # Internationalization
