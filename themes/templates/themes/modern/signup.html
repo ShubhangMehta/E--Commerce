@@ -1,0 +1,52 @@
+{% extends "themes/modern/base_storefront.html" %}
+
+{% block title %}Join the Inner Circle | {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto py-32 px-10">
+    <div class="text-center mb-16">
+        <span class="text-[9px] uppercase tracking-[0.6em] text-champagne mb-4 block">Membership Request</span>
+        <h1 class="serif-fancy text-6xl font-light italic">Create Account</h1>
+    </div>
+
+    <form class="space-y-12" method="POST">
+        {% csrf_token %}
+        
+        <div class="group relative">
+            <input 
+                type="text" 
+                name="username"
+                placeholder="Username" 
+                class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic"
+            >
+        </div>
+
+        <div class="group relative">
+            <input 
+                type="email" 
+                name="email"
+                placeholder="Email Address" 
+                class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic"
+            >
+        </div>
+
+        <div class="group relative">
+            <input 
+                type="password" 
+                name="password"
+                placeholder="Create Password" 
+                class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic"
+            >
+        </div>
+        
+        <button type="submit" class="w-full py-6 bg-noir text-alabaster text-[10px] uppercase tracking-[0.5em] hover:bg-champagne hover:text-noir transition-all duration-700">
+            Join the Archive
+        </button>
+    </form>
+    
+    <div class="mt-12 text-center">
+        <span class="text-[9px] uppercase tracking-[0.4em] opacity-40 block mb-2">Already a member?</span>
+        <a href="/login/" class="text-[9px] uppercase tracking-[0.4em] hover:text-champagne transition-colors">Return to Login</a>
+    </div>
+</div>
+{% endblock %}

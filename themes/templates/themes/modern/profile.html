@@ -1,0 +1,57 @@
+{% extends "themes/modern/base_storefront.html" %}
+
+{% block title %}Account Profile | {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-24 px-10">
+    <div class="border-b border-noir/10 pb-12 mb-16 flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+            <span class="text-[9px] uppercase tracking-[0.6em] text-champagne mb-4 block">Member Profile</span>
+            <h1 class="serif-fancy text-6xl font-light italic">{{ request.user.first_name|default:"Collector" }}</h1>
+        </div>
+        <a href="/logout/" class="text-[9px] uppercase tracking-[0.4em] opacity-40 hover:opacity-100 transition-opacity pb-2">
+            Sign Out
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-20">
+        <div class="space-y-8">
+            <div>
+                <h3 class="text-[10px] uppercase tracking-[0.3em] font-bold mb-6">Archive Menu</h3>
+                <nav class="flex flex-col space-y-4">
+                    <a href="#details" class="text-sm serif-fancy italic text-noir">Personal Details</a>
+                    <a href="#orders" class="text-sm serif-fancy italic opacity-40 hover:opacity-100 transition-opacity">Order History</a>
+                    <a href="#addresses" class="text-sm serif-fancy italic opacity-40 hover:opacity-100 transition-opacity">Shipping Addresses</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 space-y-20">
+            <section id="details">
+                <form class="space-y-10">
+                    <div class="group relative">
+                        <label class="text-[8px] uppercase tracking-[0.4em] opacity-40 block mb-2">Full Name</label>
+                        <input type="text" value="{{ request.user.get_full_name }}" class="w-full bg-transparent border-b border-noir/10 py-2 focus:border-noir outline-none transition-all serif-fancy text-xl italic">
+                    </div>
+
+                    <div class="group relative">
+                        <label class="text-[8px] uppercase tracking-[0.4em] opacity-40 block mb-2">Email Address</label>
+                        <input type="email" value="{{ request.user.email }}" class="w-full bg-transparent border-b border-noir/10 py-2 focus:border-noir outline-none transition-all serif-fancy text-xl italic">
+                    </div>
+
+                    <button class="px-10 py-4 bg-noir text-alabaster text-[9px] uppercase tracking-[0.5em] hover:bg-champagne hover:text-noir transition-all duration-700">
+                        Update Identity
+                    </button>
+                </form>
+            </section>
+
+            <section id="orders" class="pt-10 border-t border-noir/5">
+                <h3 class="text-[10px] uppercase tracking-[0.3em] font-bold mb-8">Recent Acquisitions</h3>
+                <div class="text-center py-12 border border-dashed border-noir/10">
+                    <p class="serif-fancy italic opacity-40 text-lg">No past orders found in the archive.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

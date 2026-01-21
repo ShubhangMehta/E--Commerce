@@ -1,52 +1,30 @@
-from django.contrib.auth import authenticate, get_user_model
-from django.core.exceptions import ValidationError
-from django.db import transaction
-
-CustomerUser = get_user_model()
-
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from users.models import CustomerUser
 
 class CustomerAuthService:
 
     @staticmethod
-    @transaction.atomic
-    def signup(validated_data):
-        """
-        validated_data should contain:
-        email, password, full_name, phone
-        """
+    def signup(data):
+        user = User.objects.create_user(
+            username=data["email"],
+            email=data["email"],
+            password=data["password"]
+        )
 
-        email = validated_data.get("email")
-        password = validated_data.get("password")
-        full_name = validated_data.get("full_name")
-        phone = validated_data.get("phone")
-
-        # Email must be unique
-        if CustomerUser.objects.filter(email=email).exists():
-            raise ValidationError("Email already registered.")
-
-        # Create the user using custom manager
-        user = CustomerUser.objects.create_user(
-            email=email,
-            password=password,
-            full_name=full_name,
-            phone=phone,
+        CustomerUser.objects.create(
+            user=user,   # ⚠️ this requires FK (see note below)
+            full_name=data.get("full_name", "")
         )
 
         return user
 
     @staticmethod
     def login(email, password):
-        """
-        Authenticate using email-password.
-        Returns user if credentials are correct.
-        """
-
-        user = authenticate(email=email, password=password)
-
+        user = authenticate(username=email, password=password)
         if not user:
-            raise ValidationError("Invalid email or password.")
+            raise ValueError("Invalid credentials")
 
-        if not user.is_active:
-            raise ValidationError("User account is disabled.")
-
-        return user
+        token, _ = Token.objects.get_or_create(user=user)
+        return token.key

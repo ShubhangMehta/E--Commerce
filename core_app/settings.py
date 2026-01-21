@@ -56,7 +56,7 @@ TENANT_APPS = [
     'orders',
     'users',
     "themes",
-    'dashboard',
+    #'dashboard',
     #'inventory'
 ]
 

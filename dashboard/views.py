@@ -11,7 +11,7 @@ from .services.app_registry import TENANT_APPS
 #@login_required
 def dashboard(request):
     apps = []
-    if not request.user.is_authenticated:
+    if not request.user.is_authenticated: 
         # Replace with a tenant you want to preview
         from customers.models import Client  # or whatever your Tenant model is
         client = Client.objects.first()  # pick the first tenant for testing

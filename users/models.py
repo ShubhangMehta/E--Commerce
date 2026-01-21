@@ -1,23 +1,20 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.models import User
 
 class CustomerUser(models.Model):
-    email = models.EmailField(unique=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="customer_profile"
+    )
+
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, null=True, blank=True)
-    password = models.CharField(max_length=128)  # store hashed password
     is_active = models.BooleanField(default=True)
 
-    def set_password(self, raw_password):
-        """Hash and set the password"""
-        self.password = make_password(raw_password)
-
-    def check_password(self, raw_password):
-        """Verify a password against the stored hash"""
-        return check_password(raw_password, self.password)
-
     def __str__(self):
-        return self.email
+        return self.user.email
+
 
 class CustomerAddress(models.Model):
     ADDRESS_TYPES = (
@@ -27,7 +24,11 @@ class CustomerAddress(models.Model):
         ("other", "Other"),
     )
 
-    user = models.ForeignKey(CustomerUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="addresses"
+    )
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)
     house_no = models.CharField(max_length=255)
