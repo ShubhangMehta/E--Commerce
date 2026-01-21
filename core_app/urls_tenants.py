@@ -7,7 +7,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("catalog/", include("catalog.urls")),
+
+    path("", include("accounts.urls")),     # Tenant login/2FA endpoints
+
     path("", include("themes.urls")),
     path("", include("dashboard.urls")),
 

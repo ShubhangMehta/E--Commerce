@@ -16,8 +16,6 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-#load_dotenv()
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -29,7 +27,6 @@ SECRET_KEY = "django-insecure-l$x84g$#94ot=4bclyiuw7&i4*zxex^w$k78lwak@o278uk*^3
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -52,12 +49,14 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
-    # # your tenant-specific apps
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.auth',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'accounts',
+    'dashboard',
     'catalog',
     'orders',
     'users',
@@ -83,7 +82,7 @@ DATABASE_ROUTERS = (
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
+    "django_tenants.middleware.TenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -95,9 +94,6 @@ MIDDLEWARE = [
     # Place your custom middleware AFTER auth
     "core_app.middleware.BlockTenantAdminMiddleware",
 ]
-
-
-ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -112,6 +108,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
+                "themes.context_processors.tenant_theme",
             ],
         },
     },
@@ -119,6 +116,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core_app.wsgi.application"
 
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
+TENANT_URLCONF = "core_app.urls_tenants"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -161,6 +161,37 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "filters": {
+#         "tenant_schema": {
+#             "()": "customers.logging_filters.TenantSchemaFilter",
+#         },
+#     },
+#     "formatters": {
+#         "verbose_with_origin": {
+#             "format": (
+#                 "%(asctime)s | %(levelname)s | schema=%(schema_name)s | "
+#                 "%(name)s:%(lineno)d | %(funcName)s | %(message)s"
+#             )
+#         },
+#     },
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "filters": ["tenant_schema"],
+#             "formatter": "verbose_with_origin",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "INFO",
+#     },
+# }
+
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -180,13 +211,7 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
-
-CRONJOBS = [
-    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
-]
 
 CRONJOBS += [
     ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM

@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 # Create your models here.
@@ -19,13 +18,14 @@ class Client(TenantMixin):
 
     tenant_name = models.CharField(max_length=100)
     #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
+    #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
-    has_used_trial = models.BooleanField(default=False)
+    used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
@@ -174,6 +174,7 @@ class ClientSubscription(models.Model):
         self.status = 'active'
         self.save(update_fields=['start_date', 'end_date', 'status'])
 
+
     def clean(self):
         #trial will never have payment
         if self.is_trial and self.has_successful_payment:
@@ -234,6 +235,7 @@ class TenantRequest(models.Model):
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
     email = models.EmailField(null=True, blank=True)
@@ -242,11 +244,9 @@ class TenantRequest(models.Model):
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
     STATUS_CHOICES = [
-        ('pending_payment', 'Pending Payment'),
-        ('trial_created', 'Trial Created'),
-        ('paid_created', 'Paid Created'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
     ]
 
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, null=True, blank=True)
@@ -266,9 +266,9 @@ class TenantRequest(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
-    is_approved = models.BooleanField(default=False)
+    #is_approved = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending_payment")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 
     class Meta:
         constraints = [
@@ -416,10 +416,10 @@ class RzpWebhookEvent(models.Model):
     event = models.CharField(max_length=80)
     payload = models.JSONField()
     signature_ok = models.BooleanField(default=False)
-    received_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.event} @ {self.received_at}"
+        return f"{self.event} @ {self.created_at}"
 
 
 class RzpRefund(models.Model):

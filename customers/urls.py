@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views #, rzp_webhook_views
-from django.contrib import admin
+from . import views
 
 urlpatterns=[
     path('',views.home,name='home'),
