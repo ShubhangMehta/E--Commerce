@@ -53,8 +53,6 @@ def make_aware_safe(dt):
 
 
 
-def generate_backup_link_daily(request):
-    return JsonResponse({"error": "Daily backup link generation not implemented yet"})
 
 ######------
 # signed_urls_for_daily
@@ -208,3 +206,15 @@ def restore_backup_api(request):
         notify_backup_failure(tenant, date, f"Restore OK but delete failed → {str(e)}")
 
     return JsonResponse({"status": "success", "message": "Backup restored successfully"})
+
+
+
+######-----
+#Notifications
+######-----
+from .services import generate_backup_for_tenant
+
+def trigger_backup(request):
+    tenant = request.user.tenant
+    result = generate_backup_for_tenant(tenant, "daily")
+    return JsonResponse(result)

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<h2>Pay for {{ client.tenant_name }}</h2>
+<p>Plan: {{ plan.name }}
+</p>
+<p>Amount: ₹ {{ plan.price }}</p>
+
+<button id="pay-btn">Pay Now</button>
+
+<script>
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "Your SaaS Platform",
+        "description": "Subscription Payment",
+        "order_id": "{{ order.id }}",
+        "handler": function (response) {
+            // DO NOT activate subscription here
+            // Webhook is the source of truth
+            window.location.href = "/billing/success/";
+        },
+        "modal": {
+            "ondismiss": function () {
+                window.location.href = "/billing/cancel/";
+            }
+        }
+    };
+
+    document.getElementById("pay-btn").onclick = function () {
+        var rzp = new Razorpay(options);
+        rzp.open();
+    };
+</script>
+
+</body>
+</html>

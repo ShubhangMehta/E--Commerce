@@ -14,7 +14,7 @@ document.getElementById("dailyForm").onsubmit = async function(e) {
 
     let formData = new FormData(this);
 
-    let res = await fetch("/backups/generate-daily-backup-link/", {
+    let res = await fetch("/backups/generate-master-backup-link/", {
         method: "POST",
         body: formData
     });
