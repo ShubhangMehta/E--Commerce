@@ -68,6 +68,7 @@ TENANT_APPS = [
 
     'users',
     "themes",
+    "backups"
 ]
 
 
@@ -243,16 +244,9 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
-CRONJOBS = [
-    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
-]
 
-CRONJOBS += [
-    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
-]
-
+CRONJOBS = []
 CRONJOBS += [
     ('0 4 * * *', 'scripts.master_backup.sh'),  # Runs Sunday 4AM
 ]
@@ -267,7 +261,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
-#ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
+ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
@@ -285,7 +279,11 @@ BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=7)
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
 
+# Cron job settings
+CRONJOBS += [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
 
-
-
-
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]

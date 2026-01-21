@@ -3,106 +3,114 @@ import os
 import tempfile
 from supabase import create_client, Client
 
+# -------------------------------------------------------------
 # Load Supabase credentials
+# -------------------------------------------------------------
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("❌ SUPABASE_URL and SUPABASE_KEY must be set in environment variables")
+    raise ValueError("❌ SUPABASE_URL and SUPABASE_KEY must be set")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+BUCKET = "backups"
 
 
 # -------------------------------------------------------------
 # DAILY BACKUP UPLOAD
 # -------------------------------------------------------------
-def upload_daily_backup(schema: str, date: str, temp_file_path: str):
-    file_name = f"{schema}-daily.dump"
-    bucket_path = f"tenants/daily/{date}/{file_name}"
+def upload_daily_backup(schema: str, date: str, temp_file_path: str, subfolder: str):
+    file_name = f"{schema}.dump"
+    bucket_path = f"tenants/daily/{date}/{subfolder}/{file_name}"
 
-    print(f"⬆️ Uploading DAILY backup → {bucket_path}")
+    print(f"⬆️ Uploading DAILY → {bucket_path}")
 
-    supabase.storage.from_("backups").upload(
+    supabase.storage.from_(BUCKET).upload(
         path=bucket_path,
         file=temp_file_path,
         file_options={"content-type": "application/octet-stream"},
     )
 
-    print(f"✅ DAILY upload complete → {bucket_path}")
+    print("✅ DAILY upload complete")
 
 
 # -------------------------------------------------------------
 # WEEKLY BACKUP UPLOAD
 # -------------------------------------------------------------
-def upload_weekly_backup(schema: str, date: str, temp_file_path: str):
-    file_name = f"{schema}-weekly.dump"
-    bucket_path = f"tenants/weekly/{date}/{file_name}"
+def upload_weekly_backup(schema: str, date: str, temp_file_path: str, subfolder: str):
+    file_name = f"{schema}.dump"
+    bucket_path = f"tenants/weekly/{date}/{subfolder}/{file_name}"
 
-    print(f"⬆️ Uploading WEEKLY backup → {bucket_path}")
+    print(f"⬆️ Uploading WEEKLY → {bucket_path}")
 
-    supabase.storage.from_("backups").upload(
+    supabase.storage.from_(BUCKET).upload(
         path=bucket_path,
         file=temp_file_path,
         file_options={"content-type": "application/octet-stream"},
     )
 
-    print(f"✅ WEEKLY upload complete → {bucket_path}")
+    print("✅ WEEKLY upload complete")
 
 
 # -------------------------------------------------------------
-# MASTER BACKUP UPLOAD
+# MASTER BACKUP UPLOAD (UNCHANGED)
 # -------------------------------------------------------------
-def upload_master_backup(schema: str, date: str, temp_file_path: str):
+def upload_master_backup(date: str, temp_file_path: str):
     file_name = f"master-{date}.dump"
     bucket_path = f"tenants/master/{date}/{file_name}"
 
-    print(f"⬆️ Uploading MASTER backup → {bucket_path}")
+    print(f"⬆️ Uploading MASTER → {bucket_path}")
 
-    supabase.storage.from_("backups").upload(
+    supabase.storage.from_(BUCKET).upload(
         path=bucket_path,
         file=temp_file_path,
         file_options={"content-type": "application/octet-stream"},
     )
 
-    print(f"✅ MASTER upload complete → {bucket_path}")
+    print("✅ MASTER upload complete")
 
 
 # -------------------------------------------------------------
 # MAIN HANDLER
 # -------------------------------------------------------------
 if __name__ == "__main__":
-    # sys.argv:
-    #   1 → schema
-    #   2 → date
-    #   3 → mode: daily | weekly | master
+    """
+    Usage:
+      python upload_to_supabase.py <schema> <date> <mode> [subfolder]
+
+    mode       : daily | weekly | master
+    subfolder  : existing_tenants | all_tenants (optional)
+    """
 
     if len(sys.argv) < 4:
-        print("❌ Usage: python upload_to_supabase.py <schema> <date> <mode>")
+        print("❌ Usage: python upload_to_supabase.py <schema> <date> <mode> [subfolder]")
         sys.exit(1)
 
     schema = sys.argv[1]
     date = sys.argv[2]
     mode = sys.argv[3].lower()
 
-    # Read streamed pg_dump output → temp file
+    # Optional subfolder (default = existing_tenants)
+    subfolder = sys.argv[4] if len(sys.argv) >= 5 else "existing_tenants"
+
+    # Read piped pg_dump into temp file
     temp = tempfile.NamedTemporaryFile(delete=False)
     temp.write(sys.stdin.buffer.read())
     temp.flush()
 
-    # Decide upload target
-    if mode == "daily":
-        upload_daily_backup(schema, date, temp.name)
+    try:
+        if mode == "daily":
+            upload_daily_backup(schema, date, temp.name, subfolder)
 
-    elif mode == "weekly":
-        upload_weekly_backup(schema, date, temp.name)
+        elif mode == "weekly":
+            upload_weekly_backup(schema, date, temp.name, subfolder)
 
-    elif mode == "master":
-        upload_master_backup(schema, date, temp.name)
+        elif mode == "master":
+            upload_master_backup(date, temp.name)
 
-    else:
-        print("❌ Invalid mode! Choose: daily | weekly | master")
-        sys.exit(1)
+        else:
+            raise ValueError("Invalid mode: choose daily | weekly | master")
 
-    # Clean temp file
-    temp.close()
-    os.unlink(temp.name)
+    finally:
+        temp.close()
+        os.unlink(temp.name)

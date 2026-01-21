@@ -1,18 +1,16 @@
 #!/bin/bash
 
-# Exit immediately if anything fails
 set -e
 
-echo "🚀 Starting DAILY tenant backup job"
+echo "🚀 Starting WEEKLY tenant backup job"
 
 PROJECT_DIR="/Users/sasiabburi/E--Commerce"
 VENV_DIR="$PROJECT_DIR/venv"
 ENV_FILE="$PROJECT_DIR/.env"
 
-# Ensure correct PATH (pg_dump, python, etc.)
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$VENV_DIR/bin"
 
-# Load environment variables safely
+# Load env
 if [ -f "$ENV_FILE" ]; then
   set -a
   source "$ENV_FILE"
@@ -22,12 +20,9 @@ else
   exit 1
 fi
 
-# Activate virtual environment
 source "$VENV_DIR/bin/activate"
-
 cd "$PROJECT_DIR"
 
-# Run Django backup command (THIS does everything)
-python manage.py backup_daily
+python manage.py backup_weekly
 
-echo "🎉 DAILY tenant backup job finished"
+echo "🎉 WEEKLY tenant backup job finished"

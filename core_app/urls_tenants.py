@@ -11,7 +11,7 @@ urlpatterns = [
     path("", include("dashboard.urls")),
 
     # ✅ Backups (TENANT-only)
-    path("backups/", include("backups.urls")),
+    #path("backups/", include("backups.urls")),
 ]
 
 if settings.DEBUG:

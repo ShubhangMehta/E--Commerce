@@ -69,7 +69,7 @@
         <div class="card">
             <h2>Download Backups</h2>
             <p>View and download backup files for all tenants.</p>
-            <a href="{% url 'download_backups' %}" class="btn">Open</a>
+            <a href="{% url 'backups:downloads' %}" class="btn">Open</a>
             <!-- <li><a href="/backups/download/">Download Backups</a></li> -->
         </div>
 
@@ -77,7 +77,7 @@
         <div class="card">
             <h2>Restore Backups</h2>
             <p>Restore backups for any tenant from available backups.</p>
-            <a href="{% url 'restore_backups' %}" class="btn">Open</a>
+            <a href="{% url 'backups:restore' %}" class="btn">Open</a>
             <!-- <li><a href="/backups/restore/">Restore Backups</a></li> -->
         </div>
 
@@ -85,7 +85,7 @@
         <div class="card">
             <h2>Backup Status Summary</h2>
             <p>Success/failure chart of recent backup jobs.</p>
-            <a href="{% url 'backup_stats' %}" class="btn">View Graph</a>
+            <a href="{% url 'backups:stats' %}" class="btn">View Graph</a>
             <!-- <li><a href="/backups/graph/">Backup Status Graph</a></li> -->
         </div>
 

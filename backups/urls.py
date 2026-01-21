@@ -1,24 +1,27 @@
 from django.urls import path
 from . import views
 
+app_name = "backups"
+
 urlpatterns = [
-    path("", views.backups, name="backups_home"),
+    # ===== UI PAGES =====
+    path("", views.backups, name="backups"),
 
-    # API endpoints
-    path("generate-daily-backup-link/", views.generate_backup_link_daily, name="generate_backup_link_daily"),
-    path("generate-weekly-backup-link/", views.generate_backup_link_weekly, name="generate_backup_link_weekly"),
-    path("generate-master-backup-link/", views.generate_backup_link_master, name="generate_backup_link_master"),
+    path("downloads/", views.download_backups, name="downloads"),
+    path("downloads/daily/", views.daily_backups_view, name="daily"),
+    path("downloads/weekly/", views.weekly_backups_view, name="weekly"),
+    path("downloads/master/", views.master_backups_view, name="master"),
 
-    # Downloads
-    path("downloads/", views.download_backups, name="download_backups"),
-    path("downloads/daily/", views.daily_backups_view, name="daily_backups_view"),
-    path("downloads/weekly/", views.weekly_backups_view, name="weekly_backups_view"),
-    path("downloads/master/", views.master_backups_view, name="master_backups_view"),
+    path("restore/", views.restore_backups, name="restore"),
+    path("stats/", views.backup_stats, name="stats"),
 
-    # Restore
-    path("restore/", views.restore_backups, name="restore_backups"),
-    path("restore-api/", views.restore_backup_api, name="restore_backup_api"),
+    # ===== API ENDPOINTS =====
+    path("api/generate/daily/", views.generate_backup_link_daily, name="api_generate_daily"),
+    path("api/generate/weekly/", views.generate_backup_link_weekly, name="api_generate_weekly"),
+    path("api/generate/master/", views.generate_backup_link_master, name="api_generate_master"),
 
-    # Stats
-    path("stats/", views.backup_stats, name="backup_stats"),
+    path("api/restore/", views.restore_backup_api, name="api_restore"),
+
+    # optional (manual trigger)
+    path("api/trigger/", views.trigger_backup, name="api_trigger"),
 ]

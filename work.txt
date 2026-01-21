@@ -1,10 +1,26 @@
-from django.core.mail import send_mail
-from django.conf import settings
+# ===================== DAILY BACKUPS =====================
 
-send_mail(
-    subject="Test Email",
-    message="Backup system email test",
-    from_email=settings.DEFAULT_FROM_EMAIL,
-    recipient_list=[settings.],
-    fail_silently=False,
-)
+0 2 * * * /Users/sasiabburi/E--Commerce/scripts/daily_backup.sh >> /Users/sasiabburi/E--Commerce/logs/daily/daily_backup.log 2>&1
+
+30 2 * * * /Users/sasiabburi/E--Commerce/scripts/daily_backup_all_tenants.sh >> /Users/sasiabburi/E--Commerce/logs/daily/daily_backup_all_tenants.log 2>&1
+
+
+# ===================== WEEKLY BACKUPS (SUNDAY) =====================
+
+0 3 * * 0 /Users/sasiabburi/E--Commerce/scripts/weekly_active_tenants_backup.sh >> /Users/sasiabburi/E--Commerce/logs/weekly/weekly_active_tenants_backup.log 2>&1
+
+30 3 * * 0 /Users/sasiabburi/E--Commerce/scripts/weekly_all_tenants_backup.sh >> /Users/sasiabburi/E--Commerce/logs/weekly/weekly_all_tenants_backup.log 2>&1
+
+
+# ===================== MASTER BACKUPS =====================
+
+0 4 * * 0 /Users/sasiabburi/E--Commerce/scripts/master_backup.sh >> /Users/sasiabburi/E--Commerce/logs/master/master_backup.log 2>&1
+
+
+# ===================== DJANGO CRONTAB JOBS =====================
+
+0 2 * * * /Users/sasiabburi/E--Commerce/venv/bin/python /Users/sasiabburi/E--Commerce/manage.py crontab run 4a965f7b55cce60b7f720ab1a682f2d4
+
+0 3 * * 0 /Users/sasiabburi/E--Commerce/venv/bin/python /Users/sasiabburi/E--Commerce/manage.py crontab run b775e0d4201c0d7f4b75aa3c2378d9c0
+
+0 4 * * * /Users/sasiabburi/E--Commerce/venv/bin/python /Users/sasiabburi/E--Commerce/manage.py crontab run 7ada74636008f5532de2f4e7ce52078a
