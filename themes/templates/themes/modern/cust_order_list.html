@@ -1,0 +1,29 @@
+<h2>Order List</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Order No</th>
+        <th>User</th>
+        <th>Status</th>
+        <th>Total Amount</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.user.username }}</td>
+        <td>{{ order.status }}</td>
+        <td>₹{{ order.total_amount }}</td>
+        <td>
+            <a href="/orders/{{ order.id }}/">View</a> |
+            <a href="/invoice/{{ order.id }}/">Invoice</a> |
+            <a href="/invoice/{{ order.id }}/pdf/">PDF</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No orders found</td>
+    </tr>
+    {% endfor %}
+</table>
