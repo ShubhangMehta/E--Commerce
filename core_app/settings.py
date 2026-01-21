@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +34,7 @@ SHARED_APPS = [
     'unfold',
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
-
+    
     "accounts",
     'django_crontab',
     'django.contrib.admin',
@@ -64,8 +64,7 @@ TENANT_APPS = [
 ]
 
 
-
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
+INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -213,11 +212,11 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CRONJOBS += [
+CRONJOBS = [
     ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
 ]
 
-CRONJOBS += [
+CRONJOBS = [
     ('0 4 * * *', 'scripts.master_backup.sh'),  # Runs Sunday 4AM
 ]
 
