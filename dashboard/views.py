@@ -1,4 +1,6 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.core.exceptions import PermissionDenied
 #from django.contrib.auth.decorators import login_required
 #from orders.models import Order
 #from catalogue.models import Product

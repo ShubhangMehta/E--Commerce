@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-from customers import views as customers_views
+
+app_name = "dashboard"
 
 urlpatterns = [
     path("themes/", views.theme_settings, name="theme_settings"),

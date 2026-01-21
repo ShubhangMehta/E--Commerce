@@ -1,85 +1,27 @@
 from decimal import Decimal
-import email
 from django.conf import settings
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
-from django.db import connection
+from django.views.decorators.http import require_GET
+
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
-from .rzp_services import get_or_create_order_for_invoice #create_subscription_checkout
+from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
-from core_app.emails.utils import send_html_email
+
 
 def home(request):
-    return HttpResponse("<h1> E-Cartel Public Schema </h1>")
-
-
-def billing_plans(request):
-    """
-    Show available subscription plans to tenant.
-    """
-    schema = connection.schema_name
-
-    if schema == "public":
-        return HttpResponse(
-            "Plans must be viewed from tenant website.",
-            status=400
-        )
-
-    plans = SubscriptionPlan.objects.filter(status="active").order_by("price")
-
-    return render(
-        request,
-        "customers/plans.html",
-        {"plans": plans}
-    )
-
-
-def billing_renew(request):
-    schema = connection.schema_name
-
-    if schema == 'public':
-        return HttpResponse("Billing renewal is not available on the public schema.", status=400)
-
-    try:
-        client = Client.objects.get(schema_name=schema)
-    except Client.DoesNotExist:
-        return HttpResponse("Client not found.", status=404)
-    
-    plan_id = request.GET.get("plan")
-
-    if plan_id:
-        try:
-            plan = SubscriptionPlan.objects.get(id=plan_id, status='active')
-        except SubscriptionPlan.DoesNotExist:
-            return HttpResponse("Invalid subscription plan.", status=404)
-    else:
-        plan = SubscriptionPlan.objects.filter(status='active').first()
-        if not plan:
-            return HttpResponse("No active subscription plans available.", status=500)
-    
-    result = create_subscription_checkout(client, plan)
-
     context = {
-        "razorpay_key": settings.RAZORPAY_KEY_ID,
-        "order": result["razorpay_order"],
-        "client": client,
-        "plan": plan,
-        "amount": int(result["razorpay_order"]["amount"]),
+        "page_title": "E-Cartel",
+        "hero_title": "Launch your online store in minutes",
+        "hero_subtitle": "A multi-tenant e-commerce platform with subscriptions, themes, and scalable infrastructure.",
+        "cta_primary": "Start Free Trial",
+        "cta_secondary": "View Plans",
     }
-
-    return render(request, "customers/billing.html", context)
-
-
-def billing_success(request):
-    return render(request, "customers/billing_success.html")
-
-
-def billing_cancel(request):
-    return render(request, "customers/billing_cancel.html")
-
+    return render(request, "customers/home.html", context)
+    #return HttpResponse("<h1> E-Cartel Public Schema </h1>")
 
 def _to_full_domain(domain_name: str) -> str:
     # Your current local setup
@@ -106,16 +48,16 @@ def create_tenant(request):
 
     # POST
     data = {
-        "owner_name": request.POST.get("owner_name"),
-        "tenant_name": request.POST.get("tenant_name"),
-        "domain_name": request.POST.get("domain_name"),
+        "owner_name": request.POST.get("owner_name").strip().lower(),
+        "tenant_name": request.POST.get("tenant_name").strip().lower(),
+        "domain_name": request.POST.get("domain_name").strip().lower(),
         "plan_name": request.POST.get("plan"),
         "subscription_type": request.POST.get("subscription_type"),  # trial / paid
         "payment_plan": request.POST.get("payment_plan"),            # monthly / yearly
         "theme": request.POST.get("theme"),
-        "email": request.POST.get("email"),
-        "company": request.POST.get("company"),
-        "address": request.POST.get("address"),
+        "email": request.POST.get("email").strip().lower(),
+        "company": request.POST.get("company").strip().lower(),
+        "address": request.POST.get("address").strip().lower(),
         "logo": request.FILES.get("logo"),
     }
 
@@ -202,7 +144,7 @@ def create_tenant(request):
         )
         tr.status = "approved"
         tr.save(update_fields=["status"])
-        return redirect(f"http://{domain.domain}:8000/")
+        return redirect(f"http://{domain.domain}:8000/") #Redirecting to index page of domain/website
 
     # ------------------------------------------------------------------
     # PAID: reuse same invoice + same order (resume behavior)
@@ -237,84 +179,43 @@ def create_tenant(request):
     return render(request, "customers/create_tenant.html", context)
 
 
-# def create_tenant(request):
-#     if request.method == 'POST':
-#         tenant_name = request.POST.get('tenant_name')
-#         domain_name = request.POST.get('domain_name')
-#         plan_name = request.POST.get('plan')  # basic / standard / premium
-#         subscription_type = request.POST.get('subscription_type')  # trial / paid
-#         payment_plan = request.POST.get('payment_plan')  # monthly / yearly (only if paid)
-#         theme = request.POST.get('theme')  # default / minimal / modern
+@require_GET
+def billing_success(request):
+    invoice_id = request.GET.get("invoice_id") or request.GET.get("invoice")
+    if not invoice_id:
+        return JsonResponse({"error": "Missing invoice_id/invoice", "received_query_params": dict(request.GET)}, status=400)
 
-#         email = request.POST.get('email')
-#         company = request.POST.get('company')
-#         address = request.POST.get('address')
-#         logo = request.FILES.get('logo')
+    invoice = Invoice.objects.filter(id=invoice_id).select_related("client").first()
+    if not invoice:
+        return JsonResponse({"error": "Invoice not found", "invoice_id": invoice_id}, status=404)
 
-#         if not tenant_name or not domain_name or not plan_name:
-#             return JsonResponse(
-#                 {'error': 'Tenant name, domain name, and plan are required'},
-#                 status=400
-#             )
+    # Make status check case-tolerant (in case your choices store "Paid")
+    if (invoice.status or "").lower() == "paid" and invoice.client_id:
+        # Try primary first, then fallback to any domain
+        primary_domain = Domain.objects.filter(tenant_id=invoice.client_id, is_primary=True).first()
+        if not primary_domain:
+            primary_domain = Domain.objects.filter(tenant_id=invoice.client_id).order_by("-is_primary", "id").first()
 
-#         # Prevent duplicate domains
-#         full_domain = f"{domain_name}.localhost"
-#         if (
-#             Domain.objects.filter(domain=full_domain).exists() or
-#             TenantRequest.objects.filter(desired_domain=domain_name).exists()
-#         ):
-#             return JsonResponse(
-#                 {'error': 'This domain is already taken.'},
-#                 status=400
-#             )
+        if primary_domain:
+            scheme = "https" if request.is_secure() else "http"
 
-#         # Fetch subscription plan by name
-#         plan = SubscriptionPlan.objects.filter(name__iexact=plan_name).first()
-#         if not plan:
-#             return JsonResponse(
-#                 {'error': 'Invalid plan selected.'},
-#                 status=400
-#             )
+            # DEV: if you’re running tenants on :8000, include it
+            return redirect(f"{scheme}://{primary_domain.domain}:8000/")
 
-#         # Trial vs Paid handling
-#         is_trial = subscription_type == 'trial'
+        # If paid but no domain, show debug on page (temporary)
+        return JsonResponse({
+            "error": "Invoice paid but no domain found",
+            "invoice_id": invoice.id,
+            "client_id": invoice.client_id,
+            "domains": list(Domain.objects.filter(tenant_id=invoice.client_id).values("domain", "is_primary")),
+        }, status=500)
 
-#         if is_trial:
-#             payment_plan = None  # no billing cycle for trial
+    return render(request, "customers/billing_success.html", {"invoice_id": invoice_id})
 
-#         # Store tenant request
-#         TenantRequest.objects.create(
-#             tenant_name=tenant_name,
-#             desired_domain=domain_name,
-#             plan=plan,
-#             payment_plan=payment_plan,
-#             theme=theme,
-#             email=email,
-#             company=company,
-#             address=address,
-#             logo=logo
-#         )
+@require_GET
+def billing_cancel(request):
+    return render(request, "customers/billing_cancel.html")
 
-#         # Send confirmation email
-#         send_html_email(
-#             subject="Your Tenant Request Has Been Received",
-#             to_email=email,
-#             template_name="emails/welcome.html",
-#             context={
-#                 "name": tenant_name,
-#                 "tenant_name": tenant_name,
-#                 "domain": domain_name,
-#                 "company": company,
-#                 "plan": plan.name,
-#                 "is_trial": is_trial,
-#             }
-#         )
-
-#         return JsonResponse(
-#             {'message': f'Request for {tenant_name} submitted for approval!'}
-#         )
-
-#     return render(request, 'customers/create_tenant.html')
 
 def raise_ticket(request):
     if request.method == 'POST':
