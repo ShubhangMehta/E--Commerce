@@ -77,35 +77,15 @@ TENANT_APPS = [
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
 
 
-INSTALLED_APPS = [
-    # Django core apps (DO NOT REMOVE)
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
 
-    # Your apps (backend work)
-    "accounts",
-    "orders",
-    "catalog",
-    "dashboard",
-
-    # Disabled temporarily (Postgres-only)
-    # "customers",
-    # "backups",
-    # "django_tenants",
-]
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-DATABASE_ROUTERS = (
-    # "django_tenants.routers.TenantSyncRouter",
-)
+
+
 
 MIDDLEWARE = [
     "django_tenants.middleware.TenantMiddleware",
@@ -150,23 +130,31 @@ ROOT_URLCONF = "core_app.urls_tenants"
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django_tenants.postgresql_backend',
-#         'NAME': env('DB_NAME', default='testdb'),
-#         'USER': env('DB_USER', default='postgres'),
-#         'PASSWORD': env('DB_PASSWORD', default='postgres'),
-#         'HOST': env('DB_HOST', default='localhost'),
-#         'PORT': env('DB_PORT', default='5432'),
-#     }
-# }
-
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        }
     }
 }
+
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 
 # Password validation
@@ -247,3 +235,5 @@ CRONJOBS = [
 CRONJOBS += [
     ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
 ]
+
+TENANT_MODEL = "customers.Client"

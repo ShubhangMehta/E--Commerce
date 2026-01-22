@@ -24,7 +24,7 @@ class BlockTenantAdminMiddleware:
             return self.get_response(request)
 
         # Block tenant admin in production
-        if schema != "public" and request.path.startswith("/admin/"):
+        if schema != "Public" and request.path.startswith("/admin/"):
             return HttpResponseForbidden(
                 "<h2>Access Denied</h2>"
                 "<p>Tenant admin access is restricted.</p>"
