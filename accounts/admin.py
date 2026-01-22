@@ -11,7 +11,7 @@ class LoginSessionAdmin(admin.ModelAdmin):
         'login_time',
         'logout_time',
         'is_active',
-        'user_agent',
+        #'user_agent',
     )
     list_filter = ('is_active', 'login_time')
     search_fields = ('user__username', 'ip_address')

@@ -22,5 +22,4 @@ urlpatterns = [
 
     #Logout from all devices
     path('logout-all/', views.logout_all_devices_view, name='logout_all'),
-
 ]
