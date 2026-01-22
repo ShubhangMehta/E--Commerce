@@ -2,9 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Storefront
-    path("", views.index, name="index"),
-
+    #path("", views.index, name="store_index"),
     path("products/", views.product_list, name="product_list"),
 
     # IMPORTANT: your template uses product_detail, keep URL name as "product_detail"

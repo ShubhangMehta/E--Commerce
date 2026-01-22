@@ -46,9 +46,10 @@ ALLOWED_HOSTS = ['*']
 
 SHARED_APPS = [
     'unfold',
-    'django_tenants',  # mandatory
-    'customers',  # you must list the app where your tenant model resides in
-    'accounts',
+    "django_tenants",  # mandatory
+    'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
+    
+    "accounts",
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -57,6 +58,8 @@ SHARED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    "backups",
+    
 ]
 
 
@@ -75,6 +78,7 @@ TENANT_APPS = [
     "themes"
 ]
 
+
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
 
 
@@ -83,7 +87,12 @@ INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
+
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+
+
+
 
 
 
@@ -133,17 +142,19 @@ ROOT_URLCONF = "core_app.urls_tenants"
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+import os
+
 DATABASES = {
     'default': {
         'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
-            'sslmode': 'require',
-        }
+            'sslmode': os.environ.get('DB_SSLMODE', 'require'),  # Supabase requires SSL
+        },
     }
 }
 
@@ -231,6 +242,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CRONJOBS = [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]
+
+CRONJOBS = [
+    ('0 4 * * *', 'scripts.master_backup.sh'),  # Runs Sunday 4AM
+]
 
 # ----------------------------
 # Email / SMTP Configuration
@@ -242,6 +260,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+#ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
@@ -256,7 +275,7 @@ RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET", default="")
 
 # Billing Configuration
 BILLING_INVOICE_PREFIX = env("BILLING_INVOICE_PREFIX", default="INV")
-BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
+BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=7)
 
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
@@ -270,4 +289,4 @@ CRONJOBS += [
     ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
 ]
 
-TENANT_MODEL = "customers.Client"
+
