@@ -1,0 +1,10 @@
+cart.html checkout.html order_success.html
+{% extends "themes/default/base_storefront.html" %}
+
+
+{% block content %}
+<h2 class="text-2xl font-bold">{{ product.name }}</h2>
+<p class="mt-2">{{ product.description }}</p>
+<p class="font-bold mt-4">₹{{ product.price }}</p>
+<button class="mt-4 bg-blue-600 text-white px-4 py-2">Add to Cart</button>
+{% endblock %}
