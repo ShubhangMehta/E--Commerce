@@ -47,7 +47,7 @@ class Command(BaseCommand):
                         "-h", settings.DATABASES["default"]["HOST"],
                         "-p", str(settings.DATABASES["default"]["PORT"]),
                         "-d", settings.DATABASES["default"]["NAME"],
-                        "-f", temp_dump.name,
+                        "-f", dump_path,
                         ]
 
                     env = os.environ.copy()

@@ -2,6 +2,7 @@ from django.http import HttpResponseForbidden, HttpResponse
 from django.db import connection
 from django.http import HttpResponse
 from django.utils import timezone
+from django.conf import settings
 
 class BlockTenantAdminMiddleware:
     """

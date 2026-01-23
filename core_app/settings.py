@@ -31,13 +31,13 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
+#Only fot global
 SHARED_APPS = [
     'unfold',
     "django_tenants",  # mandatory
     'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
 
     "accounts",
-    'backups',
     'django_crontab',
 
     #'billing.apps.BillingConfig',    #Billing and Subscription app
@@ -50,10 +50,11 @@ SHARED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    "backups",
+    "backups"
     
 ]
 
+#Apps for tenants
 TENANT_APPS = [
     # # your tenant-specific apps
     # 'django.contrib.contenttypes',
@@ -68,13 +69,11 @@ TENANT_APPS = [
 
     'users',
     "themes",
-    "backups"
 ]
 
 
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS
-#INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 
 
 TENANT_MODEL = "customers.Client"  # app.Model

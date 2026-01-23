@@ -9,9 +9,4 @@ class Migration(migrations.Migration):
         ("customers", "0001_initial"),
     ]
 
-    operations = [
-        migrations.RemoveField(
-            model_name="client",
-            name="server_name",
-        ),
-    ]
+    operations = []
