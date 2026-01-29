@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
-class User(models.Model):
+class CustomerUser(models.Model):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, null=True, blank=True)
@@ -19,7 +19,7 @@ class User(models.Model):
     def __str__(self):
         return self.email
 
-class Locations(models.Model):
+class ShippingAddress(models.Model):
     ADDRESS_TYPES = (
         ("home", "Home"),
         ("work", "Work"),
@@ -27,7 +27,7 @@ class Locations(models.Model):
         ("other", "Other"),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomerUser, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20)
     house_no = models.CharField(max_length=255)
