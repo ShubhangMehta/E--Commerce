@@ -47,10 +47,12 @@ SHARED_APPS = [
 TENANT_APPS = [
     'accounts',
     'dashboard',
-    'catalog',
+    'catalog',#products
     'orders',
     'users',
-    "themes"
+    "themes",
+    #'dashboard',
+    #'inventory'
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
@@ -75,7 +77,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     # Place your custom middleware AFTER auth
-    "core_app.middleware.BlockTenantAdminMiddleware",
+    #"core_app.middleware.BlockTenantAdminMiddleware",
 ]
 
 TEMPLATES = [

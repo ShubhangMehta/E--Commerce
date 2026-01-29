@@ -85,6 +85,12 @@ class SubscriptionPlan(models.Model):
         ('premium', 'Premium'),
     ]
 
+    BILLING_CHOICES = [
+        ('trial', 'Free Trial'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),
@@ -114,6 +120,10 @@ class PlanPricing(models.Model):
 
     class Meta:
         unique_together = ('plan', 'billing_cycle')
+
+    @property
+    def is_trial(self):
+        return self.price == 0
 
     def __str__(self):
         return f"{self.plan} - {self.get_billing_cycle_display()}"
