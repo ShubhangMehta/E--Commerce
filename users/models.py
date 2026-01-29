@@ -71,3 +71,14 @@ class TenantMember(models.Model):
 
     def __str__(self):
         return f"global_user_id={self.global_user_id} ({self.role})"
+
+class Address(models.Model):
+    customer = models.ForeignKey(CustomerUser, on_delete=models.CASCADE, related_name="addresses")
+    line1 = models.CharField(max_length=255)
+    line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=80)
+    state = models.CharField(max_length=80, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=80, default="IN")
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
