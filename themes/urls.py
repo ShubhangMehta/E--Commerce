@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from accounts import views as c_views
 
 urlpatterns = [
     # Storefront
@@ -26,4 +27,5 @@ urlpatterns = [
 
     # Auth pages (signup view you added; login/logout can stay in accounts app)
     path("signup/", views.signup, name="signup"),
+    path("login/", c_views.login_view, name="login"),
 ]

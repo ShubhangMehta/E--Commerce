@@ -20,7 +20,6 @@
           <div class="row g-3">
             <div class="col-12 col-md-6">
               <label class="form-label">First name</label>
-              <input type="text" name="first_name" required>
               {{ form.first_name }}
               {% if form.first_name.errors %}
                 <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
@@ -29,7 +28,6 @@
 
             <div class="col-12 col-md-6">
               <label class="form-label">Last name</label>
-              <input type="text" name="last_name" required>
               {{ form.last_name }}
               {% if form.last_name.errors %}
                 <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
@@ -38,7 +36,6 @@
 
             <div class="col-12">
               <label class="form-label">Email</label>
-              <input type="text" name="email" required>
               {{ form.email }}
               {% if form.email.errors %}
                 <div class="text-danger small mt-1">{{ form.email.errors }}</div>
@@ -47,7 +44,6 @@
 
             <div class="col-12">
               <label class="form-label">Username</label>
-              <input type="text" name="username" required>
               {{ form.username }}
               {% if form.username.errors %}
                 <div class="text-danger small mt-1">{{ form.username.errors }}</div>
@@ -56,7 +52,6 @@
 
             <div class="col-12">
               <label class="form-label">Password</label>
-              <input type="text" name="password" required>
               {{ form.password1 }}
               {% if form.password1.errors %}
                 <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
@@ -66,7 +61,6 @@
 
             <div class="col-12">
               <label class="form-label">Confirm password</label>
-              <input type="text" name="confirm_password" required>
               {{ form.password2 }}
               {% if form.password2.errors %}
                 <div class="text-danger small mt-1">{{ form.password2.errors }}</div>

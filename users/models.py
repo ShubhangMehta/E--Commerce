@@ -19,7 +19,7 @@ class CustomerUser(models.Model):
     def __str__(self):
         return self.email
 
-class CustomerAddress(models.Model):
+class ShippingAddress(models.Model):
     ADDRESS_TYPES = (
         ("home", "Home"),
         ("work", "Work"),
@@ -42,3 +42,32 @@ class CustomerAddress(models.Model):
 
     def __str__(self):
         return f"{self.house_no}, {self.landmark} {self.city}, {self.postal_code}"
+
+
+class TenantRole(models.TextChoices):
+    OWNER = "OWNER", "Owner"
+    ADMIN = "ADMIN", "Admin"
+    STAFF = "STAFF", "Staff"
+    CUSTOMER = "CUSTOMER", "Customer"
+
+
+class TenantMember(models.Model):
+    """
+    Tenant-scoped "who is this global user inside this tenant?"
+    Stored in tenant schema.
+    """
+    global_user_id = models.BigIntegerField(db_index=True)
+    role = models.CharField(max_length=20, choices=TenantRole.choices)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["global_user_id", "role"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
+        ]
+
+    def __str__(self):
+        return f"global_user_id={self.global_user_id} ({self.role})"
