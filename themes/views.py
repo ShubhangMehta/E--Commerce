@@ -327,22 +327,8 @@ def signup(request):
     return render(request, _theme_path(request, "signup.html"), {"form": form})
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 # If you already use Django's LoginView / LogoutView, keep using that.
 # The templates you generated will work with LoginView (login.html) by default.
-
 
 # -----------------------------
 # PROFILE

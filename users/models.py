@@ -19,7 +19,7 @@ class CustomerUser(models.Model):
     def __str__(self):
         return self.email
 
-class CustomerAddress(models.Model):
+class ShippingAddress(models.Model):
     ADDRESS_TYPES = (
         ("home", "Home"),
         ("work", "Work"),
