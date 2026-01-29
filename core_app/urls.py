@@ -25,7 +25,7 @@ urlpatterns = [
     #path("users/", include("users.urls")),
     path('dashboard/', include('dashboard.urls')),
     path('users/', include('users.urls',namespace="users")),
-    path('catalogue/', include('catalogue.urls')),
-    path('orders/', include('orders.urls')),
+    #path('orders/', include('orders.urls',namespace="orders")),
+    path('catalogue/', include('catalog.urls',namespace="catalog")),
 
 ]

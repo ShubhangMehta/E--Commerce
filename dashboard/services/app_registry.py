@@ -13,13 +13,13 @@ TENANT_APPS = [
 #    'description': 'View and manage customer orders',
 #    'icon': 'shopping-cart',
 #},
-#{
-#    'key': 'catalog',
-#    'name': 'Catalog',
-#    'url_name': 'catalog:list',
-#    'description': 'Manage product catalog',
-#    'icon': 'grid',
-#},
+{
+    'key': 'catalog',
+    'name': 'catalog',
+    'url_name': 'catalog:product_list',
+    'description': 'Manage product catalog',
+    'icon': 'grid',
+},
 #{
 #    'key': 'inventory',
 #    'name': 'Inventory',

@@ -1,11 +1,4 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.core.exceptions import PermissionDenied
-#from django.contrib.auth.decorators import login_required
-#from orders.models import Order
-#from catalogue.models import Product
-#from users.models import TenantUser
-
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .services.app_registry import TENANT_APPS
@@ -18,7 +11,7 @@ def dashboard(request):
         from customers.models import Client  # or whatever your Tenant model is
         client = Client.objects.first()  # pick the first tenant for testing
     else:
-        client = request.user.client
+        client = request.tenant
     theme = client.theme
 
     for app in TENANT_APPS:
@@ -32,7 +25,7 @@ def dashboard(request):
     return render(request, 'dashboard/dashboard.html', {
         'apps': apps,
         'tenant': client,
-        'theme_base': f"themes/{theme}/base_storefront.html",
+        'theme_base': f"themes/{theme}/storefront.html",
     })
 
 
@@ -56,7 +49,7 @@ def theme_settings(request):
         client.theme = selected_theme
         client.save()
 
-    return render(request, "tenant_dashboard/themes.html", {
+    return render(request, "dashboard.html", {
         "tenant": client
     })
 

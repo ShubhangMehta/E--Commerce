@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from users.models import CustomerUser
 
-#@login_required
+#login_required
 def users_home(request):
     users = CustomerUser.objects.all()
 
@@ -21,7 +21,7 @@ def users_home(request):
     return render(request, "index.html", {
         "users": users,
         "tenant": client,
-        "theme_base": f"themes/{theme}/base_storefront.html",
+        "theme_base": f"themes/{theme}/storefront.html",
     })
 
 

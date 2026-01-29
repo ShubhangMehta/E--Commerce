@@ -1,0 +1,36 @@
+{% extends theme_storefront %}
+
+{% block content %}
+<h1>Products</h1>
+
+<a href="{% url 'catalog:product_create' %}">
+    + Add New Product
+</a>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Name</th>
+        <th>Brand</th>
+        <th>Price</th>
+        <th>Available</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for product in products %}
+    <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.brand_name }}</td>
+        <td>₹{{ product.price }}</td>
+        <td>{{ product.availability|yesno:"Yes,No" }}</td>
+        <td>
+            <a href="{% url 'catalog:product_edit' product.id %}">Edit</a> |
+            <a href="{% url 'catalog:product_delete' product.id %}">Delete</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No products found.</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

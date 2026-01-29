@@ -375,6 +375,10 @@ def profile(request):
         {"recent_orders": recent_orders},
     )
 
+def previous_order_listing(request):
+    theme = request.tenant.theme
+    return render(request,f"themes/{theme}/previous_order_listing.html")
+
 
 
 
@@ -438,3 +442,6 @@ def profile(request):
 #     theme = request.tenant.theme
 #     return render(request, f"themes/{theme}/profile.html")
 
+def login(request):
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/login.html")
