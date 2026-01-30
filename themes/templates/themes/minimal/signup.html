@@ -11,7 +11,8 @@
             Create Account
         </h1>
 
-        <form class="space-y-4">
+        <form class="space-y-4" method="POST">
+            {% csrf_token %}
             <input
                 type="text"
                 placeholder="Full Name"
