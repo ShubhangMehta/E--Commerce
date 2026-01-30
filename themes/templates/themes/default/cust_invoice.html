@@ -1,0 +1,20 @@
+<h2>Invoice</h2>
+
+<p>Order Number: {{ order.order_number }}</p>
+<p>User: {{ order.user.username }}</p>
+<p>Status: {{ order.status }}</p>
+<p>Date: {{ order.created_at }}</p>
+
+<hr>
+
+<h3>Items</h3>
+{% for item in order.items.all %}
+    <p>
+        {{ item.product_name }} |
+        Qty: {{ item.quantity }} |
+        Price: {{ item.price }}
+    </p>
+{% endfor %}
+
+<hr>
+<h3>Total: {{ order.total_amount }}</h3>
