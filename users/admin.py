@@ -3,7 +3,7 @@ from django.db import connection
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 
-from .models import CustomerUser, CustomerAddress
+from . import models
 
 
 class TenantOnlyAdmin(admin.ModelAdmin):
@@ -36,8 +36,8 @@ class TenantOnlyAdmin(admin.ModelAdmin):
         return super().add_view(request, form_url, extra_context)
 
 
-@admin.register(CustomerUser)
-class CustomerUserAdmin(TenantOnlyAdmin):
+@admin.register(models.SubjectMember)
+class SubjectMemberAdmin(TenantOnlyAdmin):
     list_display = (
         "id",
         "user_email",
@@ -59,8 +59,8 @@ class CustomerUserAdmin(TenantOnlyAdmin):
     user_email.short_description = "Email"
 
 
-@admin.register(CustomerAddress)
-class CustomerAddressAdmin(TenantOnlyAdmin):
+@admin.register(models.Coordinate)
+class CoordinateAdmin(TenantOnlyAdmin):
     list_display = (
         "id",
         "customer_email",
