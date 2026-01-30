@@ -22,6 +22,7 @@
 
           <div class="mb-3">
             <label class="form-label">Username or Email</label>
+            <input type="text" name="username" placeholder="Username" required>
             {{ form.username }}
             {% if form.username.errors %}
               <div class="text-danger small mt-1">{{ form.username.errors }}</div>
@@ -30,6 +31,7 @@
 
           <div class="mb-3">
             <label class="form-label">Password</label>
+            <input type="password" name="password" placeholder="Password" required>
             {{ form.password }}
             {% if form.password.errors %}
               <div class="text-danger small mt-1">{{ form.password.errors }}</div>
@@ -45,7 +47,7 @@
         </form>
 
         <div class="d-flex justify-content-between mt-3">
-          <a class="small text-decoration-none" href="{% url 'password_reset' %}">Forgot password?</a>
+          
           {# If you have signup #}
           <a class="small text-decoration-none" href="{% url 'signup' %}">Create account</a>
         </div>

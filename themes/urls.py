@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from accounts import views as c_views
 
 urlpatterns = [
     # Storefront
@@ -21,5 +22,5 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("login/", views.login, name="login"),
     path("signup/", views.signup, name="signup"),
-    path('previous_order_listing/',views.previous_order_listing,name="previous_order_listing")
+    path("login/", c_views.login_view, name="login"),
 ]
