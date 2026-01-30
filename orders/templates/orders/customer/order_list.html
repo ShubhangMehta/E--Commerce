@@ -1,29 +1,150 @@
-<h2>Order List</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Order No</th>
-        <th>User</th>
-        <th>Status</th>
-        <th>Total Amount</th>
-        <th>Actions</th>
-    </tr>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 0;
+        }
 
-    {% for order in orders %}
-    <tr>
-        <td>{{ order.order_number }}</td>
-        <td>{{ order.user.username }}</td>
-        <td>{{ order.status }}</td>
-        <td>₹{{ order.total_amount }}</td>
-        <td>
-            <a href="/orders/{{ order.id }}/">View</a> |
-            <a href="/invoice/{{ order.id }}/">Invoice</a> |
-            <a href="/invoice/{{ order.id }}/pdf/">PDF</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="5">No orders found</td>
-    </tr>
-    {% endfor %}
-</table>
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .sub-text {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .pending { background: #fff7ed; color: #c2410c; }
+        .paid { background: #ecfdf5; color: #047857; }
+        .shipped { background: #eef2ff; color: #3730a3; }
+        .delivered { background: #ecfeff; color: #0369a1; }
+        .cancelled { background: #fef2f2; color: #b91c1c; }
+
+        .btn {
+            padding: 8px 14px;
+            background: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty a {
+            margin-top: 15px;
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>My Orders</h1>
+    <p class="sub-text">View and manage your past orders</p>
+
+    <div class="card">
+        {% if orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Order No</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <span class="badge {{ order.status|lower }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>
+                        <a href="{% url 'order_detail' order.id %}" class="btn">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">
+            <h3>No Orders Found</h3>
+            <p>You haven’t placed any orders yet.</p>
+            <a href="/">Start Shopping</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<a href="{% url 'order_detail' order.id %}">View</a>
+</body>
+</html>

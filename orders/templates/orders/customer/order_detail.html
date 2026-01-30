@@ -1,29 +1,218 @@
-<h2>Order Details</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<p><strong>Order No:</strong> {{ order.order_number }}</p>
-<p><strong>Status:</strong> {{ order.status }}</p>
-<p><strong>Total:</strong> {{ order.total_amount }}</p>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 0;
+        }
 
-<hr>
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
 
-<h3>Items</h3>
+        h1 {
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
 
-{% for item in order.items.all %}
-    <div style="margin-bottom: 20px;">
-        <img 
-            src="{{ item.product_image.url }}" 
-            alt="{{ item.product_name }}" 
-            width="120"
-        >
-        <p><strong>{{ item.product_name }}</strong></p>
-        <p>Price: ₹{{ item.price }}</p>
+        h3 {
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .sub-text {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 3px;
+        }
+
+        .value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .total-box {
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        .total-box p {
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .total-box h3 {
+            margin-top: 10px;
+            font-size: 20px;
+            color: #2563eb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge.pending { background: #fff7ed; color: #c2410c; }
+        .badge.paid { background: #ecfdf5; color: #047857; }
+        .badge.cancelled { background: #fef2f2; color: #b91c1c; }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Order Details</h1>
+    <p class="sub-text">Below are the details of your order.</p>
+
+    <!-- Order Info -->
+    <div class="card">
+        <div class="row">
+            <div class="col">
+                <p class="label">Order Number</p>
+                <p class="value">{{ order.order_number }}</p>
+
+                <p class="label">Order Date</p>
+                <p class="value">{{ order.created_at|date:"d M Y" }}</p>
+            </div>
+
+            <div class="col">
+                <p class="label">Order Status</p>
+                <span class="badge {{ order.status|lower }}">
+                    {{ order.status }}
+                </span>
+
+                <p class="label" style="margin-top:14px;">Payment Method</p>
+                <p class="value">Online Payment</p>
+            </div>
+        </div>
     </div>
-{% empty %}
-    <p>No items found.</p>
-{% endfor %}
 
-<hr>
+    <!-- Customer Info -->
+    <div class="card">
+        <h3>Customer Information</h3>
 
-<a href="/invoice/{{ order.id }}/pdf/">Download Invoice (PDF)</a>
+        <p class="label">Name</p>
+        <p class="value">{{ order.customer_name }}</p>
 
+        <p class="label">Email</p>
+        <p class="value">{{ order.email }}</p>
 
+        <p class="label">Shipping Address</p>
+        <p class="value">{{ order.address }}</p>
+    </div>
+
+    <!-- Order Items -->
+    <div class="card">
+        <h3>Items Ordered</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                    <td>₹{{ item.total_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-box">
+            <p>Subtotal: ₹{{ subtotal }}</p>
+            <p>Delivery: ₹{{ delivery_charge }}</p>
+            <h3>Total: ₹{{ order.total_amount }}</h3>
+        </div>
+    </div>
+
+    <!-- Invoice -->
+    <div class="card">
+        <h3>Invoice</h3>
+        <a href="{% url 'order_invoice' order.id %}" class="btn">
+            Download Invoice (PDF)
+        </a>
+    </div>
+
+</div>
+<a href="{% url 'invoice' order.id %}">View Invoice</a>
+</body>
+</html>

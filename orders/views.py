@@ -145,12 +145,11 @@ from .models import Order
 
 
 def order_list(request):
-    orders = Order.objects.all().order_by("-created_at")
-    return render(
-        request,
-        "orders/customer/order_list.html",
-        {"orders": orders}
-    )
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, "orders/customer/order_list.html", {
+        "orders": orders
+    })
+
 
 
 
@@ -159,15 +158,48 @@ def order_detail(request, order_id):
     return render(request, "orders/customer/order_detail.html", {"order": order})
 
 
+# def order_create(request):
+#     if request.method == "POST":
+#         Order.objects.create(
+#             user=request.user,
+#             order_number=request.POST["order_number"],
+#             total_amount=request.POST["total_amount"],
+#         )
+#         return redirect("order_list")
+
+#     return render(request, "orders/customer/order_create.html")
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Order, OrderItem
+
+
+@login_required
 def order_create(request):
     if request.method == "POST":
-        Order.objects.create(
+        # 1️⃣ Create the order
+        order = Order.objects.create(
             user=request.user,
-            order_number=request.POST["order_number"],
-            total_amount=request.POST["total_amount"],
+            status="pending"
         )
-        return redirect("order_list")
 
+        # 2️⃣ Create order item (single item for now)
+        OrderItem.objects.create(
+            order=order,
+            product_name=request.POST.get("product_name"),
+            price=float(request.POST.get("price")),
+            quantity=int(request.POST.get("quantity", 1)),
+        )
+
+        # 3️⃣ Calculate total amount
+        order.total_amount = sum(
+            item.get_total_price() for item in order.items.all()
+        )
+        order.save()
+
+        # 4️⃣ Redirect to order detail page
+        return redirect("order_detail", pk=order.id)
+
+    # GET request → show form
     return render(request, "orders/customer/order_create.html")
 
 

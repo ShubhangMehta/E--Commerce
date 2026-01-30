@@ -56,6 +56,9 @@ def product_list(request):
         {"products": qs},
     )
 
+def index(request):
+    return render(request, "index.html")
+
 
 def product_detail(request, id):
     """
@@ -81,7 +84,7 @@ def product_detail(request, id):
 def _get_cart(session) -> dict:
     """
     Cart stored in session as:
-      cart = { "<product_id>": {"qty": int} }
+    cart = { "<product_id>": {"qty": int} }
     """
     return session.get("cart", {})
 
@@ -210,8 +213,8 @@ def checkout(request):
     - On POST, creates an order (stub) and redirects to success
 
     Templates:
-      - checkout.html expects cart_items, cart_total and optionally 'form'
-      - order_success.html expects 'order' (and optionally 'order_items')
+    - checkout.html expects cart_items, cart_total and optionally 'form'
+    - order_success.html expects 'order' (and optionally 'order_items')
     """
     cart_data = _get_cart(request.session)
     cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
