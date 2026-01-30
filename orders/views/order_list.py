@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .base import OrderBaseView
-from tenant_app.orders.models import Order
+from orders.models import Order
 
 class OrderListView(OrderBaseView):
 

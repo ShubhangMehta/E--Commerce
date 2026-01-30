@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .base import OrderBaseView
-from tenant_app.orders.services.customer_service import CustomerOrderService
+from orders.services.customer_service import CustomerOrderService
 
 class OrderCreateView(OrderBaseView):
 
