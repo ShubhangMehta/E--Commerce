@@ -8,22 +8,21 @@ class CustomerUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'full_name', 'phone']
 
 
-class CustomerSignupSerializer(serializers.ModelSerializer):
+class CustomerSignupSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    full_name = serializers.CharField(max_length=255)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, min_length=8)
 
-    class Meta:
-        model = CustomerUser
-        fields = ['email', 'full_name', 'phone', 'password']
-        extra_kwargs = {
-            "password": {"write_only": True}
-        }
-
-    def create(self, validated_data):
-        # Hash the password properly
-        password = validated_data.pop("password")
-        user = CustomerUser(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+    def validate_email(self, value):
+        from django.contrib.auth.models import User
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already registered")
+        return value
+    
+class CustomerLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
 
 
 class CustomerAddressSerializer(serializers.ModelSerializer):
