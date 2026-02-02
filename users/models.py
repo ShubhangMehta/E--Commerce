@@ -22,9 +22,9 @@ class TenantMember(models.Model):
         indexes = [
             models.Index(fields=["global_user_id", "role"]),
         ]
-        constraints = [
-            models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
+        # ]
 
     def _str_(self):
         return f"global_user_id={self.global_user_id} ({self.role})"
