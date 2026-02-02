@@ -48,12 +48,13 @@ SHARED_APPS = [
 TENANT_APPS = [
     'accounts',
     'dashboard',
+    'users',
     'catalog',#products
     'orders',
     'themes',
     'django_crontab',
     'backups',
-    'users',
+    
     # tenant-inventory app
     #'rest_framework',
     # Tenant apps
