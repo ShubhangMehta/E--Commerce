@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
-from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,11 +53,6 @@ TENANT_APPS = [
     'django_crontab',
     'backups',
     'users',
-    # tenant-inventory app
-    #'rest_framework',
-    # Tenant apps
-    
-    'tenant_app',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
@@ -82,7 +77,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     # Place your custom middleware AFTER auth
-    #"core_app.middleware.BlockTenantAdminMiddleware",
+    "core_app.middleware.BlockTenantAdminMiddleware",
 ]
 
 TEMPLATES = [
@@ -130,6 +125,11 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.PublicSchemaModelBackend",
+]
+
+AUTH_USER_MODEL = "accounts.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -178,8 +178,6 @@ AUTH_PASSWORD_VALIDATORS = [
 #         "level": "INFO",
 #     },
 # }
-
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
