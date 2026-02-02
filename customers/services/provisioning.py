@@ -39,6 +39,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 email=tenant_request.email,
                 company=tenant_request.company,
                 theme=tenant_request.theme,
+                catalog_template=tenant_request.catalog_template,
             )
 
             domain = Domain.objects.create(

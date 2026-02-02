@@ -17,6 +17,7 @@ class Client(TenantMixin):
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
+    catalog_template = models.CharField(max_length=50, default='single product catalog', help_text="Catalog template for product display")
     used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
     # Usage & Analytics
@@ -266,7 +267,18 @@ class TenantRequest(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
-    #is_approved = models.BooleanField(default=False)
+    
+    CHOICES_CATALOG_TEMPLATE = [
+        ('single product catalog', 'Single Product Catalog'),
+        ('multiple categories catalog', 'Multiple Categories Catalog'),
+    ]
+
+    catalog_template = models.CharField(
+        max_length=50,
+        choices=CHOICES_CATALOG_TEMPLATE,
+        default='single product catalog',
+        help_text="Catalog template choice for the tenant"
+    )
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 

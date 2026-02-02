@@ -55,6 +55,7 @@ def create_tenant(request):
         "subscription_type": request.POST.get("subscription_type"),  # trial / paid
         "payment_plan": request.POST.get("payment_plan"),            # monthly / yearly
         "theme": request.POST.get("theme"),
+        "catalog_template": request.POST.get("catalog_template"),
         "email": request.POST.get("email").strip().lower(),
         "company": request.POST.get("company").strip().lower(),
         "address": request.POST.get("address").strip().lower(),
@@ -114,6 +115,7 @@ def create_tenant(request):
             plan=plan,
             pricing=pricing,
             theme=data["theme"],
+            catalog_template=data["catalog_template"],
             email=data["email"],
             company=data["company"],
             address=data["address"],
@@ -126,6 +128,7 @@ def create_tenant(request):
         tr.plan = plan
         tr.pricing = pricing
         tr.theme = data["theme"]
+        tr.catalog_template = data["catalog_template"]
         tr.email = data["email"]
         tr.company = data["company"]
         tr.address = data["address"]
