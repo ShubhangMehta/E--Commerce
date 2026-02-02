@@ -1,32 +1,53 @@
 from rest_framework import serializers
-from .models import CustomerUser, CustomerAddress
+from .models import SubjectMember, Coordinate
 
 
-class CustomerUserSerializer(serializers.ModelSerializer):
+class SubjectMemberSerializer(serializers.ModelSerializer):
+    """
+    Serializer for tenant-scoped users.
+    This does NOT handle authentication.
+    """
+
     class Meta:
-        model = CustomerUser
-        fields = ['id', 'email', 'full_name', 'phone']
+        model = SubjectMember
+        fields = [
+            "id",
+            "global_user_id",
+            "email",
+            "full_name",
+            "phone",
+            "role",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "global_user_id",
+            "created_at",
+        ]
 
 
-class CustomerSignupSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    full_name = serializers.CharField(max_length=255)
-    phone = serializers.CharField(required=False, allow_blank=True)
-    password = serializers.CharField(write_only=True, min_length=8)
+class CoordinateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for tenant-scoped addresses.
+    """
 
-    def validate_email(self, value):
-        from django.contrib.auth.models import User
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email already registered")
-        return value
-    
-class CustomerLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-
-class CustomerAddressSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomerAddress
-        fields = '__all__'
-        read_only_fields = ['user']
+        model = Coordinate
+        fields = [
+            "id",
+            "user",
+            "full_name",
+            "phone",
+            "house_no",
+            "landmark",
+            "city",
+            "state",
+            "postal_code",
+            "address_type",
+            "is_default",
+        ]
+        read_only_fields = [
+            "id",
+            "user",
+        ]

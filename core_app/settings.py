@@ -47,6 +47,7 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     'dashboard',
+    'users',
     'catalog',#products
     'orders',
     'themes',

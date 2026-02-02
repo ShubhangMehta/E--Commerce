@@ -22,7 +22,8 @@ urlpatterns = [
     path('', include('themes.urls')),
     path('', include('dashboard.urls')),  
     #path('orders/', include('orders.urls',namespace="orders")), 
-    path("users/", include("users.urls", namespace="users")),
+    path("dashboard/users/", include("users.urls", namespace="users")),
+     path('users/', include('users.theme_urls',namespace="users_theme")),
 ]
 
 

@@ -1,34 +1,65 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from rest_framework import status
 
-from users.serializers import CustomerAddressSerializer
-from users.services.customer_address_service import CustomerAddressService
-from users.models import CustomerAddress
+from users.serializers import CoordinateSerializer
+from users.services.customer_address_service import AddressService
+from users.models import Coordinate, SubjectMember
 
-class CustomerAddressListCreate(APIView):
+
+def get_subject_member(request):
+    return SubjectMember.objects.get(
+        global_user_id=request.user.id,
+        is_active=True
+    )
+
+
+class AddressListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        addresses = request.user.addresses.all()
-        return Response(CustomerAddressSerializer(addresses, many=True).data)
+        subject_member = get_subject_member(request)
+        addresses = subject_member.addresses.all()
+        return Response(
+            CoordinateSerializer(addresses, many=True).data
+        )
 
     def post(self, request):
-        CustomerAddressService.add_address(request.user, request.data)
-        return Response({"message": "Address added"}, status=status.HTTP_201_CREATED)
+        subject_member = get_subject_member(request)
+        AddressService.add_address(subject_member, request.data)
+        return Response(
+            {"message": "Address added"},
+            status=status.HTTP_201_CREATED
+        )
 
 
-class CustomerAddressDetail(APIView):
+class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, address_id):
-        address = get_object_or_404(CustomerAddress, id=address_id, user=request.user)
-        CustomerAddressService.update_address(address, request.data)
-        return Response({"message": "Address updated"}, status=status.HTTP_200_OK)
+        subject_member = get_subject_member(request)
+        address = get_object_or_404(
+            Coordinate,
+            id=address_id,
+            user=subject_member
+        )
+        AddressService.update_address(address, request.data)
+        return Response(
+            {"message": "Address updated"},
+            status=status.HTTP_200_OK
+        )
 
     def delete(self, request, address_id):
-        address = get_object_or_404(CustomerAddress, id=address_id, user=request.user)
-        CustomerAddressService.delete_address(address)
-        return Response({"message": "Address deleted"}, status=status.HTTP_204_NO_CONTENT)
+        subject_member = get_subject_member(request)
+        address = get_object_or_404(
+            Coordinate,
+            id=address_id,
+            user=subject_member
+        )
+        AddressService.delete_address(address)
+        return Response(
+            {"message": "Address deleted"},
+            status=status.HTTP_204_NO_CONTENT
+        )

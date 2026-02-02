@@ -220,6 +220,9 @@
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
               </a>
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users_theme:profile' %}">
+                Profile
+              </a>
             </li>
             <li class="nav-item">
               <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'checkout' %}">

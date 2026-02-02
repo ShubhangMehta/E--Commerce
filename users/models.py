@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from customers.models import Client
 
 class TenantRole(models.TextChoices):
     OWNER = "OWNER", "Owner"
@@ -7,11 +8,32 @@ class TenantRole(models.TextChoices):
     STAFF = "STAFF", "Staff"
     CUSTOMER = "CUSTOMER", "Customer"
 
+class TenantMember(models.Model):
+    """
+    Tenant-scoped "who is this global user inside this tenant?"
+    Stored in tenant schema.
+    """
+    global_user_id = models.BigIntegerField(db_index=True)
+    role = models.CharField(max_length=20, choices=TenantRole.choices)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["global_user_id", "role"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
+        ]
+
+    def _str_(self):
+        return f"global_user_id={self.global_user_id} ({self.role})"
 
 class SubjectMember(models.Model):
     """
     Tenant-scoped "who is this global user inside this tenant?"
     Stored in tenant schema.
+
     """
     global_user_id = models.BigIntegerField(db_index=True)
     role = models.CharField(max_length=20, choices=TenantRole.choices)

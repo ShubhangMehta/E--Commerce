@@ -3,7 +3,7 @@ from django.db import connection
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 
-from . import models
+from .models import SubjectMember, Coordinate
 
 
 class TenantOnlyAdmin(admin.ModelAdmin):
@@ -36,34 +36,31 @@ class TenantOnlyAdmin(admin.ModelAdmin):
         return super().add_view(request, form_url, extra_context)
 
 
-@admin.register(models.SubjectMember)
+@admin.register(SubjectMember)
 class SubjectMemberAdmin(TenantOnlyAdmin):
     list_display = (
         "id",
-        "user_email",
+        "email",
         "full_name",
+        "role",
         "phone",
         "is_active",
     )
+
     search_fields = (
-        "user__email",
+        "email",
         "full_name",
         "phone",
     )
-    list_filter = ("is_active",)
+
+    list_filter = ("role", "is_active")
     ordering = ("id",)
 
-    def user_email(self, obj):
-        return obj.user.email
-
-    user_email.short_description = "Email"
-
-
-@admin.register(models.Coordinate)
+@admin.register(Coordinate)
 class CoordinateAdmin(TenantOnlyAdmin):
     list_display = (
         "id",
-        "customer_email",
+        "subject_email",
         "house_no",
         "landmark",
         "city",
@@ -72,17 +69,19 @@ class CoordinateAdmin(TenantOnlyAdmin):
         "address_type",
         "is_default",
     )
+
     search_fields = (
-        "user__user__email",
+        "user__email",
         "house_no",
         "city",
         "state",
         "postal_code",
     )
-    list_filter = ("city", "state", "address_type")
+
+    list_filter = ("city", "state", "address_type", "is_default")
     ordering = ("id",)
 
-    def customer_email(self, obj):
-        return obj.user.user.email
+    def subject_email(self, obj):
+        return obj.user.email
 
-    customer_email.short_description = "Customer Email"
+    subject_email.short_description = "Email"
