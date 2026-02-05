@@ -65,6 +65,7 @@ class Client(TenantMixin):
 
     def __str__(self):
         return self.tenant_name
+    
     @property
     def created_on(self):
         latest_sub = self.clientsubscription_set.order_by('-start_date').first()

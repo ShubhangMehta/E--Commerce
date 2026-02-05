@@ -78,6 +78,7 @@ MIDDLEWARE = [
 
     # Place your custom middleware AFTER auth
     "core_app.middleware.BlockTenantAdminMiddleware",
+    "users.middleware.TenantMemberMiddleware",
 ]
 
 TEMPLATES = [

@@ -21,7 +21,7 @@ def login_view(request):
     # if next_url.startswith("/admin"):
     #     next_url = "/"
 
-    template = "accounts/login.html" # default for public schema
+    #template = "accounts/login.html" # default for public schema
 
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "login.html")
@@ -62,15 +62,17 @@ def login_view(request):
     return render(request, template, {'next': next_url})
 
 def signup_view(request):
-    template = "accounts/signup.html" # default for public schema
+    #template = "accounts/signup.html" # default for public schema
 
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "signup.html")
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
         email = request.POST['email']
-        user = User.objects.create_user(username=username, password=password, email=email)
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
         messages.success(request, 'Account created successfully.')
         return redirect('/login/')
     #return render(request, 'accounts/signup.html')
