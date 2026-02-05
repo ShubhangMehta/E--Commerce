@@ -21,6 +21,18 @@ class Client(TenantMixin):
     has_used_trial = models.BooleanField(default=False)
 
     # Usage & Analytics
+
+    PRODUCT_MODE_CHOICES = (
+        ("single", "Single Product"),
+        ("multi", "Multi Product"),
+    )
+
+    product_mode = models.CharField(
+        max_length=10,
+        choices=PRODUCT_MODE_CHOICES,
+        null=True,
+        blank=True
+    )   
     storage_used_mb = models.FloatField(default=0.0)
     product_count = models.IntegerField(default=0)
     order_count = models.IntegerField(default=0)

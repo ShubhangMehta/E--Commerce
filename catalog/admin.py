@@ -1,63 +1,3 @@
-# from django.contrib import admin
-# from .models import (
-#     SingleProduct,
-#     SingleProductImage,
-#     SubCategory,
-#     MultiProduct, MultiProductImage,
-#     MultiCategory, MultiSubCategory,
-#     VariantType, VariantValue, MultiProductVariant
-#     )
-
-
-# @admin.register(SubCategory)
-# class SubCategoryAdmin(admin.ModelAdmin):
-#     search_fields = ("name",)
-
-
-# class SingleProductImageInline(admin.TabularInline):
-#     model = SingleProductImage
-#     extra = 1
-
-
-# @admin.register(SingleProduct)
-# class SingleProductAdmin(admin.ModelAdmin):
-#     list_display = ("name", "subcategory", "price", "availability")
-#     list_filter = ("availability", "subcategory")
-#     search_fields = ("name", "brand_name")
-#     inlines = [SingleProductImageInline]
-
-# #multi product
-
-# @admin.register(MultiCategory)
-# class MultiCategoryAdmin(admin.ModelAdmin):
-#     search_fields = ("name",)
-
-
-# @admin.register(MultiSubCategory)
-# class MultiSubCategoryAdmin(admin.ModelAdmin):
-#     list_filter = ("category",)
-
-
-# class MultiProductImageInline(admin.TabularInline):
-#     model = MultiProductImage
-#     extra = 1
-
-
-# class MultiProductVariantInline(admin.TabularInline):
-#     model = MultiProductVariant
-#     extra = 1
-
-
-# @admin.register(MultiProduct)
-# class MultiProductAdmin(admin.ModelAdmin):
-#     list_display = ("name", "category", "availability")
-#     list_filter = ("category", "subcategory", "availability")
-#     inlines = [MultiProductImageInline, MultiProductVariantInline]
-
-
-# admin.site.register(VariantType)
-# admin.site.register(VariantValue)
-
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -156,6 +96,10 @@ class MultiProductVariantInline(admin.TabularInline):
     model = MultiProductVariant
     extra = 1
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        obj.product.update_availability()
+
 
 @admin.register(MultiProduct)
 class MultiProductAdmin(admin.ModelAdmin):
@@ -163,6 +107,8 @@ class MultiProductAdmin(admin.ModelAdmin):
     list_display = ("name", "category", "availability")
     list_filter = ("category", "subcategory", "availability")
     inlines = [MultiProductImageInline, MultiProductVariantInline]
+
+    readonly_fields = ("availability",)
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -174,6 +120,12 @@ class MultiProductAdmin(admin.ModelAdmin):
                 image=img
             )
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if hasattr(request, "tenant") and request.tenant.product_mode == "single":
+            return qs.none()
+        return qs
+
 
 # ======================
 # VARIANTS
@@ -181,3 +133,4 @@ class MultiProductAdmin(admin.ModelAdmin):
 
 admin.site.register(VariantType)
 admin.site.register(VariantValue)
+
