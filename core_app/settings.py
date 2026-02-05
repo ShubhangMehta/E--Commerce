@@ -110,6 +110,8 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / 'core_app/emails/templates',
+            # BASE_DIR / 'dashboard/templates',
+            # BASE_DIR / 'themes/templates',
         ],
         "APP_DIRS": True,
         "OPTIONS": {
