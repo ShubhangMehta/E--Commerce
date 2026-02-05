@@ -1,13 +1,15 @@
 from django.shortcuts import render
-from tenant_app.orders.services.customer_service import CustomerOrderService
-from tenant_app.orders.services.tenant_service import TenantOrderService
+from .base import OrderBaseView
+from orders.models import Order
 
-def order_list(request):
-    if request.user.is_staff:
-        orders = TenantOrderService().list_orders()
-        template = "orders/tenant/order_list.html"
-    else:
-        orders = CustomerOrderService().list_orders(request.user)
-        template = "orders/customer/order_list.html"
+class OrderListView(OrderBaseView):
 
-    return render(request, template, {"orders": orders})
+    def get(self, request):
+        if self.is_tenant(request):
+            orders = Order.objects.all()
+            template = "orders/tenant/order_list.html"
+        else:
+            orders = Order.objects.filter(customer=request.user)
+            template = "orders/customer/order_list.html"
+
+        return render(request, template, {"orders": orders})

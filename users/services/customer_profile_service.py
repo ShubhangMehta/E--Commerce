@@ -1,39 +1,32 @@
-from django.core.exceptions import ValidationError
 from django.db import transaction
 
 
-class CustomerProfileService:
+class ProfileService:
 
     @staticmethod
     @transaction.atomic
-    def update_profile(user, data):
+    def update_profile(subject_member, data):
         """
-        Update the logged-in user's profile.
-        data may contain: full_name, phone
+        Update the customer's profile (tenant-scoped).
+        Allowed fields: full_name, phone
         """
 
-        full_name = data.get("full_name")
-        phone = data.get("phone")
+        if "full_name" in data:
+            subject_member.full_name = data["full_name"]
 
-        # Update only the fields provided
-        if full_name is not None:
-            user.full_name = full_name
+        if "phone" in data:
+            subject_member.phone = data["phone"]
 
-        if phone is not None:
-            user.phone = phone
-
-        user.save()
-        return user
+        subject_member.save()
+        return subject_member
 
     @staticmethod
-    def get_profile(user):
+    def get_profile(subject_member):
         """
-        Return only profile-related fields.
-        Good for API responses.
+        Return customer profile fields.
         """
-
         return {
-            "email": user.email,
-            "full_name": user.full_name,
-            "phone": user.phone,
+            "email": subject_member.email,
+            "full_name": subject_member.full_name,
+            "phone": subject_member.phone,
         }

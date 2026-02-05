@@ -1,0 +1,15 @@
+{% extends theme_base %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">{{ tenant.tenant_name }} Dashboard</h1>
+
+<div class="grid grid-cols-3 gap-4">
+    {% for app in apps %}
+        <div class="bg-white shadow p-4 rounded">
+            <h2 class="font-semibold">{{ app.name }}</h2>
+            <p>{{ app.description }}</p>
+            <a href="{{ app.url }}" class="text-blue-500 hover:underline mt-2 inline-block">Go</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

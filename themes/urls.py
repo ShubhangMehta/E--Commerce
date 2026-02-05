@@ -17,13 +17,9 @@ urlpatterns = [
 
     # Checkout + order success
     path("checkout/", views.checkout, name="checkout"),
-    path("order/success/", views.order_success, name="order_success"),
-
-    # Profile + orders history
     path("profile/", views.profile, name="profile"),
-    path("orders/", views.previous_order_listing, name="previous_order_listing"),
-
-    # Auth pages (signup view you added; login/logout can stay in accounts app)
-    path("signup/", views.signup, name="signup"),
+    path("login/", views.login, name="login"),
+    #path("signup/", views.signup, name="signup"),
     path("login/", c_views.login_view, name="login"),
+    path('previous_order_listing/',views.previous_order_listing,name="previous_order_listing")
 ]

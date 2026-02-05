@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import environ, os
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -46,10 +47,9 @@ ALLOWED_HOSTS = ['*']
 
 SHARED_APPS = [
     'unfold',
-    "django_tenants",  # mandatory
-    'customers.apps.CustomersConfig',  # you must list the app where your tenant model resides in
-    
-    "accounts",
+    'django_tenants',  # mandatory
+    'customers',  # you must list the app where your tenant model resides in
+    'accounts',
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -64,12 +64,13 @@ SHARED_APPS = [
 
 
 TENANT_APPS = [
-    'accounts',
     'dashboard',
-    'catalog',
+    'catalog',#products
     'orders',
+    'themes',
+    'django_crontab',
+    'backups',
     'users',
-    "themes"
 ]
 
 
@@ -103,6 +104,7 @@ MIDDLEWARE = [
 
     # Place your custom middleware AFTER auth
     "core_app.middleware.BlockTenantAdminMiddleware",
+    "users.middleware.TenantMemberMiddleware",
 ]
 
 TEMPLATES = [
@@ -154,18 +156,11 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = (
-    'django_tenants.routers.TenantSyncRouter',
-)
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.PublicSchemaModelBackend",
+]
 
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
+#AUTH_USER_MODEL = "accounts.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -224,8 +219,6 @@ LOGOUT_REDIRECT_URL = "/login/"
 #         "level": "INFO",
 #     },
 # }
-
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

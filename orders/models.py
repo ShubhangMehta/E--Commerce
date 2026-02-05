@@ -44,12 +44,10 @@ class Order(models.Model):
         ("delivered", "Delivered"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    order_number = models.CharField(max_length=20, unique=True, blank=True)
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending"
-    )
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tenant = models.CharField(max_length=100, default="default")  # tenant schema or tenant name
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -58,19 +56,12 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.order_number
+        return f"Order #{self.id} - {self.customer.username}"
 
-
-class OrderItem(models.Model):
-    order = models.ForeignKey(
-        Order, related_name="items", on_delete=models.CASCADE
-    )
-    product_name = models.CharField(max_length=200)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
-
-    def get_total_price(self):
-        return self.price * self.quantity
-
-    def __str__(self):
-        return self.product_name
+#class Order(models.Model):
+#    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+#    status = models.CharField(max_length=50, default='Pending')
+#    created_at = models.DateTimeField(auto_now_add=True)
+#
+#    def __str__(self):
+#        return f"Order {self.order_number} - {self.customer_name}"

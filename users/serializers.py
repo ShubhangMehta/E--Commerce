@@ -1,33 +1,53 @@
 from rest_framework import serializers
-from .models import CustomerUser, CustomerAddress
+from .models import SubjectMember, Coordinate
 
 
-class CustomerUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomerUser
-        fields = ['id', 'email', 'full_name', 'phone']
-
-
-class CustomerSignupSerializer(serializers.ModelSerializer):
+class SubjectMemberSerializer(serializers.ModelSerializer):
+    """
+    Serializer for tenant-scoped users.
+    This does NOT handle authentication.
+    """
 
     class Meta:
-        model = CustomerUser
-        fields = ['email', 'full_name', 'phone', 'password']
-        extra_kwargs = {
-            "password": {"write_only": True}
-        }
+        model = SubjectMember
+        fields = [
+            "id",
+            "global_user_id",
+            "email",
+            "full_name",
+            "phone",
+            "role",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "global_user_id",
+            "created_at",
+        ]
 
-    def create(self, validated_data):
-        # Hash the password properly
-        password = validated_data.pop("password")
-        user = CustomerUser(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
 
+class CoordinateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for tenant-scoped addresses.
+    """
 
-class CustomerAddressSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomerAddress
-        fields = '__all__'
-        read_only_fields = ['user']
+        model = Coordinate
+        fields = [
+            "id",
+            "user",
+            "full_name",
+            "phone",
+            "house_no",
+            "landmark",
+            "city",
+            "state",
+            "postal_code",
+            "address_type",
+            "is_default",
+        ]
+        read_only_fields = [
+            "id",
+            "user",
+        ]

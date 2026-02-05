@@ -2,5 +2,6 @@
 
 def tenant_settings(request):
 
-    
-    return {}
+    tenant = request.tenant
+    return {"tenant": tenant}
+

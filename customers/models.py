@@ -17,14 +17,13 @@ class Client(TenantMixin):
     created_on = models.DateField(auto_now_add=True)"""
 
     tenant_name = models.CharField(max_length=100)
-    #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
-    #server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
+    catalog_template = models.CharField(max_length=50, default='single product catalog', help_text="Catalog template for product display")
     used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
     # Usage & Analytics
@@ -74,6 +73,7 @@ class Client(TenantMixin):
 
     def __str__(self):
         return self.tenant_name
+    
     @property
     def created_on(self):
         latest_sub = self.clientsubscription_set.order_by('-start_date').first()
@@ -92,6 +92,12 @@ class SubscriptionPlan(models.Model):
         ('basic', 'Basic'),
         ('standard', 'Standard'),
         ('premium', 'Premium'),
+    ]
+
+    BILLING_CHOICES = [
+        ('trial', 'Free Trial'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
     ]
 
     STATUS_CHOICES = [
@@ -123,6 +129,10 @@ class PlanPricing(models.Model):
 
     class Meta:
         unique_together = ('plan', 'billing_cycle')
+
+    @property
+    def is_trial(self):
+        return self.price == 0
 
     def __str__(self):
         return f"{self.plan} - {self.get_billing_cycle_display()}"
@@ -266,7 +276,18 @@ class TenantRequest(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
-    #is_approved = models.BooleanField(default=False)
+    
+    CHOICES_CATALOG_TEMPLATE = [
+        ('single product catalog', 'Single Product Catalog'),
+        ('multiple categories catalog', 'Multiple Categories Catalog'),
+    ]
+
+    catalog_template = models.CharField(
+        max_length=50,
+        choices=CHOICES_CATALOG_TEMPLATE,
+        default='single product catalog',
+        help_text="Catalog template choice for the tenant"
+    )
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 

@@ -47,6 +47,7 @@ class ClientAdmin(ModelAdmin):
         'current_plan',
         'subscription_start',
         'subscription_end',
+        'catalog_template',
         
     )
 
@@ -66,28 +67,9 @@ class ClientAdmin(ModelAdmin):
         'last_login',
     )
 
-    list_filter = ('desired_domain','theme')
+    list_filter = ('desired_domain','theme', 'catalog_template')
     search_fields = ('tenant_name', 'schema_name')
     ordering = ('-clientsubscription__start_date',)
-
-    # fieldsets = (
-    #     ('🏢 Core Tenant Information', {
-    #         'fields': (('tenant_name', 'schema_name'), 'server_name', 'desired_domain', 'status'),
-    #     }),
-    #     ('💳 Subscription & Billing', {
-    #         'fields': (('current_plan', 'subscription_end'), 'subscription_start'),
-    #     }),
-    #     ('📊 Usage & Performance Metrics', {
-    #         'fields': (
-    #             ('storage_used_mb', 'product_count', 'order_count'),
-    #             ('visitor_count_7d', 'visitor_count_30d', 'active_users', 'last_login')
-    #         ),
-    #         'classes': ('collapse',),
-    #     }),
-    #     ('🎨 Branding & Theme', {
-    #         'fields': ('theme',),
-    #         }),
-    #)
 
 
 # ----------------------------

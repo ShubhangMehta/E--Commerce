@@ -1,10 +1,17 @@
 from django.shortcuts import render, redirect
-from tenant_app.orders.services.order_service import OrderService
+from .base import OrderBaseView
+from orders.services.customer_service import CustomerOrderService
 
-def order_create(request):
-    if request.method == "POST":
-        amount = request.POST.get("amount")
-        OrderService().create_order(request.user, amount)
+class OrderCreateView(OrderBaseView):
+
+    def get(self, request):
+        return render(request, "orders/customer/order_create.html")
+
+    def post(self, request):
+        service = CustomerOrderService()
+        service.create_order(
+            tenant="default_tenant",
+            customer=request.user,
+            total_amount=request.POST.get("amount")
+        )
         return redirect("order-list")
-
-    return render(request, "orders/customer/order_create.html")
