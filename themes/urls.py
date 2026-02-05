@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from accounts import views as c_views
 
 urlpatterns = [
     #path("", views.index, name="store_index"),
@@ -24,6 +25,5 @@ urlpatterns = [
 
     # Auth pages (signup view you added; login/logout can stay in accounts app)
     path("signup/", views.signup, name="signup"),
-
-    path("index",views.index,name="index"),
+    path("login/", c_views.login_view, name="login"),
 ]

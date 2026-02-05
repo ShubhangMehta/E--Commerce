@@ -1,0 +1,94 @@
+{% extends "themes/default/base_storefront.html" %}
+
+{% block title %}{{ product.name|default:"Product" }} | Default Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="mb-3">
+    <a class="text-decoration-none" href="{% url 'product_list' %}">← Back to products</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      {% if product.image %}
+        <img class="product-img-sm" src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        <div class="product-img-sm d-flex align-items-center justify-content-center text-muted2">No image</div>
+      {% endif %}
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card p-4">
+        <h1 class="h4 fw-bold mb-2">{{ product.name }}</h1>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="text-muted2">
+            {% if product.category %}Category: {{ product.category }}{% endif %}
+          </div>
+          <div class="price fs-5">{{ product.price }}</div>
+        </div>
+
+        <div class="text-muted2 mb-4">
+          {{ product.description|default:"No description available."|linebreaksbr }}
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          {# Update action URL to your cart add endpoint #}
+          <form method="post" action="{% url 'cart' %}">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <button class="btn btn-brand" type="submit">Add to cart</button>
+          </form>
+
+          <a class="btn btn-outline-dark" href="{% url 'checkout' %}">Buy now</a>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="text-muted2 small">SKU</div>
+            <div class="fw-semibold">{{ product.sku|default:"—" }}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted2 small">Stock</div>
+            <div class="fw-semibold">
+              {% if product.stock is not None %}{{ product.stock }}{% else %}—{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Optional related products: related_products iterable #}
+  {% if related_products %}
+    <section class="mt-5">
+      <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+          <h2 class="h5 fw-bold mb-1">Related products</h2>
+          <div class="text-muted2">You can display similar items here.</div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        {% for p in related_products %}
+          <div class="col-12 col-sm-6 col-lg-3">
+            <a class="text-decoration-none" href="{% url 'product_detail' p.id %}">
+              <div class="card card-hover p-3 h-100">
+                {% if p.image %}
+                  <img class="product-img mb-3" src="{{ p.image.url }}" alt="{{ p.name }}">
+                {% else %}
+                  <div class="product-img mb-3 d-flex align-items-center justify-content-center text-muted2">No image</div>
+                {% endif %}
+                <div class="fw-semibold text-dark">{{ p.name }}</div>
+                <div class="text-muted2 small">{{ p.short_description|default:p.description|truncatechars:50 }}</div>
+                <div class="mt-2 price">{{ p.price }}</div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

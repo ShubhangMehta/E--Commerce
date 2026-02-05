@@ -9,23 +9,38 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from .models import LoginSession, TwoFactorCode
 from django.conf import settings
+from themes.views import _theme_path
 
 # Create your views here.
 
 def login_view(request):
     next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
 
+    # # Avoid sending users into admin/login loops
+    # # (you can tune these rules to match your routing)
+    # if next_url.startswith("/admin"):
+    #     next_url = "/"
+
+    template = "accounts/login.html" # default for public schema
+
+    if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
+        template = _theme_path(request, "login.html")
+
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
 
-        if not user.is_staff:
-            login (request, user)
-            return redirect(next_url)
+        if user is None:
+            messages.error(request, 'Invalid username or password.')
+        
+        else:
+            #Non-Staff users: login directly
+            if not user.is_staff:
+                login (request, user)
+                return redirect(next_url)
 
-        if user is not None:
-            ##Code for generating and sending 6-digits 2FA code ##
+            ##Code for generating and sending 6-digits 2FA code for superuser
             code = TwoFactorCode.generate_code()
             TwoFactorCode.objects.create(user=user, code=code)
             send_mail(
@@ -43,11 +58,14 @@ def login_view(request):
 
             # Redirect to 2FA verification page
             return redirect('verify_2fa')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    return render(request, 'accounts/login.html', {'next': next_url})
+        
+    return render(request, template, {'next': next_url})
 
 def signup_view(request):
+    template = "accounts/signup.html" # default for public schema
+
+    if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
+        template = _theme_path(request, "signup.html")
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -55,7 +73,8 @@ def signup_view(request):
         user = User.objects.create_user(username=username, password=password, email=email)
         messages.success(request, 'Account created successfully.')
         return redirect('/login/')
-    return render(request, 'accounts/signup.html')
+    #return render(request, 'accounts/signup.html')
+    return render(request, template)
 
 def forgot_password_view(request):
     if request.method == 'POST':
@@ -90,7 +109,7 @@ def verify_2fa_view(request):
             valid.is_used = True
             valid.save()
             login(request, user)
-            next_url = request.session.pop('pending_next')
+            #next_url = request.session.pop('pending_next')
             request.session.pop('pending_user', None)
             return redirect("/admin/")
         else:
