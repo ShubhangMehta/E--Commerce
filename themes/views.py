@@ -35,7 +35,7 @@ def index(request):
         "order_count": getattr(request.tenant, "order_count", None),
         "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
     }
-    return render(request, _theme_path(request, "index.html"), context)
+    return render(request, _theme_path(request, "storefront.html"), context)
 
 
 def product_list(request):

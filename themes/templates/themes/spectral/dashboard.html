@@ -1,0 +1,26 @@
+{% extends "themes/spectral/base_dashboard.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-semibold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent mb-8">
+  Dashboard
+</h1>
+
+<div class="grid grid-cols-3 gap-6">
+
+  <div class="bg-white/80 backdrop-blur border border-gray-200 rounded-xl p-6 shadow-sm">
+    <p class="text-sm text-gray-500">Energy</p>
+    <p class="text-2xl font-bold mt-2">78%</p>
+  </div>
+
+  <div class="bg-white/80 backdrop-blur border border-gray-200 rounded-xl p-6 shadow-sm">
+    <p class="text-sm text-gray-500">Signals</p>
+    <p class="text-2xl font-bold mt-2">1,204</p>
+  </div>
+
+  <div class="bg-white/80 backdrop-blur border border-gray-200 rounded-xl p-6 shadow-sm">
+    <p class="text-sm text-gray-500">Flow</p>
+    <p class="text-2xl font-bold mt-2">Stable</p>
+  </div>
+
+</div>
+{% endblock %}
