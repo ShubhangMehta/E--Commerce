@@ -62,13 +62,12 @@ def generate_backup_link_daily(request):
     if request.method == "POST":
         tenant = request.POST.get("tenant")
         date = request.POST.get("date")
-        tenant_type = request.POST.get("tenant_type")
 
         if not tenant or not date:
             return JsonResponse({"error": "Missing tenant or date"}, status=400)
 
         # Supabase file path structure
-        file_path = f"tenants/daily/{date}/{tenant_type}/{tenant}.dump"
+        file_path = f"tenants/daily/{date}/{tenant}.dump"
 
         url = generate_signed_url(file_path)
 
@@ -89,13 +88,12 @@ def generate_backup_link_weekly(request):
     if request.method == "POST":
         tenant = request.POST.get("tenant")
         date = request.POST.get("date")
-        tenant_type = request.POST.get("tenant_type")
 
         if not tenant or not date:
             return JsonResponse({"error": "Missing tenant or date"}, status=400)
 
         # Supabase file path structure
-        file_path = f"tenants/weekly/{date}/{tenant_type}/{tenant}.dump"
+        file_path = f"tenants/weekly/{date}/{tenant}.dump"
 
         url = generate_signed_url(file_path)
 

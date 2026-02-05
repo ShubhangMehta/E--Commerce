@@ -60,7 +60,7 @@ document.getElementById("restoreForm").onsubmit = async function(e) {
     const result = document.getElementById("result");
 
     try {
-        const response = await fetch("{% url 'backups:api_restore' %}", {
+        const response = await fetch("{% url 'restore_backup_api' %}", {
             method: "POST",
             body: formData
         });

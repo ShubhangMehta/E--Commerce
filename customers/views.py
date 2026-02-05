@@ -12,6 +12,7 @@ from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
 
 
+
 def home(request):
     context = {
         "page_title": "E-Cartel",

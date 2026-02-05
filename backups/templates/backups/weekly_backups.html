@@ -1,140 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Weekly Backups</title>
+<h2>Weekly Backups</h2>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-        }
+<form id="dailyForm">
+    <input type="text" name="tenant" placeholder="Enter tenant" required>
+    <input type="date" name="date" required>
+    <button type="submit">Get Backup Link</button>
+</form>
 
-        .container {
-            max-width: 480px;
-            margin: 60px auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-        }
+<!-- Correct Django URL for normal POST -->
+<form method="POST" action="{% url 'generate_backup_link_weekly' %}">
+    {% csrf_token %}
+    <button type="submit">Generate weekly Backup Link</button>
+</form>
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        label {
-            font-weight: bold;
-            margin-top: 12px;
-            display: block;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        button {
-            margin-top: 20px;
-            background: #7c3aed;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background: #5b21b6;
-        }
-
-        .result {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .result a {
-            color: #16a34a;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .error {
-            color: #dc2626;
-            font-weight: bold;
-        }
-
-        .loading {
-            color: #555;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-    <h2>📆 Weekly Backup Download</h2>
-
-    <form id="weeklyForm">
-        {% csrf_token %}
-
-        <label>Tenant Name</label>
-        <input type="text" name="tenant" placeholder="e.g. tenant_abc" required>
-
-        <label>Backup Date</label>
-        <input type="date" name="date" required>
-
-        <label>Tenant Type</label>
-        <select name="tenant_type" required>
-            <option value="">-- Select Tenant Type --</option>
-            <option value="all_tenants">All Tenants</option>
-            <option value="existing_tenants">Existing Tenants</option>
-        </select>
-
-        <button type="submit">🔍 Get Weekly Backup</button>
-    </form>
-
-    <div id="result" class="result"></div>
-</div>
+<div id="result"></div>
 
 <script>
-document.getElementById("weeklyForm").onsubmit = async function(e) {
+document.getElementById("dailyForm").onsubmit = async function(e) {
     e.preventDefault();
 
-    const resultDiv = document.getElementById("result");
-    resultDiv.innerHTML = "<p class='loading'>⏳ Generating backup link...</p>";
+    let formData = new FormData(this);
 
-    const formData = new FormData(this);
+    // 🔥 Use Django URL instead of relative path
+    let url = "{% url 'generate_backup_link_weekly' %}";
 
-    const url = "{% url 'backups:api_generate_weekly' %}";
+    let res = await fetch(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }, 
+        body: formData
+    });
 
-    try {
-        const res = await fetch(url, {
-            method: "POST",
-            body: formData
-        });
+    let data = await res.json();
 
-        const data = await res.json();
-
-        if (data.url) {
-            resultDiv.innerHTML = `
-                <a href="${data.url}" target="_blank">
-                    ⬇️ Download Weekly Backup
-                </a>
-            `;
-        } else {
-            resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
-        }
-
-    } catch (err) {
-        resultDiv.innerHTML = "<p class='error'>❌ Something went wrong</p>";
+    if (data.url) {
+        document.getElementById("result").innerHTML =
+            `<a href="${data.url}" target="_blank">Download Backup</a>`;
+    } else {
+        document.getElementById("result").innerHTML = data.error;
     }
 };
 </script>
-
-</body>
-</html>

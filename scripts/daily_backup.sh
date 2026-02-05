@@ -1,33 +1,49 @@
 #!/bin/bash
 
-# Exit immediately if anything fails
-set -e
+# Correct PATH for pg_dump, psql, python
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/sasiabburi/E--Commerce/venv/bin
 
-echo "🚀 Starting DAILY tenant backup job"
+# Load environment variables from .env
+export $(grep -v '^#' /Users/sasiabburi/E--Commerce/.env | xargs)
 
-PROJECT_DIR="/Users/sasiabburi/E--Commerce"
-VENV_DIR="$PROJECT_DIR/venv"
-ENV_FILE="$PROJECT_DIR/.env"
+DATE=$(date +%Y-%m-%d)
 
-# Ensure correct PATH (pg_dump, python, etc.)
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$VENV_DIR/bin"
+echo "🚀 Starting DAILY tenant backups for $DB_NAME on $DATE"
 
-# Load environment variables safely
-if [ -f "$ENV_FILE" ]; then
-  set -a
-  source "$ENV_FILE"
-  set +a
-else
-  echo "❌ .env file not found!"
-  exit 1
-fi
+# Fetch tenant schemas (exclude all system schemas)
+TENANT_SCHEMAS=$(psql "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
+  -t -c "SELECT schema_name
+        FROM information_schema.schemata
+        WHERE schema_name NOT LIKE 'pg_%'
+        AND schema_name NOT IN ('public', 'information_schema')
+        AND schema_name NOT LIKE 'auth%'
+        AND schema_name NOT Like 'graph%'
+        AND schema_name NOT LIKE 'extensions%'
+        AND schema_name NOT LIKE 'storage%'
+        AND schema_name NOT LIKE 'vault%'
+        ORDER BY schema_name;")
 
-# Activate virtual environment
-source "$VENV_DIR/bin/activate"
+for schema in $TENANT_SCHEMAS; do
 
-cd "$PROJECT_DIR"
+  schema=$(echo $schema | xargs)  # Trim whitespace
 
-# Run Django backup command (THIS does everything)
-python manage.py backup_daily
+  echo "📦 Dumping tenant schema: $schema"
 
-echo "🎉 DAILY tenant backup job finished"
+  # Dump ONLY this schema & pipe to Python uploader
+  pg_dump "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
+      -n "$schema" -Fc \
+  | /Users/sasiabburi/E--Commerce/venv/bin/python3 \
+        /Users/sasiabburi/E--Commerce/backups/utils/upload_to_supabase.py \
+        "$schema" "$DATE" "daily"
+
+  echo "✅ Uploaded: $schema.dump → backups/tenants/daily/$DATE/"
+done
+
+echo "🎉 All tenant DAILY backups completed successfully!"
+
+echo "📧 Sending backup status emails..."
+
+source /Users/sasiabburi/E--Commerce/venv/bin/activate
+cd /Users/sasiabburi/E--Commerce
+
+python manage.py send_backup_status_email --type=daily --date="$DATE"

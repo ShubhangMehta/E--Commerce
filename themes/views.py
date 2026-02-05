@@ -21,21 +21,9 @@ def _theme_path(request, template_name: str) -> str:
     return f"themes/{theme}/{template_name}"
 
 
-def index(request):
-    """
-    Home page.
-    Optional: You can pass featured_products + counts pulled from tenant if you want.
-    """
-    # Example for featured list: you can change filter later (e.g. is_featured=True)
-    featured_products = SingleProduct.objects.all()[:6]
-
-    context = {
-        "featured_products": featured_products,
-        "product_count": getattr(request.tenant, "product_count", None),
-        "order_count": getattr(request.tenant, "order_count", None),
-        "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
-    }
-    return render(request, _theme_path(request, "storefront.html"), context)
+"""def index(request):
+    theme = request.tenant.theme
+    return render(request, f"themes/{theme}/index.html")"""
 
 
 def product_list(request):

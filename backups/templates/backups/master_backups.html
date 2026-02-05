@@ -1,118 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Master Backups</title>
+<h2>Master Backups</h2>
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f3f4f6;
-        }
+<form id="dailyForm">
+    <input type="text" name="tenant" placeholder="Enter tenant" required>
+    <input type="date" name="date" required>
+    <button type="submit">Get Backup Link</button>
+</form>
 
-        .container {
-            max-width: 450px;
-            margin: 70px auto;
-            background: #ffffff;
-            padding: 28px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-        }
-
-        button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 12px;
-            background: #0f172a;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #020617;
-        }
-
-        #result {
-            margin-top: 22px;
-            text-align: center;
-            font-size: 15px;
-        }
-
-        #result a {
-            color: #2563eb;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .loading {
-            color: #6b7280;
-        }
-
-        .error {
-            color: #dc2626;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-    <h2>🗄️ Master Backups</h2>
-    <p class="subtitle">
-        Download full system-wide backups
-    </p>
-
-    <form id="dailyForm">
-        <label>Tenant Name</label>
-        <input type="text" name="tenant" placeholder="e.g. master" required>
-
-        <label>Backup Date</label>
-        <input type="date" name="date" required>
-
-        <button type="submit">⬇️ Get Master Backup</button>
-    </form>
-
-    <div id="result"></div>
-</div>
+<div id="result"></div>
 
 <script>
 document.getElementById("dailyForm").onsubmit = async function(e) {
     e.preventDefault();
-
-    let result = document.getElementById("result");
-    result.innerHTML = "<p class='loading'>⏳ Generating download link...</p>";
 
     let formData = new FormData(this);
 
@@ -124,13 +22,10 @@ document.getElementById("dailyForm").onsubmit = async function(e) {
     let data = await res.json();
 
     if (data.url) {
-        result.innerHTML =
-            `<a href="${data.url}" target="_blank">⬇️ Download Master Backup</a>`;
+        document.getElementById("result").innerHTML =
+            `<a href="${data.url}" target="_blank">Download Backup</a>`;
     } else {
-        result.innerHTML = `<p class="error">${data.error}</p>`;
+        document.getElementById("result").innerHTML = data.error;
     }
 };
 </script>
-
-</body>
-</html>
