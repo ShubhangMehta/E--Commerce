@@ -12,12 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ, os
-#from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-#load_dotenv()
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -30,14 +28,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 SHARED_APPS = [
     'unfold',
-    "django_tenants",  # mandatory
-    "customers",  # you must list the app where your tenant model resides in
-    "accounts",
+    'django_tenants',  # mandatory
+    'customers',  # you must list the app where your tenant model resides in
+    'accounts',
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,37 +43,31 @@ SHARED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    
 ]
 
 TENANT_APPS = [
-    # # your tenant-specific apps
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.auth',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
-    'catalog',
+    'dashboard',
+    'catalog',#products
     'orders',
+    'themes',
+    'django_crontab',
+    'backups',
     'users',
-    "themes"
 ]
 
-
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS 
+INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-
 DATABASE_ROUTERS = (
     "django_tenants.routers.TenantSyncRouter",
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.TenantMiddleware",  # MUST BE FIRST
+    "django_tenants.middleware.TenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -88,9 +79,6 @@ MIDDLEWARE = [
     # Place your custom middleware AFTER auth
     "core_app.middleware.BlockTenantAdminMiddleware",
 ]
-
-
-ROOT_URLCONF = "core_app.urls_tenants"
 
 TEMPLATES = [
     {
@@ -105,6 +93,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
+                "themes.context_processors.tenant_theme",
             ],
         },
     },
@@ -112,6 +101,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core_app.wsgi.application"
 
+PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
+TENANT_URLCONF = "core_app.urls_tenants"
+ROOT_URLCONF = "core_app.urls_tenants"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -133,6 +125,11 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.PublicSchemaModelBackend",
+]
+
+#AUTH_USER_MODEL = "accounts.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -153,6 +150,35 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "filters": {
+#         "tenant_schema": {
+#             "()": "customers.logging_filters.TenantSchemaFilter",
+#         },
+#     },
+#     "formatters": {
+#         "verbose_with_origin": {
+#             "format": (
+#                 "%(asctime)s | %(levelname)s | schema=%(schema_name)s | "
+#                 "%(name)s:%(lineno)d | %(funcName)s | %(message)s"
+#             )
+#         },
+#     },
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "filters": ["tenant_schema"],
+#             "formatter": "verbose_with_origin",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "INFO",
+#     },
+# }
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -172,17 +198,8 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-PUBLIC_SCHEMA_URLCONF = "core_app.urls_public"
 
-CRONJOBS = [
-    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
-]
-
-CRONJOBS += [
-    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
-]
 
 # ----------------------------
 # Email / SMTP Configuration
@@ -211,4 +228,11 @@ BILLING_TRIAL_DAYS = env.int("BILLING_TRIAL_DAYS", default=0)
 BILLING_DEFAULT_SERVER_NAME = "primary"
 BILLING_DOMAIN_SUFFIX = ".localhost"
 
+# Cron job settings
+CRONJOBS = [
+    ('0 2 * * *', 'scripts.daily_backup.sh'),  # Runs daily at 2 AM
+]
 
+CRONJOBS += [
+    ('0 3 * * 0', 'scripts.weekly_full_backup.sh'),  # Runs Sunday 3 AM
+]

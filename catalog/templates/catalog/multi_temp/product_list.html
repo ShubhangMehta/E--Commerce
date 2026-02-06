@@ -1,0 +1,53 @@
+<h1>Multi Products</h1>
+
+<form method="get">
+
+    <!-- 🔍 Search -->
+    <input type="text"
+           name="q"
+           placeholder="Search products..."
+           value="{{ query }}">
+
+    <!-- 🗂 Category filter -->
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}"
+                {% if cat.id|stringformat:"s" == selected_category %}selected{% endif %}>
+                {{ cat.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Search</button>
+</form>
+
+<hr>
+
+{% for product in products %}
+<a href="{% url 'catalog:multi-product-detail' product.id %}"
+   style="text-decoration:none; color:inherit;">
+
+    <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+
+        <h3>{{ product.name }}</h3>
+
+        {% if product.category %}
+            <p><strong>Category:</strong> {{ product.category.name }}</p>
+        {% endif %}
+
+        {% if product.subcategory %}
+            <p><strong>Subcategory:</strong> {{ product.subcategory.name }}</p>
+        {% endif %}
+
+        {% with product.images.all|first as img %}
+            {% if img %}
+                <img src="{{ img.image.url }}" style="max-width:200px;">
+            {% endif %}
+        {% endwith %}
+
+    </div>
+</a>
+{% empty %}
+<p>No products found.</p>
+{% endfor %}

@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.utils import timezone
 import random
 
-
 # Create your models here.
 class LoginSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='login_sessions')
@@ -40,7 +39,6 @@ class TwoFactorCode(models.Model):
     def generate_code():
         return str(random.randint(100000, 999999))  
     
-
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

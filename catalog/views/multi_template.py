@@ -19,7 +19,7 @@ def multi_product_list_view(request):
 
     return render(
         request,
-        "catalog/multi_temp/multi_product_list.html",
+        "catalog/multi_temp/product_list.html",
         {
             "products": products,
             "categories": categories,
@@ -38,6 +38,6 @@ def multi_product_detail_view(request, product_id):
 
     return render(
         request,
-        "catalog/multi_temp/multi_product_detail.html",
+        "catalog/multi_temp/product_detail.html",
         {"product": product},
     )

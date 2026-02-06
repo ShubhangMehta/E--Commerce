@@ -4,21 +4,21 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 # Create your models here.
 
 class Client(TenantMixin):
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
-    server_name = models.CharField(max_length=150, help_text="VPS or server identifier")
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
     theme = models.CharField(max_length=50, default='default', help_text="Theme or template name for the tenant")
-    has_used_trial = models.BooleanField(default=False)
+    catalog_template = models.CharField(max_length=50, default='single product catalog', help_text="Catalog template for product display")
+    used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
     # Usage & Analytics
 
@@ -97,6 +97,12 @@ class SubscriptionPlan(models.Model):
         ('premium', 'Premium'),
     ]
 
+    BILLING_CHOICES = [
+        ('trial', 'Free Trial'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),
@@ -126,6 +132,10 @@ class PlanPricing(models.Model):
 
     class Meta:
         unique_together = ('plan', 'billing_cycle')
+
+    @property
+    def is_trial(self):
+        return self.price == 0
 
     def __str__(self):
         return f"{self.plan} - {self.get_billing_cycle_display()}"
@@ -176,6 +186,7 @@ class ClientSubscription(models.Model):
         self.end_date = self.start_date + timedelta(days=self.pricing.duration_days)
         self.status = 'active'
         self.save(update_fields=['start_date', 'end_date', 'status'])
+
 
     def clean(self):
         #trial will never have payment
@@ -237,6 +248,7 @@ class TenantRequest(models.Model):
     """
     Stores sign-up requests from businesses wanting to create a tenant.
     """
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150)
     email = models.EmailField(null=True, blank=True)
@@ -245,11 +257,9 @@ class TenantRequest(models.Model):
     logo = models.ImageField(upload_to='tenant_logos/', null=True, blank=True)
 
     STATUS_CHOICES = [
-        ('pending_payment', 'Pending Payment'),
-        ('trial_created', 'Trial Created'),
-        ('paid_created', 'Paid Created'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
     ]
 
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT, null=True, blank=True)
@@ -269,9 +279,20 @@ class TenantRequest(models.Model):
 
     created_on = models.DateTimeField(auto_now_add=True)
     requested_on = models.DateField(default=timezone.now)
-    is_approved = models.BooleanField(default=False)
+    
+    CHOICES_CATALOG_TEMPLATE = [
+        ('single product catalog', 'Single Product Catalog'),
+        ('multiple categories catalog', 'Multiple Categories Catalog'),
+    ]
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending_payment")
+    catalog_template = models.CharField(
+        max_length=50,
+        choices=CHOICES_CATALOG_TEMPLATE,
+        default='single product catalog',
+        help_text="Catalog template choice for the tenant"
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
 
     class Meta:
         constraints = [
@@ -419,10 +440,10 @@ class RzpWebhookEvent(models.Model):
     event = models.CharField(max_length=80)
     payload = models.JSONField()
     signature_ok = models.BooleanField(default=False)
-    received_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.event} @ {self.received_at}"
+        return f"{self.event} @ {self.created_at}"
 
 
 class RzpRefund(models.Model):

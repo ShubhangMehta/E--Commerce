@@ -1,26 +1,49 @@
-{% extends "themes/modern/base_storefront.html" %}
+{% extends "themes/modern/storefront.html" %}
 {% block content %}
 <div class="max-w-xl mx-auto py-32 px-10">
     <div class="text-center mb-16">
-        <span class="text-[9px] uppercase tracking-[0.6em] text-champagne mb-4 block">Identity Verification</span>
+        <span class="text-[9px] uppercase tracking-[0.6em] text-champagne mb-4 block">
+            Identity Verification
+        </span>
         <h1 class="serif-fancy text-6xl font-light italic">Welcome</h1>
     </div>
 
-    <form class="space-y-12">
+    <form method="POST" class="space-y-12">
+        {% csrf_token %}
+
         <div class="group relative">
-            <input type="email" placeholder="Email" class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic">
+            <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic"
+                required
+            >
         </div>
+
         <div class="group relative">
-            <input type="password" placeholder="Password" class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic">
+            <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                class="w-full bg-transparent border-b border-noir/10 py-4 focus:border-noir outline-none transition-all serif-fancy text-2xl placeholder:opacity-20 italic"
+                required
+            >
         </div>
         
-        <button class="w-full py-6 bg-noir text-alabaster text-[10px] uppercase tracking-[0.5em] hover:bg-champagne hover:text-noir transition-all duration-700">
+        <button
+            type="submit"
+            class="w-full py-6 bg-noir text-alabaster text-[10px] uppercase tracking-[0.5em] hover:bg-champagne hover:text-noir transition-all duration-700"
+        >
             Enter the Archive
         </button>
     </form>
     
     <div class="mt-12 text-center">
-        <a href="/signup/" class="text-[9px] uppercase tracking-[0.4em] opacity-40 hover:opacity-100 transition-opacity">Request an account</a>
+        <a href="{% url 'signup' %}"
+           class="text-[9px] uppercase tracking-[0.4em] opacity-40 hover:opacity-100 transition-opacity">
+            Request an account
+        </a>
     </div>
 </div>
 {% endblock %}

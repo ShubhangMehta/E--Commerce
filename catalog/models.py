@@ -101,7 +101,7 @@ class MultiProduct(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
 
-    # availability = models.BooleanField(default=True)
+    #availability = models.BooleanField(default=True)
     availability = models.BooleanField(default=False)
 
     seller = models.CharField(max_length=150)

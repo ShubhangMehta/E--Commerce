@@ -1,0 +1,23 @@
+{% extends theme_storefront %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <h3>Product Images</h3>
+
+    {{ formset.management_form }}
+
+    {% for image_form in formset %}
+        {{ image_form.as_p }}
+    {% endfor %}
+
+    <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'catalog:product_list' %}">Back</a>
+{% endblock %}

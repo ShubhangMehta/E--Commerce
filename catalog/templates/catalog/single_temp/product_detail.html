@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }}</title>
+</head>
+<body>
+
+<a href="{% url 'catalog:single-product-list' %}">← Back to Products</a>
+
+<h1>{{ product.name }}</h1>
+<p><strong>Brand:</strong> {{ product.brand_name }}</p>
+
+<!-- PRIMARY IMAGE -->
+{% with product.images.all|first as primary_image %}
+    {% if primary_image %}
+        <img src="{{ primary_image.image.url }}"
+             style="max-width:300px; display:block; margin-bottom:15px;">
+    {% endif %}
+{% endwith %}
+
+<!-- IMAGE GALLERY -->
+{% if product.images.count > 1 %}
+    <div>
+        {% for image in product.images.all %}
+            <img src="{{ image.image.url }}"
+                 style="max-width:80px; margin:5px;">
+        {% endfor %}
+    </div>
+{% endif %}
+
+<hr>
+
+<p><strong>Price:</strong> ₹{{ product.price }}</p>
+<p><strong>Description:</strong> {{ product.description }}</p>
+<p><strong>Seller:</strong> {{ product.seller }}</p>
+<p><strong>Estimated Delivery:</strong> {{ product.estimated_delivery }}</p>
+
+<p><strong>Refundable:</strong> {{ product.refundable|yesno:"Yes,No" }}</p>
+<p><strong>Returnable:</strong> {{ product.returnable|yesno:"Yes,No" }}</p>
+
+<form method="post" action="{% url 'catalog:add-to-cart' product.id %}">
+    {% csrf_token %}
+    <button type="submit">Add to Cart</button>
+</form>
+
+<form method="get" action="/checkout/">
+    <button type="submit">Place Order</button>
+</form>
+
+
+</body>
+</html>

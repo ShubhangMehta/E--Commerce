@@ -1,0 +1,47 @@
+{% extends theme_base %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto max-w-3xl p-6">
+
+    <h2 class="text-2xl font-semibold mb-6">My Profile</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label class="block font-medium">Full Name</label>
+            <input type="text" name="full_name"
+                   value="{{ profile.full_name }}"
+                   class="w-full border rounded p-2">
+        </div>
+
+        <div class="mb-4">
+            <label class="block font-medium">Email</label>
+            <input type="email" value="{{ request.user.email }}"
+                   class="w-full border rounded p-2 bg-gray-100"
+                   disabled>
+        </div>
+
+        <div class="mb-4">
+            <label class="block font-medium">Phone</label>
+            <input type="text" name="phone"
+                   value="{{ profile.phone }}"
+                   class="w-full border rounded p-2">
+        </div>
+
+        <div class="flex gap-4 mt-6">
+            <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-2 rounded">
+                Update Profile
+            </button>
+
+            <a href="{% url 'users_theme:customer_address' %}"
+               class="border px-6 py-2 rounded">
+                Manage Addresses
+            </a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
