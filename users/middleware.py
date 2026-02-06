@@ -1,3 +1,5 @@
+from django_tenants.utils import get_public_schema_name
+from django.db import connection
 from .models import SubjectMember
 
 class TenantMemberMiddleware:
@@ -11,8 +13,11 @@ class TenantMemberMiddleware:
     def __call__(self, request):
         request.subject_member = None
 
+        if connection.schema_name == get_public_schema_name():
+            return self.get_response(request)
+
         if request.user.is_authenticated:
-            request.subjectmember = SubjectMember.objects.filter(
+            request.subject_member = SubjectMember.objects.filter(
                 global_user_id=request.user.id,
                 is_active=True,
             ).first()

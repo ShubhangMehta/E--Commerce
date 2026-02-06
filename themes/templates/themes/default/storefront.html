@@ -211,17 +211,14 @@
         <!-- Right links -->
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <!-- <li class="nav-item">
+            <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'profile' %}active-link{% endif %}" href="{% url 'profile' %}">
                 Profile
               </a>
-            </li> -->
+            </li>
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
-              </a>
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users_theme:profile' %}">
-                Profile
               </a>
             </li>
             <li class="nav-item">

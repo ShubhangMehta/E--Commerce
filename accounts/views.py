@@ -21,7 +21,7 @@ def login_view(request):
     # if next_url.startswith("/admin"):
     #     next_url = "/"
 
-    #template = "accounts/login.html" # default for public schema
+    template = "accounts/login.html" # default for public schema
 
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "login.html")
