@@ -20,7 +20,7 @@ urlpatterns = [
 
     # Checkout + order success
     path("checkout/", views.checkout, name="checkout"),
-    path("profile/", views.profile, name="profile"),
+    #path("profile/", views.profile, name="profile"),
     path("login/", views.login, name="login"),
 
     #path("signup/", views.signup, name="signup"),

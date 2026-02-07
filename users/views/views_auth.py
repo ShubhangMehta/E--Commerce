@@ -47,3 +47,4 @@ def tenant_customer_signup(request):
         return redirect("index")
 
     return render(request, _theme_path("signup.html"))
+
