@@ -16,9 +16,8 @@ urlpatterns = [
 
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
 
-    path("", include("themes.urls")),
+    path("", include("themes.urls")),  # Storefront and cart/checkout
 
-    path('', include('themes.urls')),
     path('', include('dashboard.urls')),  
 
     path('', include('users.urls')),

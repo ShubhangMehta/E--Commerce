@@ -313,58 +313,6 @@ def order_success(request):
     }
     return render(request, _theme_path(request, "order_success.html"), context)
 
-
-# -----------------------------
-# AUTH PAGES
-# -----------------------------
-
-@require_http_methods(["GET", "POST"])
-def signup(request):
-    """
-    Signup page.
-    Template: signup.html expects 'form'
-    """
-    if request.user.is_authenticated:
-        return redirect("profile")
-
-    form = UserCreationForm(request.POST or None)
-    if request.method == "POST":
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Account created.")
-            return redirect("profile")
-        messages.error(request, "Please correct the errors below.")
-
-    return render(request, _theme_path(request, "signup.html"), {"form": form})
-
-
-# If you already use Django's LoginView / LogoutView, keep using that.
-# The templates you generated will work with LoginView (login.html) by default.
-
-# -----------------------------
-# PROFILE
-# -----------------------------
-
-@login_required
-def profile(request):
-    """
-    Profile page.
-    Template: profile.html expects user and optionally recent_orders.
-    """
-    # If you have a real Order model, query recent orders here and pass as recent_orders.
-    recent_orders = request.session.get("orders_history", [])[:5]
-
-    return render(
-        request,
-        _theme_path(request, "profile.html"),
-        {"recent_orders": recent_orders},
-    )
-
 def previous_order_listing(request):
     theme = request.tenant.theme
     return render(request,f"themes/{theme}/previous_order_listing.html")
-
-def login(request):
-    theme = request.tenant.theme
-    return render(request, f"themes/{theme}/login.html")

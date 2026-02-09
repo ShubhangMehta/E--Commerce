@@ -8,6 +8,7 @@ from django.core.management import call_command
 from customers.models import Client, Domain, ClientSubscription
 from core_app.emails.utils import send_html_email
 from django.conf import settings
+from users.models import SubjectMember, TenantRole
 
 def provision_tenant_from_request(*, tenant_request, plan, pricing):
     """
@@ -66,6 +67,17 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     pricing=pricing,
                     status='active'
                 )
+
+            #create owner and admin SubjectMember
+            SubjectMember.objects.create(
+                global_user_id=None, # No global user yet, will link on first login
+                role=TenantRole.OWNER,
+                full_name=tenant_request.owner_name,
+                email=tenant_request.email,
+                phone=None,
+                is_active=True,
+            )
+
 
     try:
         send_html_email(
