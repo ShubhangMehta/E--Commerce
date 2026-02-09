@@ -1,25 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Invoices</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-    </style>
-</head>
-<body>
+{% extends theme_storefront %}
 
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
 <h2>Invoices</h2>
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: left;
+    }
+    th {
+        background-color: #f4f4f4;
+    }
+</style>
 
 <table>
     <thead>
@@ -47,6 +46,4 @@
         {% endfor %}
     </tbody>
 </table>
-
-</body>
-</html>
+{% endblock %}

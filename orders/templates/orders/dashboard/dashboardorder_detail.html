@@ -1,22 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order Detail</title>
-    <style>
-        .card {
-            width: 400px;
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .label {
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
+{% extends theme_storefront %}
 
+{% block title %}Order Detail{% endblock %}
+
+{% block content %}
 <h2>Order Detail (Tenant View)</h2>
+
+<style>
+    .card {
+        width: 400px;
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .label {
+        font-weight: bold;
+    }
+</style>
 
 <div class="card">
     <p><span class="label">Order ID:</span> #{{ order.id }}</p>
@@ -26,6 +25,4 @@
     <p><span class="label">Status:</span> {{ order.status }}</p>
     <p><span class="label">Created At:</span> {{ order.created_at }}</p>
 </div>
-
-</body>
-</html>
+{% endblock %}

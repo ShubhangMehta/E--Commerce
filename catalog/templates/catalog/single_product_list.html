@@ -1,65 +1,79 @@
-{% comment %} {% for product in products %}
-<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+{% extends theme_base %}
 
-    <h2>{{ product.name }}</h2>
+{% block title %}Products{% endblock %}
 
-    <!-- PRIMARY IMAGE -->
-    {% with product.images.all|first as primary_image %}
-        {% if primary_image %}
-            <img src="{{ primary_image.image.url }}"
-                 alt="{{ product.name }}"
-                 style="max-width:200px; display:block; margin-bottom:10px;">
-        {% endif %}
-    {% endwith %}
+{% block content %}
+<div class="container py-4">
 
-    <p><strong>Brand:</strong> {{ product.brand_name }}</p>
-    <p><strong>Price:</strong> ₹{{ product.price }}</p>
-    <p><strong>Description:</strong> {{ product.description }}</p>
-    <p><strong>Seller:</strong> {{ product.seller }}</p>
-    <p><strong>Estimated Delivery:</strong> {{ product.estimated_delivery }}</p>
+  <h1 class="page-title">Products</h1>
 
-    <p><strong>Refundable:</strong> {{ product.refundable|yesno:"Yes,No" }}</p>
-    <p><strong>Returnable:</strong> {{ product.returnable|yesno:"Yes,No" }}</p>
+  <div class="section">
+    <div class="row g-3">
 
-    <!-- OTHER IMAGES -->
-    {% if product.images.count > 1 %}
-        <div>
-            <strong>More Images:</strong><br>
-            {% for image in product.images.all %}
-                {% if not image.is_primary %}
-                    <img src="{{ image.image.url }}"
-                         style="max-width:80px; margin:5px;">
-                {% endif %}
-            {% endfor %}
+      {% for product in products %}
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+        <div class="card h-100 card-hover">
+
+          <!-- IMAGE -->
+          <a href="{% url 'catalog:single-product-detail' product.id %}">
+            {% with product.images.all|first as img %}
+              {% if img %}
+                <img src="{{ img.image.url }}"
+                     class="card-img-top border-bottom"
+                     style="height:180px;object-fit:contain;"
+                     alt="{{ product.name }}">
+              {% else %}
+                <div class="alert-soft text-center p-4">
+                  No image
+                </div>
+              {% endif %}
+            {% endwith %}
+          </a>
+
+          <!-- BODY -->
+          <div class="card-body d-flex flex-column">
+
+            <h6 class="mb-1 text-truncate">
+              {{ product.name }}
+            </h6>
+
+            <div class="text-muted2 small mb-1">
+              {{ product.brand_name }}
+            </div>
+
+            <div class="fw-semibold mb-3">
+              ₹{{ product.price }}
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="mt-auto d-flex gap-2">
+              <a href="{% url 'catalog:single-product-detail' product.id %}"
+                 class="btn btn-soft w-50">
+                View
+              </a>
+
+              <a href="{% url 'cart' %}"
+                 class="btn btn-brand w-50">
+                Add to Cart
+              </a>
+            </div>
+
+          </div>
         </div>
-    {% endif %}
+
+      </div>
+
+      {% empty %}
+      <div class="col-12">
+        <div class="alert-soft text-center p-5">
+          No products available
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
 
 </div>
-{% endfor %} {% endcomment %}
-
-<h1>Available Products</h1>
-
-{% for product in products %}
-<a href="{% url 'single-product-detail' product.id %}"
-   style="text-decoration:none; color:inherit;">
-
-<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
-
-    <h2>{{ product.name }}</h2>
-
-    {% with product.images.all|first as primary_image %}
-        {% if primary_image %}
-            <img src="{{ primary_image.image.url }}"
-                 alt="{{ product.name }}"
-                 style="max-width:200px; display:block; margin-bottom:10px;">
-        {% endif %}
-    {% endwith %}
-
-    <p><strong>Brand:</strong> {{ product.brand_name }}</p>
-    <p><strong>Price:</strong> ₹{{ product.price }}</p>
-
-</div>
-</a>
-{% empty %}
-<p>No products available.</p>
-{% endfor %}
+{% endblock %}

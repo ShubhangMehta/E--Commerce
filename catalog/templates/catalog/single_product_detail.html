@@ -1,43 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ product.name }}</title>
-</head>
-<body>
+{% extends theme_base %}
 
-<a href="{% url 'single-product-list' %}">← Back to Products</a>
+{% block title %}{{ product.name|default:"Product" }}{% endblock %}
 
-<h1>{{ product.name }}</h1>
-<p><strong>Brand:</strong> {{ product.brand_name }}</p>
+{% block content %}
+<div class="container py-4">
 
-<!-- PRIMARY IMAGE -->
-{% with product.images.all|first as primary_image %}
-    {% if primary_image %}
-        <img src="{{ primary_image.image.url }}"
-             style="max-width:300px; display:block; margin-bottom:15px;">
-    {% endif %}
-{% endwith %}
+  <a href="{% url 'catalog:single-product-list' %}" class="btn btn-soft mb-3">
+    ← Back to products
+  </a>
 
-<!-- IMAGE GALLERY -->
-{% if product.images.count > 1 %}
-    <div>
-        {% for image in product.images.all %}
-            <img src="{{ image.image.url }}"
-                 style="max-width:80px; margin:5px;">
-        {% endfor %}
+  <div class="section">
+    <div class="row g-4">
+
+      <!-- Product Images -->
+      <div class="col-12 col-lg-6">
+
+        {% with product.images.all|first as primary_image %}
+          {% if primary_image %}
+            <img src="{{ primary_image.image.url }}"
+                 class="img-fluid rounded border w-100"
+                 alt="{{ product.name }}">
+          {% else %}
+            <div class="alert-soft text-center p-5">
+              No image available
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if product.images.count > 1 %}
+          <div class="d-flex gap-2 mt-3 flex-wrap">
+            {% for img in product.images.all %}
+              <img src="{{ img.image.url }}"
+                   class="rounded border"
+                   style="width:80px;height:80px;object-fit:cover;">
+            {% endfor %}
+          </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Product Details -->
+      <div class="col-12 col-lg-6">
+
+        <div class="card p-4 h-100">
+
+          <span class="badge badge-soft mb-2">
+            {{ product.brand_name }}
+          </span>
+
+          <h1 class="page-title mb-2">
+            {{ product.name }}
+          </h1>
+
+          <h3 class="fw-bold mb-3">₹{{ product.price }}</h3>
+
+          <div class="text-muted2 mb-3">
+            Seller: {{ product.seller }}
+          </div>
+
+          <div class="mb-4">
+            {{ product.description|linebreaksbr }}
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap mb-4">
+            <span class="pill">
+              Delivery: {{ product.estimated_delivery }}
+            </span>
+
+            {% if product.refundable %}
+              <span class="pill pill-success">Refundable</span>
+            {% endif %}
+
+            <span class="pill pill-info">In Stock</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-2 mt-auto">
+            <form method="post" action="{% url 'cart' %}" class="w-50">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <button type="submit" class="btn btn-brand w-100">
+                Add to cart
+              </button>
+            </form>
+
+            <a href="{% url 'checkout' %}" class="btn btn-soft w-50">
+              Buy now
+            </a>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="row text-center">
+            <div class="col">
+              <div class="text-muted2 small">Return Policy</div>
+              <div class="fw-semibold">
+                {% if product.returnable %}7 Days Return{% else %}No Returns{% endif %}
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="text-muted2 small">Availability</div>
+              <div class="fw-semibold text-success">
+                In Stock
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-{% endif %}
+  </div>
 
-<hr>
-
-<p><strong>Price:</strong> ₹{{ product.price }}</p>
-<p><strong>Description:</strong> {{ product.description }}</p>
-<p><strong>Seller:</strong> {{ product.seller }}</p>
-<p><strong>Estimated Delivery:</strong> {{ product.estimated_delivery }}</p>
-
-<p><strong>Refundable:</strong> {{ product.refundable|yesno:"Yes,No" }}</p>
-<p><strong>Returnable:</strong> {{ product.returnable|yesno:"Yes,No" }}</p>
-
-</body>
-</html>
+</div>
+{% endblock %}

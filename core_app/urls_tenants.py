@@ -18,12 +18,14 @@ urlpatterns = [
 
     path("", include("themes.urls")),
 
-    path('catalogue/', include('catalog.urls',namespace="catalog")),
+    path('catalog/', include('catalog.urls',namespace="catalog")),
+    path('orders/', include('orders.urls',namespace="orders")),
+    path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),
     path('', include('themes.urls')),
     path('', include('dashboard.urls')),  
     #path('orders/', include('orders.urls',namespace="orders")), 
     path("dashboard/users/", include("users.urls", namespace="users")),
-     path('users/', include('users.theme_urls',namespace="users_theme")),
+    path('users/', include('users.theme_urls',namespace="users_theme")),
 ]
 
 

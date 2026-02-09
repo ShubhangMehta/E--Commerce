@@ -1,47 +1,52 @@
 {% extends theme_base %}
-{% load static %}
+{% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-3xl p-6">
+<div class="container py-4">
 
-    <h2 class="text-2xl font-semibold mb-6">My Profile</h2>
+  <div class="section">
+    <h1 class="page-title">My Profile</h1>
 
     <form method="POST">
-        {% csrf_token %}
+      {% csrf_token %}
 
-        <div class="mb-4">
-            <label class="block font-medium">Full Name</label>
-            <input type="text" name="full_name"
-                   value="{{ profile.full_name }}"
-                   class="w-full border rounded p-2">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="fw-semibold mb-1">Full Name</label>
+          <input type="text" name="full_name"
+                 value="{{ subject.full_name }}"
+                 class="form-control">
         </div>
 
-        <div class="mb-4">
-            <label class="block font-medium">Email</label>
-            <input type="email" value="{{ request.user.email }}"
-                   class="w-full border rounded p-2 bg-gray-100"
-                   disabled>
+        <div class="col-md-6">
+          <label class="fw-semibold mb-1">Email</label>
+          <input type="email"
+                 value="{{ request.user.email }}"
+                 class="form-control"
+                 disabled>
         </div>
 
-        <div class="mb-4">
-            <label class="block font-medium">Phone</label>
-            <input type="text" name="phone"
-                   value="{{ profile.phone }}"
-                   class="w-full border rounded p-2">
+        <div class="col-md-6">
+          <label class="fw-semibold mb-1">Phone</label>
+          <input type="text" name="phone"
+                 value="{{ subject.phone }}"
+                 class="form-control">
         </div>
+      </div>
 
-        <div class="flex gap-4 mt-6">
-            <button type="submit"
-                    class="bg-blue-600 text-white px-6 py-2 rounded">
-                Update Profile
-            </button>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-brand">
+          Update Profile
+        </button>
 
-            <a href="{% url 'users_theme:customer_address' %}"
-               class="border px-6 py-2 rounded">
-                Manage Addresses
-            </a>
-        </div>
+        <a href="{% url 'users_theme:address' %}"
+           class="btn btn-soft">
+           Manage Addresses
+        </a>
+      </div>
+
     </form>
+  </div>
 
 </div>
 {% endblock %}

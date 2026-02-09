@@ -117,6 +117,114 @@
       color: var(--brand-blue) !important;
       font-weight: 700;
     }
+    .page-title{
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .section{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    .table{
+     background:#fff;
+     border-radius:14px;
+     overflow:hidden;
+     border:1px solid var(--line);
+    }
+
+    .table thead{
+       background: var(--soft);
+     }
+
+    .table th{
+       font-weight:700;
+       border-bottom:1px solid var(--line);
+     }
+
+    .table td{
+       vertical-align:middle;
+       border-color:var(--line);
+     }
+    .pill-success{
+       background:#e7f8ee;
+       color:#15803d;
+       border-color:#bbf7d0;
+     }
+
+    .pill-danger{
+       background:#fef2f2;
+       color:#b91c1c;
+       border-color:#fecaca;
+     }
+
+    .pill-warning{
+       background:#fffbeb;
+       color:#b45309;
+       border-color:#fde68a;
+     }
+
+    .pill-info{
+       background:#eff6ff;
+       color:#1d4ed8;
+       border-color:#bfdbfe;
+     }
+    .btn-soft{
+       background: var(--soft);
+       border: 1px solid var(--line);
+       color: var(--ink);
+     }
+
+    .btn-soft:hover{
+       background: var(--brand-blue);
+       color:#fff;
+       border-color: var(--brand-blue);
+     }
+    .alert-soft{
+       background: var(--soft);
+       border:1px solid var(--line);
+       color: var(--ink);
+       border-radius:12px;
+     }
+    .form-control{
+       border-radius:10px;
+       border:1px solid var(--line);
+     }
+
+    .form-control:focus{
+       border-color: var(--brand-blue);
+       box-shadow:0 0 0 2px rgba(13,110,253,.15);
+     }
+    .stat-card{
+       background:#fff;
+       border:1px solid var(--line);
+       border-radius:18px;
+       padding:20px;
+       box-shadow:0 8px 24px rgba(0,0,0,.04);
+     }
+
+    .stat-title{
+       font-size:14px;
+       color:var(--muted);
+     }
+
+    .stat-value{
+       font-size:30px;
+       font-weight:800;
+       color:var(--ink);
+     }
+    .card-hover{
+       transition:.2s ease;
+     }
+    .card-hover:hover{
+       transform: translateY(-3px);
+       box-shadow:0 12px 30px rgba(0,0,0,.08);
+     }
+
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -184,8 +292,9 @@
           </li>
 
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'product_list' %}active-link{% endif %}" href="{% url 'product_list' %}">
-              Products
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
+              href="{% url 'catalog:single-product-list' %}">
+            Products
             </a>
           </li>
 
@@ -196,7 +305,7 @@
           </li>
 
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'previous_order_listing' %}active-link{% endif %}" href="{% url 'previous_order_listing' %}">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
               Orders
             </a>
           </li>
@@ -220,12 +329,12 @@
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
               </a>
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users_theme:profile' %}">
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'user_theme:profile' %}">
                 Profile
               </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'checkout' %}">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'orders_storefront:checkout' %}">
                 Checkout
               </a>
             </li>

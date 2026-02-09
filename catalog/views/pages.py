@@ -6,7 +6,7 @@ from catalog.forms import SingleProductForm, ProductImageFormSet
 
 # LIST PRODUCTS
 def product_list(request):
-    products = SingleProduct.objects.all()
+    products = SingleProduct.objects.prefetch_related("images")
 
     return render(
         request,
@@ -15,6 +15,7 @@ def product_list(request):
             "products": products
         }
     )
+
 
 
 # CREATE PRODUCT
