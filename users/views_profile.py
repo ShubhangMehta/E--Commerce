@@ -41,7 +41,7 @@ def tenant_customer_signup(request):
 
         # Create/get GLOBAL user (usually in public schema in django-tenants setups)
         with schema_context("public"):
-            user, created = get_or_create_global_user(email, password)
+            user, created = get_or_create_global_user(first_name, last_name, username, email, password)
 
         # Create the tenant member in TENANT schema
         SubjectMember.objects.get_or_create(
