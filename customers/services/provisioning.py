@@ -4,11 +4,16 @@ from django.utils import timezone
 from datetime import timedelta
 from django_tenants.utils import schema_context
 from django.core.management import call_command
+from django.contrib.auth import get_user_model
+from django.utils.crypto import get_random_string
 
 from customers.models import Client, Domain, ClientSubscription
 from core_app.emails.utils import send_html_email
 from django.conf import settings
+from accounts.services import get_or_create_global_user
 from users.models import SubjectMember, TenantRole
+
+User = get_user_model()
 
 def provision_tenant_from_request(*, tenant_request, plan, pricing):
     """
@@ -68,16 +73,34 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     status='active'
                 )
 
-            #create owner and admin SubjectMember
-            SubjectMember.objects.create(
-                global_user_id=None, # No global user yet, will link on first login
-                role=TenantRole.OWNER,
-                full_name=tenant_request.owner_name,
-                email=tenant_request.email,
-                phone=None,
-                is_active=True,
-            )
+    with schema_context(tenant.schema_name):
+        call_command('migrate', interactive=False, verbosity=0)
 
+    temp_password = get_random_string(length=12)  # Generate a temporary password
+    with schema_context("public"):
+        # Create global user (if needed) and link to tenant's SubjectMember
+        user, created = get_or_create_global_user(
+            first_name=tenant_request.owner_name.split()[0] if tenant_request.owner_name else "",
+            last_name=" ".join(tenant_request.owner_name.split()[1:]) if tenant_request.owner_name else "",
+            username=tenant_request.email.strip().lower(),
+            email=tenant_request.email.strip().lower(),
+            password=temp_password
+        )
+
+    with schema_context(tenant.schema_name):
+        call_command('migrate', interactive=False, verbosity=0)
+
+        #create owner and admin SubjectMember
+        SubjectMember.objects.get_or_create(
+            global_user_id=user.id, # No global user yet, will link on first login
+            defaults={
+                "role": TenantRole.OWNER,
+                "full_name": tenant_request.owner_name,
+                "email": tenant_request.email,
+                "phone": None,
+                "is_active": True,
+            }
+        )
 
     try:
         send_html_email(
@@ -93,6 +116,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 "subscription_type": "Trial" if subscription.is_trial else "Paid",
                 "login_url": f"https://{full_domain}/login/",
                 "dashboard_url": f"https://{full_domain}/dashboard/",
+                "temp_password": temp_password,
                 "is_trial": subscription.is_trial,
                 "trial_days": settings.BILLING_TRIAL_DAYS,
             }
@@ -101,12 +125,5 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
         pass
       
     print("Sent tenant created email to:", tenant_request.email, "✅")    
-
-    # 4) (Optional) Run tenant migrations explicitly if your setup requires it
-    # Some projects rely on auto_create_schema=True, others run migrations manually.
-    # Only enable if you need it.
-    #
-    with schema_context(tenant.schema_name):
-        call_command('migrate', interactive=False, verbosity=0)
 
     return tenant, domain, subscription
