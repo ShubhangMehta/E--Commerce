@@ -1,11 +1,69 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-
+from django.contrib.auth import authenticate, login
 from django.db import connection
+from django.db import transaction
+from django_tenants.utils import schema_context
+
 from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole
+from accounts.services import get_or_create_global_user
 
+import logging
+logger = logging.getLogger(__name__)
+
+@transaction.atomic
+def tenant_customer_signup(request):
+    logger.warning(
+        "🔥 tenant_customer_signup CALLED | host=%s | schema=%s | method=%s",
+        request.get_host(),
+        getattr(getattr(request, "tenant", None), "schema_name", "unknown"),
+        request.method
+    )
+
+    if request.method == "POST":
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        phone = request.POST.get("phone", "").strip()  # only if you add this input in HTML
+        email = request.POST.get("email", "").strip().lower()
+        username = request.POST.get("username", "").strip().lower()  # using email as username
+        password = request.POST.get("password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
+
+        if not email or not username or not password or not first_name:
+            messages.error(request, "Please fill in all required fields.")
+            return redirect("themes:tenant_customer_signup")  # or "tenant_customer_signup" if not namespaced
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("themes:tenant_customer_signup")
+
+        # Create/get GLOBAL user (usually in public schema in django-tenants setups)
+        with schema_context("public"):
+            user, created = get_or_create_global_user(email, password)
+
+        # Create the tenant member in TENANT schema
+        SubjectMember.objects.get_or_create(
+            global_user_id=user.id,
+            defaults={
+                "role": TenantRole.CUSTOMER,
+                "full_name": f"{first_name} {last_name}".strip(),
+                "email": email,
+                "phone": phone,
+                "is_active": True,
+            }
+        )
+
+        # Log the user in
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+
+        return redirect("index")  # or "store_index" etc.
+
+    # ✅ GET must render signup page
+    return render(request, _theme_path(request, "signup.html"))
 
 @login_required
 def profile_view(request):
