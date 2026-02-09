@@ -7,11 +7,11 @@ from users.views import theme_views
 
 
 urlpatterns = [
-    path("", users_home, name="list"),
-    path("api/", include("users.api")),
-    path("user/signup", tenant_customer_signup, name="tenant_customer_signup"),
+#     path("", users_home, name="list"),
+#     path("api/", include("users.api")),
     # path('profile/', theme_views.customer_profile, name='profile'),
     # path('address/', theme_views.customer_address, name='address'),
+    path("user/signup", tenant_customer_signup, name="tenant_customer_signup"),
     
     path("profile/", profile_view, name="profile"),
     path("profile/address/add/", address_add, name="address_add"),

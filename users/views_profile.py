@@ -21,8 +21,6 @@ def profile_view(request):
             is_active=True,
         )
     
-    print("PROFILE schema:", connection.schema_name, "member:", member.id, member.global_user_id)
-    
     if request.method == "POST":
         member.full_name = request.POST.get("full_name", "").strip()
         member.phone = request.POST.get("phone", "").strip()
@@ -33,13 +31,6 @@ def profile_view(request):
 
     addresses = Coordinate.objects.filter(user=member).order_by("-is_default", "-id")
 
-    print("PROFILE schema:", connection.schema_name,
-      "member.id:", member.id,
-      "global_user_id:", member.global_user_id,
-      "addr_count:", Coordinate.objects.filter(user=member).count())
-    
-
-    
     return render(request, _theme_path(request, "profile.html"), {
         "storefront": _theme_path(request, "storefront.html"),
         "member": member,
@@ -66,14 +57,6 @@ def address_add(request):
             address_type=request.POST.get("address_type", "home"),
             is_default=(request.POST.get("is_default") == "on"),
         )
-
-        print("ADDR_ADD schema:", connection.schema_name, "addr:", addr.id, "member:", member.id)
-
-        print("ADDR_ADD schema:", connection.schema_name,
-              "member.id:", member.id,
-              "global_user_id:", member.global_user_id,
-              "addr.id:", addr.id)
-
 
         if addr.is_default:
             Coordinate.objects.filter(user=member).exclude(id=addr.id).update(is_default=False)
