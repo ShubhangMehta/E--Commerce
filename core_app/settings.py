@@ -112,7 +112,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / 'core_app/emails/templates',
-            # BASE_DIR / 'dashboard/templates',
+            BASE_DIR / 'templates',
             # BASE_DIR / 'themes/templates',
         ],
         "APP_DIRS": True,
@@ -155,6 +155,10 @@ DATABASES = {
         },
     }
 }
+DATABASE_ROUTERS = [
+    "django_tenants.routers.TenantSyncRouter",
+]
+
 
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.PublicSchemaModelBackend",

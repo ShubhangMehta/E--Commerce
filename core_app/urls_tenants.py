@@ -20,7 +20,6 @@ urlpatterns = [
 
     path("", include("themes.urls")),
 
-    path('', include('themes.urls')),
     path('', include('dashboard.urls')),  
 
     path('', include('users.urls')),
