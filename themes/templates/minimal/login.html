@@ -1,0 +1,35 @@
+
+
+{% extends "themes/minimal/storefront.html" %}
+
+{% block title %}Login | {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+
+<div class="max-w-md mx-auto py-12">
+
+    <div class="bg-white p-10 border-t-4 border-brandGold shadow-xl">
+
+        <h1 class="serif text-3xl text-brandViolet mb-6 text-center">Welcome Back # 
+
+        <form class="space-y-4">
+
+            <input type="email" placeholder="Email" class="w-full border-gray-200 focus:border-brandViolet p-3 outline-none">
+
+            <input type="password" placeholder="Password" class="w-full border-gray-200 focus:border-brandViolet p-3 outline-none">
+
+            <button class="w-full py-3 bg-brandViolet text-white font-bold uppercase tracking-widest text-xs mt-4">Sign In</button>
+
+        </form>
+
+        <p class="mt-6 text-center text-xs text-gray-400">
+
+            Don't have an account? <a href="/signup/" class="text-brandGold font-bold">Sign Up
+
+        
+
+    
+
+{% endblock %}
+
+```

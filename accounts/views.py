@@ -13,84 +13,183 @@ from themes.views import _theme_path
 
 # Create your views here.
 
+# def login_view(request):
+#     next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
+
+#     # # Avoid sending users into admin/login loops
+#     # # (you can tune these rules to match your routing)
+#     # if next_url.startswith("/admin"):
+#     #     next_url = "/"
+
+#     template = "accounts/login.html" # default for public schema
+
+#     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
+#         template = _theme_path(request, "login.html")
+
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user = authenticate(request, username=username, password=password)
+
+#         if user is None:
+#             messages.error(request, 'Invalid username or password.')
+        
+#         else:
+#             #Non-Staff users: login directly
+#             if not user.is_staff:
+#                 login (request, user)
+#                 return redirect(next_url)
+
+#             ##Code for generating and sending 6-digits 2FA code for superuser
+#             code = TwoFactorCode.generate_code()
+#             TwoFactorCode.objects.create(user=user, code=code)
+#             send_mail(
+#                 'Your 2FA code',
+#                 f'Your one-time login code is: {code}',
+#                 settings.DEFAULT_FROM_EMAIL,
+#                 [user.email],
+#                 fail_silently=False,
+#             )
+#             request.session['pending_user'] = user.id
+#             request.session['pending_next'] = next_url
+#             request.session.modified = True
+
+#             print("Debug: pending_user set -> ", request.session['pending_user'])
+
+#             # Redirect to 2FA verification page
+#             return redirect('verify_2fa')
+        
+#     return render(request, template, {'next': next_url})
+
+
 def login_view(request):
-    next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
+    # Determine where to redirect after login
+    next_url = (
+        request.GET.get("next")
+        or request.POST.get("next")
+        or "/"
+    )
 
-    # # Avoid sending users into admin/login loops
-    # # (you can tune these rules to match your routing)
-    # if next_url.startswith("/admin"):
-    #     next_url = "/"
+    # Default template (public site)
+    template = "accounts/login.html"
 
-    #template = "accounts/login.html" # default for public schema
-
+    # Use themed template for tenant sites
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "login.html")
 
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        # --- Input validation ---
+        if not username or not password:
+            messages.error(request, "Please enter both username and password.")
+            return render(request, template, {"next": next_url})
+
         user = authenticate(request, username=username, password=password)
 
         if user is None:
-            messages.error(request, 'Invalid username or password.')
-        
-        else:
-            #Non-Staff users: login directly
-            if not user.is_staff:
-                login (request, user)
-                return redirect(next_url)
+            messages.error(request, "Invalid username or password.")
+            return render(request, template, {"next": next_url})
 
-            ##Code for generating and sending 6-digits 2FA code for superuser
-            code = TwoFactorCode.generate_code()
-            TwoFactorCode.objects.create(user=user, code=code)
-            send_mail(
-                'Your 2FA code',
-                f'Your one-time login code is: {code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            request.session['pending_user'] = user.id
-            request.session['pending_next'] = next_url
-            request.session.modified = True
+        # ---- Normal user login ----
+        if not user.is_staff:
+            login(request, user)
+            return redirect(next_url)
 
-            print("Debug: pending_user set -> ", request.session['pending_user'])
+        # ---- Staff / Superuser → 2FA flow ----
+        code = TwoFactorCode.generate_code()
+        TwoFactorCode.objects.create(user=user, code=code)
 
-            # Redirect to 2FA verification page
-            return redirect('verify_2fa')
-        
-    return render(request, template, {'next': next_url})
+        send_mail(
+            "Your 2FA code",
+            f"Your one-time login code is: {code}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+        request.session["pending_user"] = user.id
+        request.session["pending_next"] = next_url
+        request.session.modified = True
+
+        print("Debug: pending_user set ->", request.session["pending_user"])
+
+        return redirect("verify_2fa")
+
+    # GET request → show login page
+    return render(request, template, {"next": next_url})
+
 
 def signup_view(request):
-    #template = "accounts/signup.html" # default for public schema
 
+    # Default template for public site
+    template = "accounts/signup.html"
+
+    # Use themed template for tenant sites
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "signup.html")
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        email = request.POST['email']
-        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
-        messages.success(request, 'Account created successfully.')
-        return redirect('/login/')
-    #return render(request, 'accounts/signup.html')
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+
+        # ---- Basic validation ----
+        if not all([username, password, first_name, last_name, email]):
+            messages.error(request, "All fields are required.")
+            return render(request, template)
+
+        # Prevent duplicate usernames
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return render(request, template)
+
+        # Create user
+        User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+
+        messages.success(request, "Account created successfully.")
+        return redirect("/login/")
+
+    # GET request → show signup page
     return render(request, template)
 
+
 def forgot_password_view(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        form = PasswordResetForm({'email': email})
+
+    template = "accounts/forgot_password.html"
+
+    if request.method == "POST":
+        email = request.POST.get("email")
+
+        if not email:
+            messages.error(request, "Please enter your email address.")
+            return render(request, template)
+
+        form = PasswordResetForm({"email": email})
+
         if form.is_valid():
             form.save(
                 request=request,
                 use_https=False,
-                email_template_name='accounts/password_reset_email.html',
+                email_template_name="accounts/password_reset_email.html",
             )
-            messages.success(request, 'Password reset email sent.')
-            return redirect('/login/')
-    return render(request, 'accounts/forgot_password.html')
+            messages.success(request, "Password reset email sent.")
+            return redirect("/login/")
+
+        else:
+            messages.error(request, "No account found with this email.")
+
+    return render(request, template)
+
 
 @login_required
 def session_logs_view(request):
