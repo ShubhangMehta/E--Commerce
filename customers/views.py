@@ -46,8 +46,8 @@ def _find_pricing(plan: SubscriptionPlan, subscription_type: str, payment_plan: 
 def ensure_owner_global_identity_is_new(request, *, email: str, username: str):
     errors = []
     with schema_context(get_public_schema_name()):
-        if User.objects.filter(email=email).exists():
-            errors.append(f"A user with email {email} already exists.")
+        # if User.objects.filter(email=email).exists():
+        #     errors.append(f"A user with email {email} already exists.")
         if User.objects.filter(username=username).exists():
             errors.append(f"A user with username {username} already exists.")
     return (len(errors) == 0), errors
