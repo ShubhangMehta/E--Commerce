@@ -44,16 +44,13 @@ def _find_pricing(plan: SubscriptionPlan, subscription_type: str, payment_plan: 
     return PlanPricing.objects.filter(plan=plan, billing_cycle=billing_cycle).first()
 
 def ensure_owner_global_identity_is_new(request, *, email: str, username: str):
+    errors = []
     with schema_context(get_public_schema_name()):
         if User.objects.filter(email=email).exists():
-            messages.warning(request,
-                             f"A user with email {email} already exists.")
-            return False
+            errors.append(f"A user with email {email} already exists.")
         if User.objects.filter(username=username).exists():
-            messages.warning(request,
-                             f"A user with username {username} already exists.")
-            return False
-    return True
+            errors.append(f"A user with username {username} already exists.")
+    return (len(errors) == 0), errors
 
 def clean_lower(val: str | None) -> str: # Utility to clean and lowercase form inputs
     return (val or "").strip().lower()
@@ -108,8 +105,14 @@ def create_tenant(request):
     if not plan:
         return JsonResponse({"error": "Invalid plan selected."}, status=400)
     
-    if not ensure_owner_global_identity_is_new(request, email=data["email"], username=data["owner_name"]):
-        return render(request, "customers/create_tenant.html", {"data": data})
+    ok, errors = ensure_owner_global_identity_is_new(
+        request,
+        email=data["email"], 
+        username=data["email"],
+    )
+    
+    if not ok:
+        return render(request, "customers/create_tenant.html", {"data": data, "errors": errors})
 
     if data["subscription_type"] == "trial":
         if Client.objects.filter(email=data["email"], used_trial=True).exists():

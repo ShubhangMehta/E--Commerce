@@ -128,6 +128,17 @@
     <form method="POST" onsubmit="enableFieldsBeforeSubmit()">
         {% csrf_token %}
 
+        {% if errors %}
+            <div style="background:#fff4e5;border:1px solid #f59e0b;padding:12px;border-radius:6px;margin-bottom:12px;">
+                <strong>Error:</strong>
+                <ul style="margin:8px 0 0 18px;">
+                {% for e in errors %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         {% if not show_payment %}
 
             <!-- Owner Name -->

@@ -40,8 +40,14 @@ def tenant_customer_signup(request):
             messages.error(request, "Passwords do not match.")
             return render(request, _theme_path(request, "signup.html"))
         
-        if not ensure_owner_global_identity_is_new(request, email=email, username=username):
-            return render(request, _theme_path(request, "signup.html"))
+        ok, errors = ensure_owner_global_identity_is_new(
+        request,
+        email=email, 
+        username=username,
+        )
+    
+        if not ok:
+            return render(request, _theme_path(request, "signup.html"), {"data": request.POST, "errors": errors})
         
         # Create/get GLOBAL user (usually in public schema in django-tenants setups)
         with schema_context("public"):
