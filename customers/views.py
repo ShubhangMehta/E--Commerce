@@ -6,12 +6,14 @@ from django.db import transaction
 from django.contrib import messages
 from django.views.decorators.http import require_GET
 import re
-
+from django.contrib.auth import get_user_model
+from django_tenants.utils import schema_context, get_public_schema_name
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
 from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
 
+User = get_user_model()
 
 def home(request):
     context = {
@@ -40,6 +42,18 @@ def _find_pricing(plan: SubscriptionPlan, subscription_type: str, payment_plan: 
     else:
         billing_cycle = (payment_plan or "monthly").lower()
     return PlanPricing.objects.filter(plan=plan, billing_cycle=billing_cycle).first()
+
+def ensure_owner_global_identity_is_new(request, *, email: str, username: str):
+    with schema_context(get_public_schema_name()):
+        if User.objects.filter(email=email).exists():
+            messages.warning(request,
+                             f"A user with email {email} already exists.")
+            return False
+        if User.objects.filter(username=username).exists():
+            messages.warning(request,
+                             f"A user with username {username} already exists.")
+            return False
+    return True
 
 def clean_lower(val: str | None) -> str: # Utility to clean and lowercase form inputs
     return (val or "").strip().lower()
@@ -93,6 +107,9 @@ def create_tenant(request):
     plan = SubscriptionPlan.objects.filter(name__iexact=data["plan_name"]).first()
     if not plan:
         return JsonResponse({"error": "Invalid plan selected."}, status=400)
+    
+    if not ensure_owner_global_identity_is_new(request, email=data["email"], username=data["owner_name"]):
+        return render(request, "customers/create_tenant.html", {"data": data})
 
     if data["subscription_type"] == "trial":
         if Client.objects.filter(email=data["email"], used_trial=True).exists():

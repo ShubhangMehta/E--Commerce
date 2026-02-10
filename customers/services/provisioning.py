@@ -73,14 +73,15 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     status='active'
                 )
 
-    temp_password = get_random_string(length=12)  # Generate a temporary password
+    temp_password = get_random_string(length=12)
+    username = f"{tenant_request.owner_name.split(' ')[0].lower()}_{get_random_string(3).lower()}"
 
     with schema_context(get_public_schema_name()):
         # Create global user (if needed) and link to tenant's SubjectMember
         user, created = get_or_create_global_user(
             first_name=tenant_request.owner_name.split()[0] if tenant_request.owner_name else "",
             last_name=" ".join(tenant_request.owner_name.split()[1:]) if tenant_request.owner_name else "",
-            username=tenant_request.email.strip().lower(),
+            username=username,
             email=tenant_request.email.strip().lower(),
             password=temp_password
         )
@@ -115,6 +116,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 "domain": full_domain,
                 "plan": plan.name,
                 "email": tenant_request.email,
+                "username": username,
                 "subscription_type": "Trial" if subscription.is_trial else "Paid",
                 "login_url": f"https://{full_domain}/login/",
                 "dashboard_url": f"https://{full_domain}/dashboard/",

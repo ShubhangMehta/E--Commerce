@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.db import connection
 from django.db import transaction
 from django_tenants.utils import schema_context
+from customers.views import ensure_owner_global_identity_is_new
 
 from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole
@@ -33,12 +34,15 @@ def tenant_customer_signup(request):
 
         if not email or not username or not password or not first_name:
             messages.error(request, "Please fill in all required fields.")
-            return redirect("themes:tenant_customer_signup")  # or "tenant_customer_signup" if not namespaced
+            return render(request, _theme_path(request, "signup.html"))
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return redirect("themes:tenant_customer_signup")
-
+            return render(request, _theme_path(request, "signup.html"))
+        
+        if not ensure_owner_global_identity_is_new(request, email=email, username=username):
+            return render(request, _theme_path(request, "signup.html"))
+        
         # Create/get GLOBAL user (usually in public schema in django-tenants setups)
         with schema_context("public"):
             user, created = get_or_create_global_user(first_name, last_name, username, email, password)
