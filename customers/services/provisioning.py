@@ -1,8 +1,8 @@
 # customers/services/provisioning.py
-from django.db import transaction
+from django.db import transaction, connection
 from django.utils import timezone
 from datetime import timedelta
-from django_tenants.utils import schema_context
+from django_tenants.utils import schema_context, get_public_schema_name
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
@@ -73,11 +73,9 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     status='active'
                 )
 
-    with schema_context(tenant.schema_name):
-        call_command('migrate', interactive=False, verbosity=0)
-
     temp_password = get_random_string(length=12)  # Generate a temporary password
-    with schema_context("public"):
+
+    with schema_context(get_public_schema_name()):
         # Create global user (if needed) and link to tenant's SubjectMember
         user, created = get_or_create_global_user(
             first_name=tenant_request.owner_name.split()[0] if tenant_request.owner_name else "",
@@ -87,21 +85,24 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
             password=temp_password
         )
 
-    with schema_context(tenant.schema_name):
-        call_command('migrate', interactive=False, verbosity=0)
+    connection.set_schema_to_public()   # Ensure we're on public schema before running migrations for the new tenant
+    call_command('migrate_schemas', schema_name=tenant.schema_name, interactive=False, verbosity=0)
 
+    with schema_context(tenant.schema_name):    
         #create owner and admin SubjectMember
-        SubjectMember.objects.get_or_create(
-            global_user_id=user.id, # No global user yet, will link on first login
-            defaults={
-                "role": TenantRole.OWNER,
-                "full_name": tenant_request.owner_name,
-                "email": tenant_request.email,
-                "phone": None,
-                "is_active": True,
-            }
-        )
-
+        U1= SubjectMember.objects.get_or_create(
+                global_user_id=user.id, # No global user yet, will link on first login
+                defaults={
+                    "role": TenantRole.OWNER,
+                    "full_name": tenant_request.owner_name,
+                    "email": tenant_request.email,
+                    "phone": None,
+                    "is_active": True,
+                }
+            )
+        
+    print("U1 SubjectMember created:", U1[1], "for user:", user.email, "with role OWNER ✅")
+    
     try:
         send_html_email(
             subject="Your Store Is Ready",
@@ -113,6 +114,7 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                 "company": tenant_request.company,
                 "domain": full_domain,
                 "plan": plan.name,
+                "email": tenant_request.email,
                 "subscription_type": "Trial" if subscription.is_trial else "Paid",
                 "login_url": f"https://{full_domain}/login/",
                 "dashboard_url": f"https://{full_domain}/dashboard/",

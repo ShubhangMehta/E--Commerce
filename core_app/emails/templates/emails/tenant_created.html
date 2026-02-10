@@ -11,8 +11,11 @@
         <ul>
             <li><strong>Tenant Name:</strong> {{ tenant_name }}</li>
             <li><strong>Company:</strong> {{ company }}</li>
+            <li><strong>Owner Name:</strong> {{ owner_name }}</li>
+            <li><strong>Owner Email:</strong> {{ owner_email }}</li>
             <li><strong>Plan:</strong> {{ plan }}</li>
-            <li><strong>Email:</strong> {{ email }}</li>
+            <li><strong>Subscription Type:</strong> {{ subscription_type }}</li>
+            <li><strong>Valid Until:</strong> {{ valid_until }}</li>
         </ul>
 
         <h3>Domain Details:</h3>
@@ -21,16 +24,35 @@
         </ul>
 
         <p>
-            You can access your store dashboard here: 
-            <a href="{{ dashboard_url }}" style="color:blue;">{{ dashboard_url }}</a>
-        </p>
-        <p>
             Your login URL is: 
             <a href="{{ login_url }}" style="color:blue;">{{ login_url }}</a>
         </p>
 
-        {%if is_trial %}
-        <p> <strong> Trial Period: </strong> {{ trial_days }} days </p>
+        <p>
+            You can access your store dashboard here: 
+            <a href="{{ dashboard_url }}" style="color:blue;">{{ dashboard_url }}</a>
+        </p>
+        
+        <p>Temporary Password: {{ temp_password }}</p>
+        
+        {% if is_trial %}
+            <p style="margin-top:12px;">
+                ✅ Your <strong>{{ trial_days }}-day trial</strong> is active.
+                Trial ends on <strong>{{ valid_until }}</strong>.
+            </p>
+            <p style="margin-top:12px;">
+                During the trial, you can add products, test checkout, and explore the dashboard.
+            </p>
+        {% else %}
+            <p style="margin-top:12px;">
+                ✅ Your subscription is <strong>active</strong> ({{ plan }} – {{ subscription_type }}).
+                Valid until <strong>{{ valid_until }}</strong>.
+            </p>
+            {% if payment_id %}
+                <p style="margin-top:8px;">
+                Payment Reference: <strong>{{ payment_id }}</strong>
+                </p>
+            {% endif %}
         {% endif %}
 
         <p style="margin-top:20px;">You can now start adding your products in store.</p>

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
 from django.views.decorators.http import require_GET
+import re
 
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
@@ -40,6 +41,20 @@ def _find_pricing(plan: SubscriptionPlan, subscription_type: str, payment_plan: 
         billing_cycle = (payment_plan or "monthly").lower()
     return PlanPricing.objects.filter(plan=plan, billing_cycle=billing_cycle).first()
 
+def clean_lower(val: str | None) -> str: # Utility to clean and lowercase form inputs
+    return (val or "").strip().lower()
+
+def p_entry(val: str | None) -> str: # Utility to clean domain input (remove protocol, path, whitespace)
+    v = clean_lower(val)
+
+    v = re.sub(r"^https?://", "", v)  # Remove http:// or https://
+    v = re.sub(r"/.*$", "", v)         # Remove anything after first /
+
+    v = "".join(v.split())  # Remove all whitespace
+
+    v= v.strip(".")
+
+    return v
 
 @transaction.atomic
 def create_tenant(request):
@@ -48,17 +63,17 @@ def create_tenant(request):
 
     # POST
     data = {
-        "owner_name": request.POST.get("owner_name").strip().lower(),
-        "tenant_name": request.POST.get("tenant_name").strip().lower(),
-        "domain_name": request.POST.get("domain_name").strip().lower(),
+        "owner_name": clean_lower(request.POST.get("owner_name")),
+        "tenant_name": clean_lower(request.POST.get("tenant_name")),
+        "domain_name": p_entry(request.POST.get("domain_name")),
         "plan_name": request.POST.get("plan"),
         "subscription_type": request.POST.get("subscription_type"),  # trial / paid
         "payment_plan": request.POST.get("payment_plan"),            # monthly / yearly
         "theme": request.POST.get("theme"),
         "catalog_template": request.POST.get("catalog_template"),
-        "email": request.POST.get("email").strip().lower(),
-        "company": request.POST.get("company").strip().lower(),
-        "address": request.POST.get("address").strip().lower(),
+        "email": p_entry(request.POST.get("email")),
+        "company": p_entry(request.POST.get("company")),
+        "address": clean_lower(request.POST.get("address")),
         "logo": request.FILES.get("logo"),
     }
 
