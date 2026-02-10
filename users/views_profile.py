@@ -11,17 +11,8 @@ from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole
 from accounts.services import get_or_create_global_user
 
-import logging
-logger = logging.getLogger(__name__)
-
 @transaction.atomic
 def tenant_customer_signup(request):
-    logger.warning(
-        "🔥 tenant_customer_signup CALLED | host=%s | schema=%s | method=%s",
-        request.get_host(),
-        getattr(getattr(request, "tenant", None), "schema_name", "unknown"),
-        request.method
-    )
 
     if request.method == "POST":
         first_name = request.POST.get("first_name", "").strip()
