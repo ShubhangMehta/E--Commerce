@@ -40,7 +40,6 @@ class TwoFactorCode(models.Model):
         return str(random.randint(100000, 999999))  
     
 
-
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     last_login_email = models.DateTimeField(null=True, blank=True)

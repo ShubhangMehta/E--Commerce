@@ -32,7 +32,7 @@ class OrderService:
         # 1️⃣ Validate & fetch shipping address
         address = Coordinate.objects.get(
             id=address_id,
-            subject=subject
+            user=subject
         )
 
         # 2️⃣ Calculate totals from cart_items

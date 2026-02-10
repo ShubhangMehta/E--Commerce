@@ -22,7 +22,8 @@ urlpatterns = [
     #path("checkout/", views.checkout, name="checkout"),
     path("profile/", views.profile, name="profile"),
     path("login/", views.login, name="login"),
-    path("signup/", views.signup, name="signup"),
+
+    #path("signup/", views.signup, name="signup"),
     path("login/", c_views.login_view, name="login"),
     #path('previous_order_listing/',views.previous_order_listing,name="previous_order_listing")
 ]

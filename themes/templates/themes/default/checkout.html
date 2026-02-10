@@ -20,30 +20,32 @@
         <form method="post" novalidate>
           {% csrf_token %}
 
-          {% if form and form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-          {% endif %}
+          <div class="mb-3">
+  <div class="fw-semibold mb-2">Select delivery address</div>
 
-          {% if form %}
-            <div class="row g-3">
-              {% for field in form %}
-                <div class="col-12 {% if field.name in 'first_name,last_name,city,state,zip_code' %}col-md-6{% endif %}">
-                  <label class="form-label">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger small mt-1">{{ field.errors }}</div>
-                  {% endif %}
-                  {% if field.help_text %}
-                    <div class="text-muted2 small">{{ field.help_text }}</div>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="alert alert-light mb-0">
-              No checkout form provided. Pass a Django form as <code>form</code> from the view.
-            </div>
-          {% endif %}
+  {% if addresses %}
+      {% for address in addresses %}
+        <label class="border rounded p-3 mb-2 w-100 d-block">
+            <input 
+                type="radio"
+                name="address_id"
+                value="{{ address.id }}"
+                required
+                class="form-check-input me-2"
+            >
+
+            <strong>{{ address.full_name }}</strong><br>
+            {{ address.house_no }}, {{ address.landmark }}<br>
+            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+            Phone: {{ address.phone }}
+        </label>
+      {% endfor %}
+  {% else %}
+      <div class="alert alert-warning">
+          No address found. Please add an address in your profile first.
+      </div>
+  {% endif %}
+</div>
 
           <div class="mt-4 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn btn-brand">Place order</button>

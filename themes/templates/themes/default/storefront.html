@@ -225,6 +225,61 @@
        box-shadow:0 12px 30px rgba(0,0,0,.08);
      }
 
+     .table-row{
+      display:flex;
+      justify-content:space-between;
+      padding:14px 0;
+      border-bottom:1px solid var(--line);
+    }
+    
+    .table-row:last-child{
+      border-bottom:none;
+    }
+    
+    .table-cell{
+      flex:1;
+    }
+    
+    /* ============================= */
+    /* ORDER ITEMS LIST */
+    /* ============================= */
+    
+    .order-item{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      padding:18px 0;
+      border-bottom:1px solid var(--line);
+    }
+    
+    .order-item:last-child{
+      border-bottom:none;
+    }
+    
+    .order-item img{
+      width:110px;
+      height:110px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    
+    .order-item-details h4{
+      margin-bottom:6px;
+      font-weight:700;
+    }
+    
+    /* ============================= */
+    /* INVOICE BLOCK */
+    /* ============================= */
+    
+    .invoice-box{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+    }
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -320,16 +375,12 @@
         <!-- Right links -->
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <!-- <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'profile' %}active-link{% endif %}" href="{% url 'profile' %}">
-                Profile
-              </a>
-            </li> -->
+            
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
               </a>
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'user_theme:profile' %}">
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
                 Profile
               </a>
             </li>

@@ -20,7 +20,7 @@ urlpatterns = [
 
     # TENANT DASHBOARD ORDERS ONLY
     path("orders/", dashboard_views.OrderListView.as_view(), name="dashboard_order_list"),
-    path("orders/<int:order_id>/", dashboard_views.OrderDetailView.as_view(), name="dashboard_order_detail"),
+    path("orders/<int:pk>/", dashboard_views.OrderDetailView.as_view(), name="dashboard_order_detail"),
     #path("orders/<int:order_id>/invoice/", dashboard_views.invoice_view, name="invoice"),
     #path("orders/<int:order_id>/invoice/pdf/", dashboard_views.invoice_pdf, name="invoice_pdf"),
 ]

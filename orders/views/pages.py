@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from orders.models import Order
 from django.views import View
-
+from orders.services.order_service import OrderService
+from users.views.theme_views import get_subject_member
 
 
 class OrderBaseView(View):
@@ -33,20 +34,33 @@ class OrderBaseView(View):
 
 
 class OrderDetailView(OrderBaseView):
-    """
-    Order detail view for both tenant and customer
-    """
 
     def get(self, request, pk):
-        order = get_object_or_404(Order, id=pk)
+        if self.is_tenant(request):
+            order = get_object_or_404(Order, id=pk)
+        else:
+            subject = get_subject_member(request)
+            order = get_object_or_404(Order, id=pk, subject=subject)
 
         template = (
             "orders/dashboard/dashboardorder_detail.html"
-            if self.is_tenant(request)
-            else "orders/customer/order_detail.html"
+            #if self.is_tenant(request)
+            #else "orders/customer/order_detail.html"
         )
 
         return render(request, template, {"order": order})
+
+    # ⭐ ADD THIS
+    def post(self, request, pk):
+        #if not self.is_tenant(request):
+            #return redirect("storefront")
+
+        order = get_object_or_404(Order, id=pk)
+
+        new_status = request.POST.get("status")
+        OrderService.update_status(order=order, new_status=new_status)
+
+        return redirect("orders:dashboard_order_detail", pk=pk)
 
 
 class OrderListView(OrderBaseView):

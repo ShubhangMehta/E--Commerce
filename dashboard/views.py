@@ -2,6 +2,10 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .services.app_registry import TENANT_APPS
+from catalog.models import SingleProduct
+from orders.models import Order
+from users.models import SubjectMember  # if you created this app
+
 
 #@login_required
 def dashboard(request):
@@ -13,6 +17,11 @@ def dashboard(request):
     else:
         client = request.tenant
     theme = client.theme
+    product_count = SingleProduct.objects.count()
+    order_count = Order.objects.filter(tenant=client).count()
+
+    # if visitor tracking exists
+    visitor_count = SubjectMember.objects.count()
 
     for app in TENANT_APPS:
         apps.append({
@@ -26,6 +35,9 @@ def dashboard(request):
         'apps': apps,
         'tenant': client,
         'theme_base': f"themes/{theme}/storefront.html",
+        "product_count": product_count,
+        "order_count": order_count,
+        "visitor_count": visitor_count,
     })
 
 

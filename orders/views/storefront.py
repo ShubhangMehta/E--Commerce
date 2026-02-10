@@ -40,7 +40,7 @@ def checkout_view(request):
 
         _set_cart(request.session, {})
 
-        return redirect("order_success", order_id=order.id)
+        return redirect("orders_storefront:order_success", order_id=order.id)
 
     return render(request, _theme_path(request, "checkout.html"), {
         "cart_items": cart_items,
@@ -53,7 +53,7 @@ def order_success_view(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        subject=request.subject
+        subject = get_subject_member(request)
     )
 
     return render(request, _theme_path(request, "order_success.html"), {
@@ -62,7 +62,8 @@ def order_success_view(request, order_id):
 @login_required
 def my_orders_view(request):
     orders = Order.objects.filter(
-        subject=request.subject
+        subject=get_subject_member(request)
+
     ).order_by("-created_at")
 
     return render(request, _theme_path(request, "previous_order_listing.html"), {
@@ -74,14 +75,13 @@ def order_detail_view(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        subject=request.subject
+        subject = get_subject_member(request)
     )
 
     items = order.items.all()
 
     return render(
-        request,
-        _theme_path(request, "order_detail.html"),
+        request, "orders/customer/order_detail.html",
         {
             "order": order,
             "items": items,
@@ -97,7 +97,7 @@ def invoice_view(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        subject=request.subject
+        subject = get_subject_member(request)
     )
     items = order.items.all()
 
@@ -116,7 +116,7 @@ def invoice_pdf_view(request, order_id):
     order = get_object_or_404(
         Order,
         id=order_id,
-        subject=request.subject
+        subject = get_subject_member(request)
     )
     items = order.items.all()
 

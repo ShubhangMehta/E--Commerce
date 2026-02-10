@@ -3,81 +3,85 @@
 {% block title %}Profile | Default Store{% endblock %}
 
 {% block content %}
+
 <div class="container">
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
       <h1 class="h4 fw-bold mb-1">Your Profile</h1>
-      <div class="text-muted2">Account details and basic actions.</div>
+      <div class="text-muted2">Edit your details and manage addresses.</div>
     </div>
   </div>
 
   <div class="row g-3">
+    <!-- LEFT: Tenant Profile -->
     <div class="col-12 col-lg-5">
       <div class="card p-4">
-        <div class="fw-semibold mb-2">Account</div>
+        <div class="fw-semibold mb-3">Profile details</div>
 
-        <div class="mb-2">
-          <div class="text-muted2 small">Name</div>
-          <div class="fw-semibold">
-            {{ user.get_full_name|default:user.username }}
+        <form method="post" action="{% url 'profile' %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <div class="text-muted2 small">Full name</div>
+            <input class="form-control" name="full_name" value="{{ member.full_name }}">
           </div>
-        </div>
 
-        <div class="mb-2">
-          <div class="text-muted2 small">Email</div>
-          <div class="fw-semibold">{{ user.email|default:"—" }}</div>
-        </div>
+          <div class="mb-3">
+            <div class="text-muted2 small">Phone</div>
+            <input class="form-control" name="phone" value="{{ member.phone|default:'' }}">
+          </div>
 
-        <div class="mb-2">
-          <div class="text-muted2 small">Username</div>
-          <div class="fw-semibold">{{ user.username }}</div>
-        </div>
+          <div class="mb-3">
+            <div class="text-muted2 small">Role</div>
+            <input class="form-control" value="{{ member.role }}" readonly>
+          </div>
 
-        <hr class="my-4">
+          <div class="mb-3">
+            <div class="text-muted2 small">Email (global login)</div>
+            <input class="form-control" value="{{ user.email|default:user.username }}" readonly>
+          </div>
 
-        <div class="d-flex gap-2 flex-wrap">
-          {# Update these URL names to match your project #}
-          <a class="btn btn-brand" href="{% url 'password_change' %}">Change password</a>
-          <a class="btn btn-outline-dark" href="{% url 'logout' %}">Logout</a>
-        </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-dark" type="submit">Save</button>
+          </div>
+        </form>
       </div>
     </div>
 
+    <!-- RIGHT: Addresses -->
     <div class="col-12 col-lg-7">
       <div class="card p-4">
-        <div class="fw-semibold mb-2">Recent activity</div>
-        <div class="text-muted2 mb-3">Optional section: orders, logins, etc.</div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <div class="fw-semibold">Addresses</div>
+            <div class="text-muted2">Home / Work / Office / Other</div>
+          </div>
+          <a class="btn btn-outline-dark" href="{% url 'users:address_add' %}">Add address</a>
+        </div>
 
-        {# Expecting optional: recent_orders iterable #}
-        {% if recent_orders %}
-          <div class="table-responsive">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th class="text-end">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for o in recent_orders %}
-                  <tr>
-                    <td>#{{ o.id }}</td>
-                    <td>{{ o.created_at|date:"d M Y" }}</td>
-                    <td>
-                      <span class="badge text-bg-light border">{{ o.status|default:"—" }}</span>
-                    </td>
-                    <td class="text-end fw-semibold">{{ o.total|default:"—" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+        {% if addresses %}
+          <div class="list-group">
+            {% for a in addresses %}
+              <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ a.address_type|title }}
+                    {% if a.is_default %}
+                      <span class="badge text-bg-light border ms-2">Default</span>
+                    {% endif %}
+                  </div>
+                  <div class="text-muted2 small">{{ a.full_name }} · {{ a.phone }}</div>
+                  <div>{{ a.house_no }}, {{ a.landmark }}, {{ a.city }}, {{ a.state }} - {{ a.postal_code }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-sm btn-outline-dark" href="{% url 'users:address_edit' a.id %}">Edit</a>
+                  <a class="btn btn-sm btn-outline-danger" href="{% url 'users:address_delete' a.id %}">Delete</a>
+                </div>
+              </div>
+            {% endfor %}
           </div>
         {% else %}
-          <div class="alert alert-light mb-0">
-            No recent activity to show yet. When you add orders, pass them as <code>recent_orders</code>.
-          </div>
+          <div class="alert alert-light mb-0">No addresses yet.</div>
         {% endif %}
       </div>
     </div>
@@ -85,9 +89,3 @@
 </div>
 {% endblock %}
 
-<!-- 
-<div class="d-flex gap-2">
-      {# Update to your dashboard URL name if you have it #}
-      <a class="btn btn-sm btn-outline-dark" href="{% url 'dashboard' %}">Dashboard</a>
-      <a class="btn btn-sm btn-brand" href="{% url 'product_list' %}">Shop</a>
-    </div> -->
