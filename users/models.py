@@ -9,6 +9,7 @@ class TenantRole(models.TextChoices):
     CUSTOMER = "CUSTOMER", "Customer"
 
 
+
 class SubjectMember(models.Model):
     """
     Tenant-scoped "who is this global user inside this tenant?"

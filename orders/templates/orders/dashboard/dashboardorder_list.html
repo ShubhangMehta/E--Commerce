@@ -1,0 +1,67 @@
+{% extends theme_storefront %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+<div class="page-title">Orders</div>
+
+<div class="section">
+
+    {% if orders %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order No</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th style="width:160px;">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+
+                <td>
+                    <span class="pill">
+                        {{ order.customer.username }}
+                    </span>
+                </td>
+
+                <td>
+                    {% if order.status == "Completed" %}
+                        <span class="pill pill-success">{{ order.status }}</span>
+                    {% elif order.status == "Pending" %}
+                        <span class="pill pill-warning">{{ order.status }}</span>
+                    {% elif order.status == "Cancelled" %}
+                        <span class="pill pill-danger">{{ order.status }}</span>
+                    {% else %}
+                        <span class="pill pill-info">{{ order.status }}</span>
+                    {% endif %}
+                </td>
+
+                <td><strong>₹{{ order.total_amount }}</strong></td>
+
+                <td>
+                    <a href="{% url 'orders:dashboardorder_detail' order.id %}" class="btn btn-soft btn-sm">View</a>
+                    
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="alert-soft">
+            No orders found yet.
+            <td>
+                    
+                    
+                </td>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,18 +1,18 @@
 TENANT_APPS = [
     {
         'key': 'users',
-        'name': 'Users',
+        'name': 'Customers',
         'url_name': 'users:list',   # adjust to your urls
         'description': 'Manage users and roles',
         'icon': 'users',
     },
-#    {
-#    'key': 'orders',
-#    'name': 'Orders',
-#    'url_name': 'orders:list',
-#    'description': 'View and manage customer orders',
-#    'icon': 'shopping-cart',
-#},
+    {
+    'key': 'orders',
+    'name': 'Orders',
+    'url_name': 'orders:dashboard_order_list',
+    'description': 'View and manage customer orders',
+    'icon': 'shopping-cart',
+},
 {
     'key': 'catalog',
     'name': 'catalog',
