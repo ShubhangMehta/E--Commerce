@@ -19,7 +19,7 @@ urlpatterns = [
 
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
 
-    path("", include("themes.urls")),  # Storefront and cart/checkout
+    path("", include("themes.urls")),       # Storefront and cart/checkout
 
     path('catalog/', include('catalog.urls',namespace="catalog")),
     path('orders/', include('orders.urls',namespace="orders")),
