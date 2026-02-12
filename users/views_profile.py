@@ -1,11 +1,70 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-
+from django.contrib.auth import authenticate, login
 from django.db import connection
+from django.db import transaction
+from django_tenants.utils import schema_context
+from customers.views import ensure_owner_global_identity_is_new
+
 from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole
+from accounts.services import get_or_create_global_user
 
+@transaction.atomic
+def tenant_customer_signup(request):
+
+    if request.method == "POST":
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        phone = request.POST.get("phone", "").strip()  # only if you add this input in HTML
+        email = request.POST.get("email", "").strip().lower()
+        username = request.POST.get("username", "").strip().lower()  # using email as username
+        password = request.POST.get("password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
+
+        if not email or not username or not password or not first_name:
+            messages.error(request, "Please fill in all required fields.")
+            return render(request, _theme_path(request, "signup.html"))
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, _theme_path(request, "signup.html"))
+        
+        ok, errors = ensure_owner_global_identity_is_new(
+        request,
+        email=email, 
+        username=username,
+        )
+    
+        if not ok:
+            return render(request, _theme_path(request, "signup.html"), {"data": request.POST, "errors": errors})
+        
+        # Create/get GLOBAL user (usually in public schema in django-tenants setups)
+        with schema_context("public"):
+            user, created = get_or_create_global_user(first_name, last_name, username, email, password)
+
+        # Create the tenant member in TENANT schema
+        SubjectMember.objects.get_or_create(
+            global_user_id=user.id,
+            defaults={
+                "role": TenantRole.CUSTOMER,
+                "full_name": f"{first_name} {last_name}".strip(),
+                "email": email,
+                "phone": phone,
+                "is_active": True,
+            }
+        )
+
+        # Log the user in
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+
+        return redirect("index")  # or "store_index" etc.
+
+    # ✅ GET must render signup page
+    return render(request, _theme_path(request, "signup.html"))
 
 @login_required
 def profile_view(request):
@@ -21,8 +80,6 @@ def profile_view(request):
             is_active=True,
         )
     
-    print("PROFILE schema:", connection.schema_name, "member:", member.id, member.global_user_id)
-    
     if request.method == "POST":
         member.full_name = request.POST.get("full_name", "").strip()
         member.phone = request.POST.get("phone", "").strip()
@@ -33,13 +90,6 @@ def profile_view(request):
 
     addresses = Coordinate.objects.filter(user=member).order_by("-is_default", "-id")
 
-    print("PROFILE schema:", connection.schema_name,
-      "member.id:", member.id,
-      "global_user_id:", member.global_user_id,
-      "addr_count:", Coordinate.objects.filter(user=member).count())
-    
-
-    
     return render(request, _theme_path(request, "profile.html"), {
         "storefront": _theme_path(request, "storefront.html"),
         "member": member,
@@ -66,14 +116,6 @@ def address_add(request):
             address_type=request.POST.get("address_type", "home"),
             is_default=(request.POST.get("is_default") == "on"),
         )
-
-        print("ADDR_ADD schema:", connection.schema_name, "addr:", addr.id, "member:", member.id)
-
-        print("ADDR_ADD schema:", connection.schema_name,
-              "member.id:", member.id,
-              "global_user_id:", member.global_user_id,
-              "addr.id:", addr.id)
-
 
         if addr.is_default:
             Coordinate.objects.filter(user=member).exclude(id=addr.id).update(is_default=False)
