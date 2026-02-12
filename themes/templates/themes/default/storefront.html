@@ -71,6 +71,21 @@
       border-radius: 14px;
     }
 
+    .product-img{
+        height: 220px;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+    }
+
+    /* Force image to fill the box */
+    .product-img img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -117,6 +132,169 @@
       color: var(--brand-blue) !important;
       font-weight: 700;
     }
+    .page-title{
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .section{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    .table{
+     background:#fff;
+     border-radius:14px;
+     overflow:hidden;
+     border:1px solid var(--line);
+    }
+
+    .table thead{
+       background: var(--soft);
+     }
+
+    .table th{
+       font-weight:700;
+       border-bottom:1px solid var(--line);
+     }
+
+    .table td{
+       vertical-align:middle;
+       border-color:var(--line);
+     }
+    .pill-success{
+       background:#e7f8ee;
+       color:#15803d;
+       border-color:#bbf7d0;
+     }
+
+    .pill-danger{
+       background:#fef2f2;
+       color:#b91c1c;
+       border-color:#fecaca;
+     }
+
+    .pill-warning{
+       background:#fffbeb;
+       color:#b45309;
+       border-color:#fde68a;
+     }
+
+    .pill-info{
+       background:#eff6ff;
+       color:#1d4ed8;
+       border-color:#bfdbfe;
+     }
+    .btn-soft{
+       background: var(--soft);
+       border: 1px solid var(--line);
+       color: var(--ink);
+     }
+
+    .btn-soft:hover{
+       background: var(--brand-blue);
+       color:#fff;
+       border-color: var(--brand-blue);
+     }
+    .alert-soft{
+       background: var(--soft);
+       border:1px solid var(--line);
+       color: var(--ink);
+       border-radius:12px;
+     }
+    .form-control{
+       border-radius:10px;
+       border:1px solid var(--line);
+     }
+
+    .form-control:focus{
+       border-color: var(--brand-blue);
+       box-shadow:0 0 0 2px rgba(13,110,253,.15);
+     }
+    .stat-card{
+       background:#fff;
+       border:1px solid var(--line);
+       border-radius:18px;
+       padding:20px;
+       box-shadow:0 8px 24px rgba(0,0,0,.04);
+     }
+
+    .stat-title{
+       font-size:14px;
+       color:var(--muted);
+     }
+
+    .stat-value{
+       font-size:30px;
+       font-weight:800;
+       color:var(--ink);
+     }
+    .card-hover{
+       transition:.2s ease;
+     }
+    .card-hover:hover{
+       transform: translateY(-3px);
+       box-shadow:0 12px 30px rgba(0,0,0,.08);
+     }
+
+     .table-row{
+      display:flex;
+      justify-content:space-between;
+      padding:14px 0;
+      border-bottom:1px solid var(--line);
+    }
+    
+    .table-row:last-child{
+      border-bottom:none;
+    }
+    
+    .table-cell{
+      flex:1;
+    }
+    
+    /* ============================= */
+    /* ORDER ITEMS LIST */
+    /* ============================= */
+    
+    .order-item{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      padding:18px 0;
+      border-bottom:1px solid var(--line);
+    }
+    
+    .order-item:last-child{
+      border-bottom:none;
+    }
+    
+    .order-item img{
+      width:110px;
+      height:110px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    
+    .order-item-details h4{
+      margin-bottom:6px;
+      font-weight:700;
+    }
+    
+    /* ============================= */
+    /* INVOICE BLOCK */
+    /* ============================= */
+    
+    .invoice-box{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+    }
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -126,38 +304,7 @@
   {# Tenant reference: django-tenants usually provides request.tenant = Client instance #}
   {% with t=request.tenant %}
 
-  <!-- Top bar (tenant identity + quick stats from Client model) -->
-  <div class="topbar py-2">
-    <div class="container d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <span class="pill">
-          <span class="fw-semibold text-dark">
-            {{ t.tenant_name|default:t.company|default:"Tenant Store" }}
-          </span>
-          <span class="text-muted2">•</span>
-          <span class="text-muted2 small">
-            {{ t.desired_domain|default:request.get_host }}
-          </span>
-        </span>
-      </div>
-
-      <div class="d-flex flex-wrap gap-2">
-        <div class="mini-stat">
-          <span class="k">Products</span>
-          <span class="v">{{ t.product_count|default:"—" }}</span>
-        </div>
-        <div class="mini-stat">
-          <span class="k">Orders</span>
-          <span class="v">{{ t.order_count|default:"—" }}</span>
-        </div>
-        <div class="mini-stat">
-          <span class="k">Visitors (7d)</span>
-          <span class="v">{{ t.visitor_count_7d|default:"—" }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
+ 
   <!-- Main Nav -->
   <nav class="navbar navbar-expand-lg bg-white border-bottom">
     <div class="container py-2">
@@ -166,7 +313,7 @@
           <img src="{{ t.logo.url }}" alt="Logo" class="tenant-logo">
         {% endif %}
         <span>
-          {{ t.tenant_name|default:"Default" }}<span class="brand-dot">.</span>Store
+          {{ t.tenant_name|default:"Default" }}<span class="brand-dot">.</span>
         </span>
       </a>
 
@@ -177,15 +324,12 @@
       <div class="collapse navbar-collapse" id="topNav">
         <!-- Left links -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'index' %}active-link{% endif %}" href="{% url 'index' %}">
-              Home
-            </a>
-          </li>
+          
 
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'product_list' %}active-link{% endif %}" href="{% url 'product_list' %}">
-              Products
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
+              href="{% url 'catalog:single-product-list' %}">
+            Products
             </a>
           </li>
 
@@ -196,7 +340,7 @@
           </li>
 
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'previous_order_listing' %}active-link{% endif %}" href="{% url 'previous_order_listing' %}">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
               Orders
             </a>
           </li>
@@ -211,18 +355,17 @@
         <!-- Right links -->
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'profile' %}active-link{% endif %}" href="{% url 'profile' %}">
-                Profile
-              </a>
-            </li>
+            
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
               </a>
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
+                Profile
+              </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'checkout' %}">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'orders_storefront:checkout' %}">
                 Checkout
               </a>
             </li>
@@ -271,21 +414,13 @@
         <div class="fw-semibold">
           {{ t.company|default:t.tenant_name|default:"Default.Store" }}
         </div>
-        <div class="text-muted2 small">
-          {{ t.address|default:"Clean, simple theme (white / black / blue)." }}
-        </div>
+
         {% if t.email %}
           <div class="text-muted2 small">Support: {{ t.email }}</div>
         {% endif %}
       </div>
 
-      <div class="text-muted2 small">
-        <div>Domain: {{ t.desired_domain|default:request.get_host }}</div>
-        <div>
-          Active users: {{ t.active_users|default:"—" }}
-          • Last login: {{ t.last_login|date:"d M Y, h:i A"|default:"—" }}
-        </div>
-      </div>
+      
     </div>
   </footer>
 

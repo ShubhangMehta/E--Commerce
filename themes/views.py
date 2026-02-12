@@ -27,7 +27,11 @@ def index(request):
     Optional: You can pass featured_products + counts pulled from tenant if you want.
     """
     # Example for featured list: you can change filter later (e.g. is_featured=True)
-    featured_products = SingleProduct.objects.all()[:6]
+    featured_products = (
+    SingleProduct.objects
+    .prefetch_related("images")
+    .order_by("-id")[:6]
+)
 
     context = {
         "featured_products": featured_products,
@@ -209,40 +213,157 @@ def cart_remove(request):
     return redirect("cart")
 
 
+# -----------------------------
+# CHECKOUT + ORDERS (stubs you can connect to your real orders app)
+# -----------------------------
+
+#@require_http_methods(["GET", "POST"])
+#@login_required
+#def checkout(request):
+#    """
+#    Checkout page.
+#    - Shows cart summary on GET
+#    - On POST, creates an order (stub) and redirects to success
+#
+#    Templates:
+#      - checkout.html expects cart_items, cart_total and optionally 'form'
+#      - order_success.html expects 'order' (and optionally 'order_items')
+#    """
+#    cart_data = _get_cart(request.session)
+#    cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
+#
+#    if not cart_items:
+#        messages.info(request, "Your cart is empty.")
+#        return redirect("product_list")
+#
+#    if request.method == "POST":
+#        # If you have a real Order model, create it here.
+#        # This stub stores a minimal order in session.
+#        with transaction.atomic():
+#            order_id = request.session.get("last_order_id", 0) + 1
+#            request.session["last_order_id"] = order_id
+#
+#            order = {
+#                "id": order_id,
+#                "status": "Processing",
+#                "total": cart_total,
+#                "payment_status": "Pending",
+#            }
+#
+#            # Keep simple history for "previous_order_listing"
+#            history = request.session.get("orders_history", [])
+#            history.insert(
+#                0,
+#                {
+#                    "id": order_id,
+#                    "status": order["status"],
+#                    "total": order["total"],
+#                    "created_at": None,  # optionally store timestamp as string
+#                },
+#            )
+#            request.session["orders_history"] = history
+#            request.session["last_order"] = order
+#            request.session.modified = True
+#
+#            # Clear cart
+#            _set_cart(request.session, {})
+#
+#        messages.success(request, "Order placed successfully.")
+#        return redirect("order_success")
+#
+#    context = {
+#        "cart_items": cart_items,
+#        "cart_subtotal": cart_subtotal,
+#        "cart_total": cart_total,
+#        "shipping_total": 0,
+#        "tax_total": 0,
+#        # If you later use a real CheckoutForm, pass it as "form"
+#        "form": None,
+#    }
+#    return render(request, _theme_path(request, "checkout.html"), context)
+#
+#
+#@login_required
+#def previous_order_listing(request):
+#    """
+#    Lists previous orders.
+#    If you have a real Order model, replace session logic with DB queries.
+#    Template: previous_order_listing.html expects 'orders'
+#    """
+#    orders = request.session.get("orders_history", [])
+#    return render(
+#        request,
+#        _theme_path(request, "previous_order_listing.html"),
+#        {"orders": orders},
+#    )
+#
+#
+#@login_required
+#def order_success(request):
+#    """
+#    Order success page.
+#    Loads the last order from session (stub) or from DB if you have Order model.
+#    Template: order_success.html expects 'order' (and optionally 'order_items')
+#    """
+#    order = request.session.get("last_order")
+#    if not order:
+#        messages.info(request, "No recent order found.")
+#        return redirect("previous_order_listing")
+#
+#    # If you have DB order items, load them here. For now, none.
+#    context = {
+#        "order": order,
+#        "order_items": None,
+#    }
+#    return render(request, _theme_path(request, "order_success.html"), context)
+#
+
+# -----------------------------
+# AUTH PAGES
+# -----------------------------
+
+@require_http_methods(["GET", "POST"])
+def signup(request):
+    """
+    Signup page.
+    Template: signup.html expects 'form'
+    """
+    if request.user.is_authenticated:
+        return redirect("profile")
+
+    form = UserCreationForm(request.POST or None)
+    if request.method == "POST":
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Account created.")
+            return redirect("profile")
+        messages.error(request, "Please correct the errors below.")
+
+    return render(request, _theme_path(request, "signup.html"), {"form": form})
+
+
+# If you already use Django's LoginView / LogoutView, keep using that.
+# The templates you generated will work with LoginView (login.html) by default.
+
+# -----------------------------
+# PROFILE
+# -----------------------------
 
 @login_required
-def previous_order_listing(request):
+def profile(request):
     """
-    Lists previous orders.
-    If you have a real Order model, replace session logic with DB queries.
-    Template: previous_order_listing.html expects 'orders'
+    Profile page.
+    Template: profile.html expects user and optionally recent_orders.
     """
-    orders = request.session.get("orders_history", [])
+    # If you have a real Order model, query recent orders here and pass as recent_orders.
+    recent_orders = request.session.get("orders_history", [])[:5]
+
     return render(
         request,
-        _theme_path(request, "previous_order_listing.html"),
-        {"orders": orders},
+        _theme_path(request, "profile.html"),
+        {"recent_orders": recent_orders},
     )
-
-
-@login_required
-def order_success(request):
-    """
-    Order success page.
-    Loads the last order from session (stub) or from DB if you have Order model.
-    Template: order_success.html expects 'order' (and optionally 'order_items')
-    """
-    order = request.session.get("last_order")
-    if not order:
-        messages.info(request, "No recent order found.")
-        return redirect("previous_order_listing")
-
-    # If you have DB order items, load them here. For now, none.
-    context = {
-        "order": order,
-        "order_items": None,
-    }
-    return render(request, _theme_path(request, "order_success.html"), context)
 
 def previous_order_listing(request):
     theme = request.tenant.theme

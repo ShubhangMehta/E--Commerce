@@ -1,15 +1,82 @@
 {% extends theme_base %}
+{% load static %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">{{ tenant.tenant_name }} Dashboard</h1>
 
-<div class="grid grid-cols-3 gap-4">
-    {% for app in apps %}
-        <div class="bg-white shadow p-4 rounded">
-            <h2 class="font-semibold">{{ app.name }}</h2>
-            <p>{{ app.description }}</p>
-            <a href="{{ app.url }}" class="text-blue-500 hover:underline mt-2 inline-block">Go</a>
+<div class="d-flex gap-4">
+
+    <!-- SIDEBAR -->
+    <div style="width:280px">
+
+        <div class="section">
+            <h5 class="fw-bold mb-3">Management</h5>
+
+            {% for app in apps %}
+            <a href="{{ app.url }}" class="card card-hover mb-3 p-3 text-decoration-none d-block">
+                <div class="fw-bold">{{ app.name }}</div>
+                <div class="text-muted2 small">{{ app.description }}</div>
+            </a>
+            {% endfor %}
+
         </div>
-    {% endfor %}
+    </div>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow-1">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <div class="page-title">{{ tenant.tenant_name }} Dashboard</div>
+                <div class="text-muted2">Welcome back 👋 Here’s your store overview.</div>
+            </div>
+
+            <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
+                + Add Product
+            </a>
+        </div>
+
+
+        <!-- QUICK STATS -->
+        <div class="row g-4 mb-4">
+
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-title">Products</div>
+                    <div class="stat-value">{{ product_count|default:"—" }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-title">Orders</div>
+                    <div class="stat-value">{{ order_count|default:"—" }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-title">Visitors</div>
+                    <div class="stat-value">{{ visitor_count|default:"—" }}</div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- OPTIONAL EMPTY STATE -->
+        {% if product_count == 0 %}
+        <div class="alert-soft p-4 text-center">
+            <h5 class="fw-bold mb-2">Your store is empty</h5>
+            <p class="text-muted2 mb-3">Start by adding your first product.</p>
+            <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
+                Add First Product
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
 </div>
+
 {% endblock %}
