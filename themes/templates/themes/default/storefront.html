@@ -71,6 +71,21 @@
       border-radius: 14px;
     }
 
+    .product-img{
+        height: 220px;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+    }
+
+    /* Force image to fill the box */
+    .product-img img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
     .pill{
       display:inline-flex;
       align-items:center;
@@ -289,38 +304,7 @@
   {# Tenant reference: django-tenants usually provides request.tenant = Client instance #}
   {% with t=request.tenant %}
 
-  <!-- Top bar (tenant identity + quick stats from Client model) -->
-  <div class="topbar py-2">
-    <div class="container d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <span class="pill">
-          <span class="fw-semibold text-dark">
-            {{ t.tenant_name|default:t.company|default:"Tenant Store" }}
-          </span>
-          <span class="text-muted2">•</span>
-          <span class="text-muted2 small">
-            {{ t.desired_domain|default:request.get_host }}
-          </span>
-        </span>
-      </div>
-
-      <div class="d-flex flex-wrap gap-2">
-        <div class="mini-stat">
-          <span class="k">Products</span>
-          <span class="v">{{ t.product_count|default:"—" }}</span>
-        </div>
-        <div class="mini-stat">
-          <span class="k">Orders</span>
-          <span class="v">{{ t.order_count|default:"—" }}</span>
-        </div>
-        <div class="mini-stat">
-          <span class="k">Visitors (7d)</span>
-          <span class="v">{{ t.visitor_count_7d|default:"—" }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
+ 
   <!-- Main Nav -->
   <nav class="navbar navbar-expand-lg bg-white border-bottom">
     <div class="container py-2">
@@ -329,7 +313,7 @@
           <img src="{{ t.logo.url }}" alt="Logo" class="tenant-logo">
         {% endif %}
         <span>
-          {{ t.tenant_name|default:"Default" }}<span class="brand-dot">.</span>Store
+          {{ t.tenant_name|default:"Default" }}<span class="brand-dot">.</span>
         </span>
       </a>
 
@@ -340,11 +324,7 @@
       <div class="collapse navbar-collapse" id="topNav">
         <!-- Left links -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'index' %}active-link{% endif %}" href="{% url 'index' %}">
-              Home
-            </a>
-          </li>
+          
 
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
@@ -434,21 +414,13 @@
         <div class="fw-semibold">
           {{ t.company|default:t.tenant_name|default:"Default.Store" }}
         </div>
-        <div class="text-muted2 small">
-          {{ t.address|default:"Clean, simple theme (white / black / blue)." }}
-        </div>
+
         {% if t.email %}
           <div class="text-muted2 small">Support: {{ t.email }}</div>
         {% endif %}
       </div>
 
-      <div class="text-muted2 small">
-        <div>Domain: {{ t.desired_domain|default:request.get_host }}</div>
-        <div>
-          Active users: {{ t.active_users|default:"—" }}
-          • Last login: {{ t.last_login|date:"d M Y, h:i A"|default:"—" }}
-        </div>
-      </div>
+      
     </div>
   </footer>
 

@@ -27,7 +27,11 @@ def index(request):
     Optional: You can pass featured_products + counts pulled from tenant if you want.
     """
     # Example for featured list: you can change filter later (e.g. is_featured=True)
-    featured_products = SingleProduct.objects.all()[:6]
+    featured_products = (
+    SingleProduct.objects
+    .prefetch_related("images")
+    .order_by("-id")[:6]
+)
 
     context = {
         "featured_products": featured_products,
