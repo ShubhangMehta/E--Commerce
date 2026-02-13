@@ -19,8 +19,8 @@ urlpatterns = [
     path("cart/remove/", views.cart_remove, name="cart_remove"),
 
     # Checkout + order success
-    path("profile/", views.profile, name="profile"),
-    path("login/", views.login, name="login"),
+    #path("profile/", views.profile, name="profile"),
+    #path("login/", views.login, name="login"),
 
     path("login/", c_views.login_view, name="login"),
 ]

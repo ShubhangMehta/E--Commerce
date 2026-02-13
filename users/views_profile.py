@@ -6,10 +6,32 @@ from django.db import connection
 from django.db import transaction
 from django_tenants.utils import schema_context
 from customers.views import ensure_owner_global_identity_is_new
+from django.contrib.auth.decorators import login_required
 
 from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole
 from accounts.services import get_or_create_global_user
+
+
+@login_required
+def users_home(request):
+    users = SubjectMember.objects.all()
+
+    # get tenant
+    if not request.user.is_authenticated:
+        # Replace with a tenant you want to preview
+        from customers.models import Client  # or whatever your Tenant model is
+        client = Client.objects.first()  # pick the first tenant for testing
+    else:
+        client = request.tenant
+    theme = client.theme
+
+    return render(request, "dashboard/index.html", {
+        "users": users,
+        "tenant": client,
+        "theme_base": f"themes/{theme}/storefront.html",
+    })
+
 
 @transaction.atomic
 def tenant_customer_signup(request):

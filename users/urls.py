@@ -1,13 +1,13 @@
 from django.urls import path, include
-from .views_profile import profile_view, address_add, address_edit, address_delete, tenant_customer_signup
-from users.views.pages import users_home
+from .views_profile import profile_view, address_add, address_edit, address_delete, tenant_customer_signup, users_home
 from users.views import theme_views
+
 app_name="users"
 
 
 urlpatterns = [
-     path("", users_home, name="list"),
-#     path("api/", include("users.api")),
+    path("", users_home, name="list"),
+    # path("api/", include("users.api")),
     # path('profile/', theme_views.customer_profile, name='profile'),
     # path('address/', theme_views.customer_address, name='address'),
     path("customer/signup", tenant_customer_signup, name="tenant_customer_signup"),
