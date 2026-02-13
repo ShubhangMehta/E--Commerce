@@ -31,7 +31,7 @@ urlpatterns = [
 
     #path('catalogue/', include('catalog.urls',namespace="catalog")),
     #path('orders/', include('orders.urls',namespace="orders")), 
-    path("dashboard/users/", include("users.urls", namespace="users")),
+    path("users/", include("users.urls", namespace="users")),
     #path('users/', include('users.theme_urls',namespace="users_theme")),
 ]
 

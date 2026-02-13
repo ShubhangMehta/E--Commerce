@@ -30,15 +30,40 @@ def users_home(request):
         client = request.tenant
     theme = client.theme
 
-    return render(request, "dashboard/index.html", {
+    return render(request, "dashboard.html", {
         "users": users,
         "tenant": client,
         "theme_base": f"themes/{theme}/storefront.html",
     })
 
+
+INVITE_RULES = {
+    TenantRole.OWNER: {TenantRole.ADMIN, TenantRole.STAFF},
+    TenantRole.ADMIN: {TenantRole.STAFF},
+    TenantRole.STAFF: set(),
+    TenantRole.CUSTOMER: set(),
+}
+
+def allowed_invite_roles(inviter_role: str):
+    return INVITE_RULES.get(inviter_role, set())
+
+
 @login_required
 @require_roles(TenantRole.ADMIN, TenantRole.OWNER)
 def staff_invite_view(request):
+    inviter_role = request.subject_member.role
+    allowed = allowed_invite_roles(inviter_role)
+
+    invite_roles = [(r, dict(TenantRole.choices)[r]) for r in allowed]
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip().lower()
+        role = request.POST.get("role", TenantRole.STAFF).strip()
+
+        if role not in allowed:
+            messages.error(request, "You don't have permission to invite this role.")
+            return render(request, "staff/invite_create.html", {"invite_roles": invite_roles, "old": {"email": email},})
+        
     if request.method == "POST":
         email = request.POST.get("email", "").strip().lower()
         role = request.POST.get("role", TenantRole.STAFF).strip()
@@ -107,7 +132,13 @@ def staff_invite_accept(request, token):
 def staff_list(request):
     staff = SubjectMember.objects.filter(is_active=True).exclude(role=TenantRole.CUSTOMER)
     invites = StaffInvite.objects.filter(accepted_at__isnull=True, revoked_at__isnull=True)
-    return render(request, "staff/list.html", {"staff": staff, "invites": invites})
+
+    # Role Matrix compute (ADD THIS HERE)
+    inviter_role = request.subject_member.role
+    allowed = allowed_invite_roles(inviter_role)
+    can_invite = len(allowed) > 0
+
+    return render(request, "staff/list.html", {"staff": staff, "invites": invites, "can_invite": can_invite})
 
 @login_required
 @require_roles(TenantRole.OWNER, TenantRole.ADMIN)
@@ -204,7 +235,7 @@ def profile_view(request):
         member.role = request.POST.get("role", member.role).strip()
         member.save()
         messages.success(request, "Profile updated.")
-        return redirect("profile")
+        return redirect("users:profile")
 
     addresses = Coordinate.objects.filter(user=member).order_by("-is_default", "-id")
 

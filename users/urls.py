@@ -1,5 +1,4 @@
 from django.urls import path, include
-from users.views import theme_views
 from . import views_profile
 
 app_name="users"
@@ -8,8 +7,8 @@ app_name="users"
 urlpatterns = [
     path("", views_profile.users_home, name="list"),
     # path("api/", include("users.api")),
-    # path('profile/', theme_views.customer_profile, name='profile'),
-    # path('address/', theme_views.customer_address, name='address'),
+    #path('profile/', theme_views.customer_profile, name='profile'),
+    #path('address/', theme_views.customer_address, name='address'),
     path("customer/signup", views_profile.tenant_customer_signup, name="tenant_customer_signup"),
     
     path("profile/", views_profile.profile_view, name="profile"),
@@ -25,4 +24,3 @@ urlpatterns = [
     path("staff/<int:member_id>/deactivate/", views_profile.staff_deactivate, name="staff_deactivate"),
 
 ]
-
