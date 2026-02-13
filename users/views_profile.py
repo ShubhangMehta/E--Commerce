@@ -77,7 +77,7 @@ def staff_invite_accept(request, token):
         return render(request, "staff/invite_invalid.html", {"reason": "Invite is expired or invalid."})
     
     #ensure the logged in global user matches invited email
-    if (request.user.email or "").strip().lower() != inv.email.strip().lower()):
+    if ((request.user.email or "").strip().lower() != inv.email.strip().lower()):
         return render(request, "staff/invite_invalid.html", {"reason": f"This invite is for {inv.email}. You are logged in as {request.user.email}."})
     
     member, created = SubjectMember.objects.get_or_create(

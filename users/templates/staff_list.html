@@ -1,0 +1,138 @@
+{% extends "themes/default/storefront.html" %}
+
+{% block title %}Staff | {{ request.tenant.tenant_name|default:"Tenant" }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-3">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h1 class="h4 fw-bold mb-1">Staff & Access</h1>
+      <div class="text-muted2 small">
+        Manage team members for <span class="fw-semibold">{{ request.tenant.tenant_name }}</span>.
+        Your role: <span class="fw-semibold">{{ request.subject_member.role }}</span>
+      </div>
+    </div>
+
+    {% if can_invite %}
+      <a class="btn btn-brand" href="{% url 'users:staff_invite_create' %}">
+        + Invite staff
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Active Staff -->
+  <div class="card p-3 p-md-4 mb-4">
+    <div class="fw-semibold mb-2">Active team members</div>
+
+    {% if staff %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr class="text-muted2 small">
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in staff %}
+              <tr>
+                <td class="fw-semibold">{{ m.full_name }}</td>
+                <td class="text-muted2">{{ m.email|default:"-" }}</td>
+                <td>
+                  <span class="badge text-bg-light">{{ m.role }}</span>
+                </td>
+                <td>
+                  {% if m.is_active %}
+                    <span class="badge text-bg-success">Active</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  {% if request.subject_member.role == "OWNER" or request.subject_member.role == "ADMIN" %}
+                    {% if m.role != "OWNER" %}
+                      <form method="post" action="{% url 'users:staff_deactivate' m.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                          Deactivate
+                        </button>
+                      </form>
+                    {% else %}
+                      <span class="text-muted2 small">Owner</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted2 small">No permission</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted2">No staff members yet.</div>
+    {% endif %}
+  </div>
+
+  <!-- Pending Invites -->
+  <div class="card p-3 p-md-4">
+    <div class="fw-semibold mb-2">Pending invites</div>
+
+    {% if invites %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr class="text-muted2 small">
+              <th>Email</th>
+              <th>Role</th>
+              <th>Expires</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in invites %}
+              <tr>
+                <td class="fw-semibold">{{ inv.email }}</td>
+                <td><span class="badge text-bg-light">{{ inv.role }}</span></td>
+                <td class="text-muted2">
+                  {{ inv.expires_at|date:"d M Y, H:i" }}
+                </td>
+                <td class="text-end">
+                  {% if can_invite %}
+                    <form method="post" action="{% url 'users:staff_invite_revoke' inv.token %}" class="d-inline">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-secondary" type="submit">
+                        Revoke
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="text-muted2 small">No permission</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="text-muted2 small mt-2">
+        Invites are email-bound; the invitee must log in using the same email to accept.
+      </div>
+    {% else %}
+      <div class="text-muted2">No pending invites.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

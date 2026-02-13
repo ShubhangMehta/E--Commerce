@@ -1,0 +1,77 @@
+{% extends "themes/default/storefront.html" %}
+
+{% block title %}Invite Staff | {{ request.tenant.tenant_name|default:"Tenant" }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-3">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="card p-4 p-md-5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h1 class="h4 fw-bold mb-1">Invite staff</h1>
+            <div class="text-muted2 small">
+              Tenant: <span class="fw-semibold">{{ request.tenant.tenant_name }}</span> |
+              Your role: <span class="fw-semibold">{{ request.subject_member.role }}</span>
+            </div>
+          </div>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'users:staff_list' %}">Back</a>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Staff email</label>
+            <input class="form-control" type="email" name="email" required placeholder="staff@example.com"
+                   value="{{ old.email|default:'' }}">
+            <div class="text-muted2 small mt-1">Invite will be sent to this email. They must accept using the same email.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Role</label>
+            <select class="form-select" name="role" required>
+              {% if invite_roles %}
+                {% for value,label in invite_roles %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              {% else %}
+                {# fallback if you didn't pass invite_roles #}
+                <option value="STAFF">Staff</option>
+              {% endif %}
+            </select>
+
+            <div class="text-muted2 small mt-1">
+              Role rules: OWNER can invite ADMIN/STAFF, ADMIN can invite STAFF only, STAFF cannot invite.
+            </div>
+          </div>
+
+          <button class="btn btn-brand w-100 mt-2" type="submit">Send invite</button>
+        </form>
+
+        <hr class="my-4">
+
+        <div class="text-muted2 small">
+          <div class="fw-semibold mb-1">How it works</div>
+          <ol class="mb-0 ps-3">
+            <li>Invitee receives an email with a secure link.</li>
+            <li>They log in (global user) and accept.</li>
+            <li>A tenant membership (SubjectMember) is created/updated in this tenant.</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
