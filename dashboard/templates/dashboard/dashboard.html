@@ -75,8 +75,42 @@
             </a>
         </div>
         {% endif %}
+            <div class="card p-4 mt-4">
+    <h4>Top Selling Products (This Month)</h4>
+    <canvas id="topProductsChart"></canvas>
+    </div>
 
     </div>
+
+
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+fetch("/dashboard/api/monthly-top-products/")
+    .then(res => res.json())
+    .then(data => {
+
+        const ctx = document.getElementById("topProductsChart");
+
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: "Units Sold",
+                    data: data.data,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+    });
+</script>
 
 {% endblock %}

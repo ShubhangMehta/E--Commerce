@@ -360,7 +360,7 @@
               <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
               </a>
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users_theme:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
                 Profile
               </a>
             </li>

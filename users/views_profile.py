@@ -86,7 +86,7 @@ def profile_view(request):
         member.role = request.POST.get("role", member.role).strip()
         member.save()
         messages.success(request, "Profile updated.")
-        return redirect("profile")
+        return redirect("users:profile")
 
     addresses = Coordinate.objects.filter(user=member).order_by("-is_default", "-id")
 

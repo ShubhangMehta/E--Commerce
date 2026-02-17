@@ -15,12 +15,14 @@ class SingleProductForm(forms.ModelForm):
             "estimated_delivery",
             "refundable",
             "returnable",
+            "is_featured",
+            "featured_order",
         ]
 
 class SingleProductImageForm(forms.ModelForm):
     class Meta:
         model = SingleProductImage
-        fields = ["image", "is_primary"]
+        fields = ["image", "image_type", "is_primary"]
 
 ProductImageFormSet = inlineformset_factory(
     SingleProduct,
@@ -29,3 +31,8 @@ ProductImageFormSet = inlineformset_factory(
     extra=3,
     can_delete=True
 )
+
+class BannerForm(forms.ModelForm):
+    class Meta:
+        model = SingleProductImage
+        fields = ["image"]

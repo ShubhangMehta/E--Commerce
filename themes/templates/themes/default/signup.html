@@ -10,7 +10,7 @@
         <h1 class="h4 fw-bold mb-2">Create your account</h1>
         <p class="text-muted2 mb-4">Sign up to manage your profile and place orders.</p>
 
-        <form method="post" action="{% url 'tenant_customer_signup' %}" novalidate>
+        <form method="post" action="{% url 'users:tenant_customer_signup' %}" novalidate>
           {% csrf_token %}
           {% if errors %}
             <div style="background:#fff4e5;border:1px solid #f59e0b;padding:12px;border-radius:6px;margin-bottom:12px;">

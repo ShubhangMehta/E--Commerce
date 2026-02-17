@@ -28,10 +28,11 @@ def index(request):
     """
     # Example for featured list: you can change filter later (e.g. is_featured=True)
     featured_products = (
-    SingleProduct.objects
-    .prefetch_related("images")
-    .order_by("-id")[:6]
-)
+            SingleProduct.objects
+            .filter(is_featured=True)
+            .prefetch_related("images")
+            .order_by("featured_order")[:3]
+        )
 
     context = {
         "featured_products": featured_products,
