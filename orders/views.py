@@ -189,3 +189,7 @@ def invoice_pdf(request, order_id):
         f'inline; filename="invoice_{order.order_number}.pdf"'
     )
     return response
+
+
+
+

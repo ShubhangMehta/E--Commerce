@@ -53,6 +53,7 @@ TENANT_APPS = [
     'django_crontab',
     'backups',
     'users',
+    'inventory',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]

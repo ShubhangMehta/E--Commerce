@@ -17,6 +17,7 @@ urlpatterns = [
     path("create/", views.order_create, name="order_create"),
     path("<int:order_id>/", views.order_detail, name="order_detail"),
     path("<int:order_id>/invoice/", views.invoice_view, name="invoice"),
+    path("invoices/", views.invoice_list_view, name="invoice_list"),
     # path("<int:order_id>/invoice/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("orders/", views.order_list, name="order_list"),
     path("orders/<int:order_id>/", views.order_detail, name="order_detail"),
