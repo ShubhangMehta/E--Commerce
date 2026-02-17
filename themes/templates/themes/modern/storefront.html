@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ request.tenant.name }}{% endblock %}</title>
+
+  {% block meta %}
+  <meta name="description" content="{% block meta_description %}Shop {{ request.tenant.name }} — curated products, fast checkout, and modern experience.{% endblock %}">
+  {% endblock %}
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0B0F19',
+            surface: '#FFFFFF',
+            canvas: '#F6F7FB',
+            line: 'rgba(15, 23, 42, 0.08)',
+            accent: '#2563EB',     // blue-600
+            accent2: '#22C55E',    // green-500 (optional)
+            muted: '#64748B'       // slate-500
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(2, 6, 23, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-screen bg-canvas text-ink">
+  <!-- Announcement bar (optional) -->
+  {% block announcement %}
+  <div class="bg-ink text-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center gap-3 text-xs">
+      <span class="opacity-90">Free shipping on orders over ₹999</span>
+      <a href="/products/" class="underline underline-offset-4 opacity-90 hover:opacity-100">Shop now</a>
+    </div>
+  </div>
+  {% endblock %}
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-line bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/70">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <!-- Top row -->
+      <div class="flex h-16 items-center justify-between gap-4">
+        <!-- Left: Mobile menu button -->
+        <button type="button"
+                class="lg:hidden inline-flex items-center justify-center rounded-xl border border-line bg-surface px-3 py-2 text-sm hover:bg-canvas transition"
+                onclick="toggleMobileMenu(true)"
+                aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <!-- Brand -->
+        <a href="/" class="flex items-center gap-2">
+          <!-- If you have a tenant logo, swap this with an <img> -->
+          <div class="h-9 w-9 rounded-2xl bg-ink text-white flex items-center justify-center font-semibold shadow-soft">
+            {{ request.tenant.name|default:"S"|slice:":1" }}
+          </div>
+          <div class="leading-tight">
+            <div class="text-sm font-semibold tracking-tight">{{ request.tenant.name }}</div>
+            <div class="text-[11px] text-muted">Modern Storefront</div>
+          </div>
+        </a>
+
+        <!-- Desktop Search -->
+        <form action="/products/" method="get" class="hidden lg:flex flex-1 max-w-xl">
+          <label class="w-full">
+            <span class="sr-only">Search</span>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"/>
+                </svg>
+              </span>
+              <input
+                name="q"
+                value="{{ request.GET.q|default_if_none:'' }}"
+                placeholder="Search products, categories, brands…"
+                class="w-full rounded-2xl border border-line bg-canvas/70 py-2.5 pl-10 pr-4 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-accent/30 transition"
+              />
+            </div>
+          </label>
+        </form>
+
+        <!-- Right actions -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Mobile search -->
+          <button type="button"
+                  class="lg:hidden inline-flex items-center justify-center rounded-xl border border-line bg-surface px-3 py-2 text-sm hover:bg-canvas transition"
+                  onclick="toggleMobileSearch(true)"
+                  aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"/>
+            </svg>
+          </button>
+
+          <!-- Account -->
+          <a href="/login/"
+             class="hidden sm:inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm hover:bg-canvas transition">
+            <span class="text-muted">Login</span>
+          </a>
+
+          <!-- Wishlist -->
+          <a href="/wishlist/"
+             class="inline-flex items-center justify-center rounded-xl border border-line bg-surface px-3 py-2 hover:bg-canvas transition"
+             aria-label="Wishlist">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 21s-7-4.35-9.33-8.2C.42 9.2 2.4 6 5.82 6c1.9 0 3.2 1.02 4.18 2.12C11 7.02 12.3 6 14.18 6c3.42 0 5.4 3.2 3.15 6.8C19 16.65 12 21 12 21z"/>
+            </svg>
+          </a>
+
+          <!-- Cart -->
+          <a href="/cart/"
+             class="relative inline-flex items-center justify-center rounded-xl bg-ink px-3 py-2 text-white hover:opacity-95 transition"
+             aria-label="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.6 3M7 13h10l4-8H5.6M7 13l-1.5 7h13M7 13l.6-3M10 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+            </svg>
+            <!-- Replace with your real cart count -->
+            <span class="absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full bg-accent text-white text-[11px] flex items-center justify-center">
+              {% block cart_count %}0{% endblock %}
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Desktop nav row -->
+      <div class="hidden lg:flex items-center justify-between py-3">
+        <nav class="flex items-center gap-6 text-sm">
+          <a href="/products/" class="text-ink/80 hover:text-ink transition">Shop</a>
+
+          <!-- Categories dropdown -->
+          <div class="relative group">
+            <button type="button" class="flex items-center gap-1 text-ink/80 hover:text-ink transition">
+              Categories
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div class="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition absolute left-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-soft p-2">
+              <!-- Replace these links with dynamic categories -->
+              <a href="/products/?category=new" class="block rounded-xl px-3 py-2 text-sm hover:bg-canvas">New Arrivals</a>
+              <a href="/products/?category=best" class="block rounded-xl px-3 py-2 text-sm hover:bg-canvas">Best Sellers</a>
+              <a href="/products/?category=collections" class="block rounded-xl px-3 py-2 text-sm hover:bg-canvas">Collections</a>
+              <div class="my-2 h-px bg-line"></div>
+              <a href="/products/" class="block rounded-xl px-3 py-2 text-sm hover:bg-canvas">All Products</a>
+            </div>
+          </div>
+
+          <a href="/products/?sort=popular" class="text-ink/80 hover:text-ink transition">Trending</a>
+          <a href="/about/" class="text-ink/80 hover:text-ink transition">About</a>
+          <a href="/contact/" class="text-ink/80 hover:text-ink transition">Support</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <a href="/orders/" class="text-sm text-ink/70 hover:text-ink transition">Track order</a>
+          <a href="/create-tenant/" class="text-sm font-semibold text-accent hover:underline underline-offset-4">Start selling</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search Modal -->
+  <div id="mobileSearch" class="hidden fixed inset-0 z-[60]">
+    <div class="absolute inset-0 bg-black/30" onclick="toggleMobileSearch(false)"></div>
+    <div class="absolute left-1/2 top-16 w-[92%] max-w-xl -translate-x-1/2 rounded-2xl border border-line bg-white shadow-soft p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-sm font-semibold">Search</div>
+        <button class="rounded-xl border border-line px-3 py-1.5 text-sm hover:bg-canvas" onclick="toggleMobileSearch(false)">Close</button>
+      </div>
+      <form action="/products/" method="get">
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"/>
+            </svg>
+          </span>
+          <input name="q" placeholder="Search products…" class="w-full rounded-2xl border border-line bg-canvas/70 py-3 pl-10 pr-4 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-accent/30 transition" />
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Drawer -->
+  <div id="mobileMenu" class="hidden fixed inset-0 z-[70]">
+    <div class="absolute inset-0 bg-black/35" onclick="toggleMobileMenu(false)"></div>
+
+    <aside class="absolute left-0 top-0 h-full w-[86%] max-w-sm bg-white shadow-soft border-r border-line">
+      <div class="p-4 flex items-center justify-between border-b border-line">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-2xl bg-ink text-white flex items-center justify-center font-semibold">
+            {{ request.tenant.name|default:"S"|slice:":1" }}
+          </div>
+          <div>
+            <div class="text-sm font-semibold">{{ request.tenant.name }}</div>
+            <div class="text-[11px] text-muted">Menu</div>
+          </div>
+        </div>
+        <button class="rounded-xl border border-line px-3 py-2 text-sm hover:bg-canvas" onclick="toggleMobileMenu(false)">Close</button>
+      </div>
+
+      <div class="p-4 space-y-2">
+        <a href="/products/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Shop</a>
+        <a href="/products/?category=new" class="block rounded-xl px-3 py-3 hover:bg-canvas">New Arrivals</a>
+        <a href="/products/?sort=popular" class="block rounded-xl px-3 py-3 hover:bg-canvas">Trending</a>
+        <a href="/wishlist/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Wishlist</a>
+        <a href="/cart/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Cart</a>
+        <div class="h-px bg-line my-3"></div>
+        <a href="/login/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Account</a>
+        <a href="/orders/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Track order</a>
+        <a href="/contact/" class="block rounded-xl px-3 py-3 hover:bg-canvas">Support</a>
+        <a href="/about/" class="block rounded-xl px-3 py-3 hover:bg-canvas">About</a>
+      </div>
+
+      <div class="p-4 border-t border-line">
+        <a href="/checkout/" class="block text-center rounded-2xl bg-ink text-white py-3 font-semibold hover:opacity-95 transition">
+          Checkout
+        </a>
+        <p class="mt-3 text-xs text-muted">
+          Secure checkout. Fast delivery. Easy returns.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Page content -->
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-line bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="text-sm font-semibold">{{ request.tenant.name }}</div>
+          <p class="mt-2 text-sm text-muted">
+            A modern storefront experience with clean design and fast navigation.
+          </p>
+        </div>
+
+        <div>
+          <div class="text-sm font-semibold">Shop</div>
+          <ul class="mt-3 space-y-2 text-sm text-muted">
+            <li><a class="hover:text-ink" href="/products/">All products</a></li>
+            <li><a class="hover:text-ink" href="/products/?category=new">New arrivals</a></li>
+            <li><a class="hover:text-ink" href="/products/?sort=popular">Best sellers</a></li>
+            <li><a class="hover:text-ink" href="/products/?category=collections">Collections</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="text-sm font-semibold">Support</div>
+          <ul class="mt-3 space-y-2 text-sm text-muted">
+            <li><a class="hover:text-ink" href="/contact/">Contact</a></li>
+            <li><a class="hover:text-ink" href="/orders/">Track order</a></li>
+            <li><a class="hover:text-ink" href="/returns/">Returns</a></li>
+            <li><a class="hover:text-ink" href="/shipping/">Shipping</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="text-sm font-semibold">Newsletter</div>
+          <p class="mt-3 text-sm text-muted">Get product updates and offers.</p>
+          <form action="/newsletter/subscribe/" method="post" class="mt-3 flex gap-2">
+            {% csrf_token %}
+            <input type="email" name="email" required placeholder="Email address"
+                   class="flex-1 rounded-2xl border border-line bg-canvas/70 px-4 py-2.5 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-accent/30 transition">
+            <button class="rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition">
+              Join
+            </button>
+          </form>
+
+          <div class="mt-4 flex items-center gap-3 text-sm text-muted">
+            <a href="#" class="hover:text-ink">Instagram</a>
+            <a href="#" class="hover:text-ink">X</a>
+            <a href="#" class="hover:text-ink">YouTube</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
+        <p>© {% now "Y" %} {{ request.tenant.name }}. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="/privacy/" class="hover:text-ink">Privacy</a>
+          <a href="/terms/" class="hover:text-ink">Terms</a>
+          <a href="/refunds/" class="hover:text-ink">Refund policy</a>
+        </div>
+      </div>
+    </div>
+
+    {% block footer_extra %}{% endblock %}
+  </footer>
+
+  <script>
+    function toggleMobileMenu(open) {
+      const el = document.getElementById("mobileMenu");
+      if (!el) return;
+      el.classList.toggle("hidden", !open);
+      document.body.classList.toggle("overflow-hidden", open);
+    }
+
+    function toggleMobileSearch(open) {
+      const el = document.getElementById("mobileSearch");
+      if (!el) return;
+      el.classList.toggle("hidden", !open);
+      document.body.classList.toggle("overflow-hidden", open);
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
