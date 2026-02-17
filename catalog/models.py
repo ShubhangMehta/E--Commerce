@@ -14,6 +14,13 @@ class SingleProduct(models.Model):
 
     refundable = models.BooleanField(default=False)
     returnable = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    featured_order = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Position in homepage banner (1–3)"
+        )
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -25,12 +32,27 @@ class SingleProduct(models.Model):
 
 
 class SingleProductImage(models.Model):
+
+    IMAGE_TYPE_CHOICES = (
+        ("product", "Product Image"),
+        ("banner", "Banner Image"),
+    )
+
     product = models.ForeignKey(
         SingleProduct,
         related_name="images",
         on_delete=models.CASCADE
     )
+
     image = models.ImageField(upload_to="products/")
+
+    
+    image_type = models.CharField(
+        max_length=10,
+        choices=IMAGE_TYPE_CHOICES,
+        default="product"
+    )
+
     is_primary = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -39,4 +61,4 @@ class SingleProductImage(models.Model):
         ordering = ["-is_primary", "created_at"]
 
     def __str__(self):
-        return f"Image for {self.product.name}"
+        return f"{self.image_type} image for {self.product.name}"

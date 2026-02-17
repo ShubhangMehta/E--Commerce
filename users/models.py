@@ -8,26 +8,7 @@ class TenantRole(models.TextChoices):
     STAFF = "STAFF", "Staff"
     CUSTOMER = "CUSTOMER", "Customer"
 
-class TenantMember(models.Model):
-    """
-    Tenant-scoped "who is this global user inside this tenant?"
-    Stored in tenant schema.
-    """
-    global_user_id = models.BigIntegerField(db_index=True)
-    role = models.CharField(max_length=20, choices=TenantRole.choices)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        indexes = [
-            models.Index(fields=["global_user_id", "role"]),
-        ]
-        # constraints = [
-        #     models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
-        # ]
-
-    def _str_(self):
-        return f"global_user_id={self.global_user_id} ({self.role})"
 
 class SubjectMember(models.Model):
     """
@@ -38,7 +19,7 @@ class SubjectMember(models.Model):
     global_user_id = models.BigIntegerField(db_index=True)
     role = models.CharField(max_length=20, choices=TenantRole.choices)
     full_name = models.CharField(max_length=255)
-    email=models.EmailField(blank=True)
+    email=models.EmailField(blank=True, db_index=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -49,6 +30,7 @@ class SubjectMember(models.Model):
         ]
         constraints = [
             models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
+            models.UniqueConstraint(fields=["email"], name="uniq_subjectmember_email"),
         ]
 
     def __str__(self):
@@ -77,7 +59,7 @@ class Coordinate(models.Model):
     postal_code = models.CharField(max_length=20)
 
     address_type = models.CharField(max_length=20, choices=ADDRESS_TYPES, default="home")
-    is_default = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=True)
 
 
     def __str__(self):

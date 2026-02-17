@@ -20,6 +20,7 @@ class Client(TenantMixin):
     catalog_template = models.CharField(max_length=50, default='single product catalog', help_text="Catalog template for product display")
     used_trial = models.BooleanField(default=False, editable=False, help_text="Indicates if the tenant has used their trial period")
 
+
     # Usage & Analytics
     storage_used_mb = models.FloatField(default=0.0)
     product_count = models.IntegerField(default=0)
@@ -65,6 +66,7 @@ class Client(TenantMixin):
 
     def __str__(self):
         return self.tenant_name
+    
     @property
     def created_on(self):
         latest_sub = self.clientsubscription_set.order_by('-start_date').first()

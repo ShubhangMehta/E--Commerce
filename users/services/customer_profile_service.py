@@ -25,7 +25,6 @@ class ProfileService:
         """
         Return customer profile fields.
         """
-
         return {
             "email": subject_member.email,
             "full_name": subject_member.full_name,

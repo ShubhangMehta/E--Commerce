@@ -4,25 +4,40 @@ from catalog.models import SingleProduct
 
 
 def single_product_list_view(request):
-    service = SingleProductService()
-    products = service.get_available_products()
+    products = SingleProduct.objects.prefetch_related("images")
+
+    theme = request.tenant.theme or "default"
+    theme_base = f"themes/{theme}/storefront.html"
 
     return render(
         request,
         "catalog/single_product_list.html",
-        {"products": products},
+        {
+            "products": products,
+            "theme_base": theme_base,
+        }
     )
 
 
-def single_product_detail_view(request, product_id):
+
+def single_product_detail_view(request, id):
     product = get_object_or_404(
         SingleProduct.objects.prefetch_related("images"),
-        id=product_id,
-        availability=True,
+        id=id
     )
 
-    return render(
+    theme = request.tenant.theme or "default"
+    theme_base = f"themes/{theme}/storefront.html"
+
+    primary_image = product.images.filter(is_primary=True).first() \
+                    or product.images.first()
+
+    return render( 
         request,
         "catalog/single_product_detail.html",
-        {"product": product},
+        {
+            "product": product,
+            "primary_image": primary_image,
+            "theme_base": theme_base,
+        }
     )

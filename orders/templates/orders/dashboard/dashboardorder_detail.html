@@ -1,0 +1,107 @@
+{% extends theme_storefront %}
+{% block title %}Order Detail{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+          <div class="page-title">Order #{{ order.id }}</div>
+          <div class="text-muted2">Manage and update order status</div>
+      </div>
+      <a href="{% url 'orders:dashboard_order_list' %}" class="btn btn-soft">← Back to Orders</a>
+  </div>
+
+
+  <div class="row g-3">
+
+    <!-- LEFT : ORDER INFO -->
+    <div class="col-lg-7">
+      <div class="section">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Order Information</h5>
+
+          <!-- STATUS PILL -->
+          <span class="pill
+            {% if order.status == 'pending' %}pill-warning
+            {% elif order.status == 'paid' %}pill-info
+            {% elif order.status == 'shipped' %}pill-info
+            {% elif order.status == 'delivered' %}pill-success
+            {% elif order.status == 'cancelled' %}pill-danger
+            {% endif %}
+          ">
+            {{ order.status|title }}
+          </span>
+        </div>
+
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <div class="mini-stat">
+              <div class="k">Customer</div>
+              <div class="v">{{ order.subject.global_user.username }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mini-stat">
+              <div class="k">Tenant</div>
+              <div class="v">{{ order.tenant }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mini-stat">
+              <div class="k">Total Amount</div>
+              <div class="v">₹{{ order.total_amount }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mini-stat">
+              <div class="k">Created At</div>
+              <div class="v">{{ order.created_at }}</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- RIGHT : UPDATE STATUS -->
+    <div class="col-lg-5">
+      <div class="section">
+
+        <h5 class="mb-3">Update Order Status</h5>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <label class="text-muted2 mb-1">Change Status</label>
+          <select name="status" class="form-control mb-3">
+
+            <option value="pending" {% if order.status == "pending" %}selected{% endif %}>Pending</option>
+            <option value="paid" {% if order.status == "paid" %}selected{% endif %}>Paid</option>
+            <option value="shipped" {% if order.status == "shipped" %}selected{% endif %}>Shipped</option>
+            <option value="delivered" {% if order.status == "delivered" %}selected{% endif %}>Delivered</option>
+            <option value="cancelled" {% if order.status == "cancelled" %}selected{% endif %}>Cancelled</option>
+
+          </select>
+
+          <button type="submit" class="btn btn-brand w-100">
+              Update Status
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

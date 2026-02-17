@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from catalog.models import SingleProduct
-from catalog.forms import SingleProductForm, ProductImageFormSet
-
+from catalog.models import SingleProduct, SingleProductImage
+from catalog.forms import SingleProductForm, ProductImageFormSet, BannerForm
 
 
 # LIST PRODUCTS
 def product_list(request):
-    products = SingleProduct.objects.all()
+    products = SingleProduct.objects.prefetch_related("images")
 
     return render(
         request,
@@ -18,25 +17,46 @@ def product_list(request):
 
 
 # CREATE PRODUCT
-
-
 def product_create(request):
     if request.method == "POST":
         form = SingleProductForm(request.POST)
-        formset = ProductImageFormSet(
-            request.POST,
-            request.FILES
-        )
 
-        if form.is_valid() and formset.is_valid():
-            product = form.save()
+        if form.is_valid():
+            product = form.save(commit=False)
 
-            images = formset.save(commit=False)
-            for image in images:
-                image.product = product
-                image.save()
+            # ⭐ LIMIT FEATURED PRODUCTS TO MAX 3
+            if product.is_featured:
+                featured_count = SingleProduct.objects.filter(is_featured=True).count()
+                if featured_count >= 3:
+                    form.add_error(None, "You can only feature 3 products.")
+                    formset = ProductImageFormSet(request.POST, request.FILES)
+                else:
+                    product.save()
 
-            return redirect("catalog:product_list")
+                    formset = ProductImageFormSet(
+                        request.POST,
+                        request.FILES,
+                        instance=product
+                    )
+
+                    if formset.is_valid():
+                        formset.save()
+                        return redirect("catalog:product_list")
+            else:
+                product.save()
+
+                formset = ProductImageFormSet(
+                    request.POST,
+                    request.FILES,
+                    instance=product
+                )
+
+                if formset.is_valid():
+                    formset.save()
+                    return redirect("catalog:product_list")
+
+        else:
+            formset = ProductImageFormSet(request.POST, request.FILES)
 
     else:
         form = SingleProductForm()
@@ -52,6 +72,7 @@ def product_create(request):
         }
     )
 
+
 # EDIT PRODUCT
 def product_edit(request, pk):
     product = get_object_or_404(SingleProduct, pk=pk)
@@ -65,9 +86,23 @@ def product_edit(request, pk):
         )
 
         if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            return redirect("catalog:product_list")
+            product = form.save(commit=False)
+
+            if product.is_featured:
+                featured_count = SingleProduct.objects.filter(
+                    is_featured=True
+                ).exclude(id=product.id).count()
+
+                if featured_count >= 3:
+                    form.add_error(None, "You can only feature 3 products.")
+                else:
+                    product.save()
+                    formset.save()
+                    return redirect("catalog:product_list")
+            else:
+                product.save()
+                formset.save()
+                return redirect("catalog:product_list")
 
     else:
         form = SingleProductForm(instance=product)
@@ -82,7 +117,24 @@ def product_edit(request, pk):
             "title": "Edit Product"
         }
     )
+def banner_list(request):
+    banners = SingleProductImage.objects.filter(image_type="banner")
 
+    form = BannerForm()
+
+    if request.method == "POST":
+        form = BannerForm(request.POST, request.FILES)
+        if form.is_valid():
+            banner = form.save(commit=False)
+            banner.image_type = "banner"
+            banner.save()
+            return redirect("catalog:banner_list")
+
+    return render(
+        request,
+        "catalog/dashboard/banner_list.html",
+        {"banners": banners, "form": form}
+    )
 
 
 # DELETE PRODUCT

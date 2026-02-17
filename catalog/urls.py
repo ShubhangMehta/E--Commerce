@@ -9,7 +9,7 @@ app_name = "catalog"
 
 urlpatterns = [
     path("products/", single_product_list_view, name="single-product-list"),
-    path("products/<int:product_id>/", single_product_detail_view, name="single-product-detail"),
+    path("products/<int:id>/", single_product_detail_view, name="single-product-detail"),
     path("product/", dashboard_views.product_list, name="product_list"),
     path("product/create/", dashboard_views.product_create, name="product_create"),
     path("product/<int:pk>/edit/", dashboard_views.product_edit, name="product_edit"),
