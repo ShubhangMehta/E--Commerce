@@ -63,17 +63,15 @@ from themes.views import _theme_path
 
 
 def login_view(request):
-    # Determine where to redirect after login
-    next_url = (
-        request.GET.get("next")
-        or request.POST.get("next")
-        or "/"
-    )
+    next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
 
-    # Default template (public site)
-    template = "accounts/login.html"
+    # # Avoid sending users into admin/login loops
+    # # (you can tune these rules to match your routing)
+    # if next_url.startswith("/admin"):
+    #     next_url = "/"
 
-    # Use themed template for tenant sites
+    template = "accounts/login.html" # default for public schema
+
     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
         template = _theme_path(request, "login.html")
 

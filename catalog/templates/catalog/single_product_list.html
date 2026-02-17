@@ -17,18 +17,18 @@
 
           <!-- IMAGE -->
           <a href="{% url 'catalog:single-product-detail' product.id %}">
-            {% with product.images.all|first as img %}
-              {% if img %}
-                <img src="{{ img.image.url }}"
-                     class="card-img-top border-bottom"
-                     style="height:180px;object-fit:contain;"
-                     alt="{{ product.name }}">
-              {% else %}
-                <div class="alert-soft text-center p-4">
-                  No image
-                </div>
-              {% endif %}
-            {% endwith %}
+            {% with product.images.first as img %}
+<div class="product-img">
+  {% if img %}
+    <img src="{{ img.image.url }}" alt="{{ product.name }}">
+  {% else %}
+    <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
+        No image
+    </div>
+  {% endif %}
+</div>
+{% endwith %}
+
           </a>
 
           <!-- BODY -->

@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 def admin_login_redirect(request):
     next_url = request.GET.get("next", "/index/")
@@ -14,13 +17,9 @@ urlpatterns = [
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
 
-    path("", include("accounts.urls")),     # Tenant login/2FA endpoints
-
-    path("", include("themes.urls")),
-
-    path('catalogue/', include('catalog.urls')),
-    path('', include('themes.urls')),
-    path('', include('dashboard.urls')),  
-    path('orders/', include('orders.urls')),
-    path("users/", include("users.urls")),        
+    # Your app routes
+    path("", include("customers.urls")),
+    path("", include("accounts.urls")),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

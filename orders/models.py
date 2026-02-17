@@ -72,6 +72,8 @@ class Order(models.Model):
     # 🔥 shipping snapshot (VERY IMPORTANT)
     shipping_full_name = models.CharField(max_length=255, default="Not Provided")
     shipping_phone = models.CharField(max_length=20, default="Not Provided")
+    shipping_house_no= models.CharField(max_length=20, default="Not Provided")
+    shipping_landmark= models.CharField(max_length=20, default="Not Provided")
     shipping_address = models.TextField(default="Not Provided")
     shipping_city = models.CharField(max_length=100,default="Not Provided")
     shipping_state = models.CharField(max_length=100,default="Not Provided")

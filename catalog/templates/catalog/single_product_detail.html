@@ -15,27 +15,30 @@
       <!-- Product Images -->
       <div class="col-12 col-lg-6">
 
-        {% with product.images.all|first as primary_image %}
-          {% if primary_image %}
-            <img src="{{ primary_image.image.url }}"
-                 class="img-fluid rounded border w-100"
-                 alt="{{ product.name }}">
-          {% else %}
-            <div class="alert-soft text-center p-5">
-              No image available
-            </div>
-          {% endif %}
-        {% endwith %}
+{% with product.images.first as primary_image %}
+  {% if primary_image %}
+    <img id="mainProductImage"
+         src="{{ primary_image.image.url }}"
+         class="img-fluid rounded border w-100"
+         alt="{{ product.name }}">
+  {% else %}
+    <div class="alert-soft text-center p-5">
+      No image available
+    </div>
+  {% endif %}
+{% endwith %}
+
 
         {% if product.images.count > 1 %}
-          <div class="d-flex gap-2 mt-3 flex-wrap">
-            {% for img in product.images.all %}
-              <img src="{{ img.image.url }}"
-                   class="rounded border"
-                   style="width:80px;height:80px;object-fit:cover;">
-            {% endfor %}
-          </div>
-        {% endif %}
+<div class="d-flex gap-2 mt-3 flex-wrap">
+  {% for img in product.images.all %}
+    <img src="{{ img.image.url }}"
+         onclick="changeImage(this)"
+         class="rounded border thumb-img"
+         style="width:80px;height:80px;object-fit:cover;cursor:pointer;">
+  {% endfor %}
+</div>
+{% endif %}
 
       </div>
 
@@ -84,7 +87,7 @@
               </button>
             </form>
 
-            <a href="{% url 'checkout' %}" class="btn btn-soft w-50">
+            <a href="{% url 'orders_storefront:checkout' %}" class="btn btn-soft w-50">
               Buy now
             </a>
           </div>
@@ -114,4 +117,10 @@
   </div>
 
 </div>
+<script>
+function changeImage(element){
+    document.getElementById("mainProductImage").src = element.src;
+}
+</script>
+
 {% endblock %}

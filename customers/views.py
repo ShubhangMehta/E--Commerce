@@ -5,12 +5,15 @@ from django.http import JsonResponse
 from django.db import transaction
 from django.contrib import messages
 from django.views.decorators.http import require_GET
-
+import re
+from django.contrib.auth import get_user_model
+from django_tenants.utils import schema_context, get_public_schema_name
 
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
 from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
 
+User = get_user_model()
 
 
 def home(request):
@@ -41,6 +44,29 @@ def _find_pricing(plan: SubscriptionPlan, subscription_type: str, payment_plan: 
         billing_cycle = (payment_plan or "monthly").lower()
     return PlanPricing.objects.filter(plan=plan, billing_cycle=billing_cycle).first()
 
+def ensure_owner_global_identity_is_new(request, *, email: str, username: str):
+    errors = []
+    with schema_context(get_public_schema_name()):
+        # if User.objects.filter(email=email).exists():
+        #     errors.append(f"A user with email {email} already exists.")
+        if User.objects.filter(username=username).exists():
+            errors.append(f"A user with username {username} already exists.")
+    return (len(errors) == 0), errors
+
+def clean_lower(val: str | None) -> str: # Utility to clean and lowercase form inputs
+    return (val or "").strip().lower()
+
+def p_entry(val: str | None) -> str: # Utility to clean domain input (remove protocol, path, whitespace)
+    v = clean_lower(val)
+
+    v = re.sub(r"^https?://", "", v)  # Remove http:// or https://
+    v = re.sub(r"/.*$", "", v)         # Remove anything after first /
+
+    v = "".join(v.split())  # Remove all whitespace
+
+    v= v.strip(".")
+
+    return v
 
 @transaction.atomic
 def create_tenant(request):
@@ -49,17 +75,17 @@ def create_tenant(request):
 
     # POST
     data = {
-        "owner_name": request.POST.get("owner_name").strip().lower(),
-        "tenant_name": request.POST.get("tenant_name").strip().lower(),
-        "domain_name": request.POST.get("domain_name").strip().lower(),
+        "owner_name": clean_lower(request.POST.get("owner_name")),
+        "tenant_name": clean_lower(request.POST.get("tenant_name")),
+        "domain_name": p_entry(request.POST.get("domain_name")),
         "plan_name": request.POST.get("plan"),
         "subscription_type": request.POST.get("subscription_type"),  # trial / paid
         "payment_plan": request.POST.get("payment_plan"),            # monthly / yearly
         "theme": request.POST.get("theme"),
         "catalog_template": request.POST.get("catalog_template"),
-        "email": request.POST.get("email").strip().lower(),
-        "company": request.POST.get("company").strip().lower(),
-        "address": request.POST.get("address").strip().lower(),
+        "email": p_entry(request.POST.get("email")),
+        "company": p_entry(request.POST.get("company")),
+        "address": clean_lower(request.POST.get("address")),
         "logo": request.FILES.get("logo"),
     }
 
@@ -79,6 +105,15 @@ def create_tenant(request):
     plan = SubscriptionPlan.objects.filter(name__iexact=data["plan_name"]).first()
     if not plan:
         return JsonResponse({"error": "Invalid plan selected."}, status=400)
+    
+    ok, errors = ensure_owner_global_identity_is_new(
+        request,
+        email=data["email"], 
+        username=data["email"],
+    )
+    
+    if not ok:
+        return render(request, "customers/create_tenant.html", {"data": data, "errors": errors})
 
     if data["subscription_type"] == "trial":
         if Client.objects.filter(email=data["email"], used_trial=True).exists():
