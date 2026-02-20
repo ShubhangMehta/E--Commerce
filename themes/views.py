@@ -15,7 +15,7 @@ from catalog.models import SingleProduct
 def _theme_path(request, template_name: str) -> str:
 
     theme = getattr(request.tenant, "theme", "default") or "default"
-    return f"{theme}/{template_name}"
+    return f"themes/{theme}/{template_name}"
 
 
 
@@ -36,16 +36,11 @@ def index(request):
 
     context = {
         "featured_products": featured_products,
-        "product_count": getattr(request.tenant, "product_count", 0),
-        "order_count": getattr(request.tenant, "order_count", 0),
-        "visitor_count": getattr(request.tenant, "visitor_count_7d", 0),
+        "product_count": getattr(request.tenant, "product_count", None),
+        "order_count": getattr(request.tenant, "order_count", None),
+        "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
     }
-
-    # 👉 ADD THESE TWO LINES HERE (just before render)
-    template_name = _theme_path(request, "index.html")
-    print("USING TEMPLATE:", template_name)
-
-    return render(request, template_name, context)
+    return render(request, _theme_path(request, "index.html"), context)
 
 
 def product_list(request):
@@ -78,8 +73,7 @@ def product_list(request):
         {"products": qs},
     )
 
-def index(request):
-    return render(request, "index.html")
+# 
 
 
 def product_detail(request, id):

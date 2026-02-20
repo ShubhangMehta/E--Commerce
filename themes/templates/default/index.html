@@ -3,45 +3,71 @@
 {% block title %}Home | Default Store{% endblock %}
 
 {% block content %}
-<section class="hero py-5">
-  <div class="container">
-    <div class="row align-items-center g-4">
-      <div class="col-lg-7">
-        <div class="pill mb-3">Default Theme • Simple • Fast</div>
-        <h1 class="display-6 fw-bold mb-3">Welcome to your store</h1>
-        <p class="text-muted2 mb-4">
-          A clean, normal storefront experience with a white background, black text, and blue accents.
-        </p>
-        <div class="d-flex gap-2 flex-wrap">
-          <a class="btn btn-brand" href="{% url 'product_list' %}">Browse Products</a>
+{% if featured_products %}
+<section class="mb-5">
+  <div id="homepageBanner" class="carousel slide" data-bs-ride="carousel">
+
+    <div class="carousel-inner">
+
+      {% for p in featured_products %}
+      <div class="carousel-item {% if forloop.first %}active{% endif %}">
+        
+        {% comment %} Find banner image {% endcomment %}
+        {% with banner=None %}
+          {% for img in p.images.all %}
+            {% if img.image_type == "banner" %}
+              {% with banner=img %}
+              {% endwith %}
+            {% endif %}
+          {% endfor %}
+
+          <div class="position-relative">
+
+            {% if banner %}
+              <img src="{{ banner.image.url }}" class="d-block w-100" style="height:420px;object-fit:cover;">
+            {% else %}
+              {% with img=p.images.first %}
+                {% if img %}
+                  <img src="{{ img.image.url }}" class="d-block w-100" style="height:420px;object-fit:cover;">
+                {% endif %}
+              {% endwith %}
+            {% endif %}
+
+            <!-- overlay content -->
+            <div class="position-absolute top-50 start-0 translate-middle-y text-white ps-5">
+              <h2 class="fw-bold">{{ p.name }}</h2>
+              <p class="w-50">{{ p.description|truncatechars:120 }}</p>
+              <a href="{% url 'catalog:single-product-detail' p.id %}" class="btn btn-light">
+                Shop Now
+              </a>
+            </div>
+
+          </div>
+
+        {% endwith %}
+      </div>
+      {% endfor %}
+
+    </div>
+
+    <!-- arrows -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#homepageBanner" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-bs-target="#homepageBanner" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+    <div class="d-flex gap-2 flex-wrap">
+          
           <a class="btn btn-outline-dark" href="#featured">Featured</a>
         </div>
       </div>
-
-      <div class="col-lg-5">
-        <div class="card p-4">
-          <div class="fw-semibold mb-2">Quick Stats</div>
-          <div class="text-muted2 small mb-3">Customize these later from your dashboard.</div>
-          <div class="d-flex justify-content-between border-top pt-3">
-            <div>
-              <div class="text-muted2 small">Products</div>
-              <div class="fw-bold">{{ product_count|default:"—" }}</div>
-            </div>
-            <div>
-              <div class="text-muted2 small">Orders</div>
-              <div class="fw-bold">{{ order_count|default:"—" }}</div>
-            </div>
-            <div>
-              <div class="text-muted2 small">Visitors</div>
-              <div class="fw-bold">{{ visitor_count|default:"—" }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
 </section>
+{% endif %}
+
+
 
 <section id="featured" class="py-5">
   <div class="container">
@@ -57,22 +83,27 @@
       {# Expecting: featured_products = list of product objects #}
       {% for p in featured_products %}
         <div class="col-12 col-sm-6 col-lg-4">
-          <a href="{% url 'product_detail' p.id %}" class="text-decoration-none">
+          <a href="{% url 'catalog:single-product-detail' p.id %}" class="text-decoration-none">
             <div class="card card-hover p-3 h-100">
-              {% if p.image %}
-                <img class="product-img mb-3" src="{{ p.image.url }}" alt="{{ p.name }}">
-              {% else %}
-                <div class="product-img mb-3 d-flex align-items-center justify-content-center text-muted2">
-                  No image
-                </div>
-              {% endif %}
+              {% with img=p.images.first %}
+<div class="product-img mb-3">
+  {% if img %}
+    <img src="{{ img.image.url }}" alt="{{ p.name }}">
+  {% else %}
+    <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
+      No image
+    </div>
+  {% endif %}
+</div>
+{% endwith %}
+
 
               <div class="d-flex justify-content-between align-items-start">
                 <div class="me-2">
                   <div class="fw-semibold">{{ p.name }}</div>
                   <div class="text-muted2 small">{{ p.short_description|default:p.description|truncatechars:70 }}</div>
                 </div>
-                <div class="price">{{ p.price }}</div>
+                <div class="price">₹{{ p.price }}</div>
               </div>
 
               <div class="mt-3 d-flex gap-2">
@@ -93,4 +124,4 @@
     </div>
   </div>
 </section>
-{% endblock %}
+{% endblock %} 

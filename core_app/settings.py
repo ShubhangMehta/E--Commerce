@@ -80,16 +80,11 @@ INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED
 
 TENANT_MODEL = "customers.Client"  # app.Model
 TENANT_DOMAIN_MODEL = "customers.Domain"
-
-
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-
-
-
-
-
-
+DATABASE_ROUTERS = [
+    "django_tenants.routers.TenantSyncRouter",
+]
 
 MIDDLEWARE = [
     "django_tenants.middleware.TenantMiddleware",
@@ -157,9 +152,7 @@ DATABASES = {
         },
     }
 }
-DATABASE_ROUTERS = [
-    "django_tenants.routers.TenantSyncRouter",
-]
+
 
 
 AUTHENTICATION_BACKENDS = [

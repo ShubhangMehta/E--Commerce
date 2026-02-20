@@ -4,7 +4,7 @@ from accounts import views as c_views
 from users.views.theme_views import customer_profile
 
 urlpatterns = [
-    #path("", views.index, name="store_index"),
+    path("", views.index, name="index"),
     path("products/", views.product_list, name="product_list"),
 
     # IMPORTANT: your template uses product_detail, keep URL name as "product_detail"
