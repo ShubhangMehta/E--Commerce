@@ -332,7 +332,7 @@ def signup(request):
     Template: signup.html expects 'form'
     """
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("users:profile")
 
     form = UserCreationForm(request.POST or None)
     if request.method == "POST":
@@ -340,7 +340,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created.")
-            return redirect("profile")
+            return redirect("users:profile")
         messages.error(request, "Please correct the errors below.")
 
     return render(request, _theme_path(request, "signup.html"), {"form": form})

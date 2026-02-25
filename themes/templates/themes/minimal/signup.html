@@ -11,33 +11,30 @@
             Create Account
         </h1>
 
-        <form class="space-y-4" method="POST">
-            {% csrf_token %}
-            <input
-                type="text"
-                placeholder="Full Name"
-                class="w-full border-gray-200 focus:border-brandViolet p-3 outline-none"
-            >
+        <form method="POST" class="space-y-4">
+    {% csrf_token %}
 
-            <input
-                type="email"
-                placeholder="Email"
-                class="w-full border-gray-200 focus:border-brandViolet p-3 outline-none"
-            >
+    {% if form.errors %}
+        <div class="bg-red-100 text-red-600 p-3 text-sm rounded">
+            {{ form.errors }}
+        </div>
+    {% endif %}
 
-            <input
-                type="password"
-                placeholder="Password"
-                class="w-full border-gray-200 focus:border-brandViolet p-3 outline-none"
-            >
+    {% for field in form %}
+        <div>
+            {{ field.label_tag }}
+            {{ field }}
+            <div class="text-red-500 text-xs">
+                {{ field.errors }}
+            </div>
+        </div>
+    {% endfor %}
 
-            <button
-                type="submit"
-                class="w-full py-3 bg-brandViolet text-white font-bold uppercase tracking-widest text-xs mt-4"
-            >
-                Register
-            </button>
-        </form>
+    <button type="submit"
+        class="w-full py-3 bg-brandViolet text-white font-bold uppercase tracking-widest text-xs mt-4">
+        Register
+    </button>
+</form>
 
     </div>
 </div>

@@ -18,7 +18,7 @@
             }
         }
     </script>
-    <style>
+    <!-- <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap');
         
         body { font-family: 'Inter', sans-serif; }
@@ -28,7 +28,215 @@
         .bg-royal {
             background: linear-gradient(135deg, #2D1B4D 0%, #1a102d 100%);
         }
-    </style>
+    </style> -->
+
+   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;600;800&display=swap');
+
+    :root {
+      /* Refreshed Royal Palette */
+      --brand-blue: #D4AF37;        /* Metallic Gold */
+      --brand-blue-dark: #b8952e;   /* Deep Gold */
+      --ink: #2D1B4D;               /* Deep Violet */
+      --muted: #6b5a8e;             /* Softened Violet-Grey */
+      --bg: #fdfbf7;                /* Cream/Paper White */
+      --line: #e2d1a8;              /* Soft Gold Border */
+      --soft: #F9F1D0;              /* Soft Champagne background */
+      --card: #ffffff;              /* Pure White for cards */
+    }
+
+    body { 
+        background: var(--bg); 
+        color: var(--ink); 
+        font-family: 'Inter', sans-serif; 
+    }
+
+    /* Use this for titles to match the old 'serif' style */
+    .page-title, .serif, h4 { 
+        font-family: 'Playfair Display', serif; 
+        color: var(--ink);
+    }
+
+    .brand-link {
+      text-decoration:none;
+      font-weight:800;
+      letter-spacing:.2px;
+      color: var(--ink);
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
+    .brand-dot { color: var(--brand-blue); }
+
+    .tenant-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(212, 175, 55, 0.1);
+    }
+
+    .nav-link { color: var(--ink); font-weight: 500; }
+    .nav-link:hover { color: var(--brand-blue); }
+
+    .btn-brand {
+      background: var(--brand-blue);
+      border-color: var(--brand-blue);
+      color: var(--ink); /* Dark text on gold looks more premium */
+      font-weight: 700;
+    }
+    .btn-brand:hover {
+      background: var(--brand-blue-dark);
+      border-color: var(--brand-blue-dark);
+      color: #fff;
+    }
+
+    .text-muted2 { color: var(--muted) !important; }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 14px;
+      /* Soft gold shadow */
+      box-shadow: 0 4px 20px rgba(45, 27, 77, 0.05);
+    }
+
+    .product-img {
+        height: 220px;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        border-bottom: 2px solid var(--line);
+    }
+
+    .product-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .pill {
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    border: 1px solid var(--line);
+    background: var(--soft);
+    padding:.35rem .6rem;
+    border-radius:999px;
+    color: var(--ink);
+    font-size:.9rem;
+    font-weight: 600;
+    }
+
+    .footer {
+    border-top: 1px solid var(--line);
+    background: var(--soft);
+    }
+
+    .badge-soft {
+    border: 1px solid var(--line);
+    background: var(--soft);
+    color: var(--ink);
+    font-weight: 600;
+    }
+
+    .topbar {
+      /* Royal Gradient from old styles */
+    background: linear-gradient(135deg, #2D1B4D 0%, #1a102d 100%);
+    border-bottom: 2px solid var(--brand-blue);
+    }
+    
+    /* Ensure topbar links are white since background is dark */
+    .topbar .nav-link, .topbar .brand-link { color: #fff; }
+
+    .mini-stat {
+    display:flex;
+    gap:.65rem;
+    align-items:baseline;
+    padding:.4rem .6rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background:#fff;
+    white-space: nowrap;
+    }
+    .mini-stat .k { color: var(--muted); font-size:.85rem; }
+    .mini-stat .v { font-weight:800; color: var(--brand-blue-dark); }
+
+    .active-link {
+      color: var(--brand-blue) !important;
+      font-weight: 700;
+      border-bottom: 2px solid var(--brand-blue);
+    }
+    
+    .page-title {
+      font-weight: 800;
+      font-size: 32px; /* Slightly larger for serif elegance */
+      margin-bottom: 18px;
+    }
+
+    .section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .table thead {
+       background: var(--soft);
+    }
+
+    .table th {
+       color: var(--ink);
+       text-transform: uppercase;
+       font-size: 0.75rem;
+       letter-spacing: 1px;
+    }
+
+    /* Semantic Pills - Keeping logic but updating tones */
+    .pill-success { background:#e7f8ee; color:#15803d; border-color:#bbf7d0; }
+    .pill-danger { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+    .pill-warning { background: var(--soft); color: var(--brand-blue-dark); border-color: var(--line); }
+
+    .btn-soft {
+       background: var(--soft);
+       border: 1px solid var(--line);
+       color: var(--ink);
+       font-weight: 600;
+    }
+
+    .btn-soft:hover {
+       background: var(--ink);
+       color: #fff;
+       border-color: var(--ink);
+    }
+
+    .stat-card {
+       background:#fff;
+       border:1px solid var(--line);
+       border-radius:18px;
+       padding:20px;
+       transition: .3s ease;
+    }
+
+    .stat-value {
+       color: var(--ink);
+    }
+
+    .card-hover:hover {
+       transform: translateY(-5px);
+       box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15);
+       border-color: var(--brand-blue);
+    }
+    
+    .order-item img {
+      border: 2px solid var(--soft);
+    }
+</style>
+
 </head>
 <body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
 
@@ -39,14 +247,29 @@
         </a>
         
         <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-[0.2em]">
-            <a href="/products/" class="text-gray-600 hover:text-brandGold transition-colors">Shop</a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
+                Dashboard
+            </a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
+            href="{% url 'catalog:single-product-list' %}">
+            Shop
+            </a>
             <a href="/cart/" class="text-gray-600 hover:text-brandGold transition-colors">Cart</a>
-            <a href="/orders/" class="text-gray-600 hover:text-brandGold transition-colors">Orders</a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
+            Orders
+            </a>
+
             
             <div class="h-4 w-[1px] bg-brandGold/30"></div>
 
-            <a href="/login/" class="text-brandViolet hover:text-brandGold transition-colors">Login</a>
-            <a href="/signup/" class="px-5 py-2 border border-brandViolet text-brandViolet hover:bg-brandViolet hover:text-white transition-all shadow-sm">Signup</a>
+        <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'login' %}active-link{% endif %}" href="{% url 'login' %}">
+                Login
+            </a>
+        
+            
+            <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'tenant_customer_signup' %}">
+                Sign up
+            </a>
         </nav>
     </div>
 </header>
