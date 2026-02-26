@@ -61,7 +61,7 @@
 
         <div class="d-flex gap-2 flex-wrap mt-4">
           <a class="btn btn-brand" href="{% url 'orders_storefront:my_orders' %}">View orders</a>
-          <a class="btn btn-outline-dark" href="{% url 'product_list' %}">Continue shopping</a>
+          <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
           {# Optional order detail #}
           {% if order %}
             <a class="btn btn-outline-dark" href="{% url 'orders_storefront:order_detail' order.id %}">View order</a>

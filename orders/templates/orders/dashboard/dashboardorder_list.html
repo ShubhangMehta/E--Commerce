@@ -22,11 +22,11 @@
         <tbody>
             {% for order in orders %}
             <tr>
-                <td><strong>#{{ order.id }}</strong></td>
+                <td><strong>ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</strong></td>
 
                 <td>
                     <span class="pill">
-                        {{ order.customer.username }}
+                        {{ order.subject.full_name }}
                     </span>
                 </td>
 
