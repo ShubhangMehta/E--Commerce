@@ -23,15 +23,9 @@ urlpatterns = [
     path('catalog/', include('catalog.urls',namespace="catalog")),
     path('orders/', include('orders.urls',namespace="orders")),
     path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),
-    #path('', include('themes.urls')),
     path('dashboard/', include('dashboard.urls')),  
 
-    #path('', include('users.urls')),
-
-    #path('catalogue/', include('catalog.urls',namespace="catalog")),
-    #path('orders/', include('orders.urls',namespace="orders")), 
     path("users/", include("users.urls", namespace="users")),
-    #path('users/', include('users.theme_urls',namespace="users_theme")),
 ]
 
 if settings.DEBUG:
