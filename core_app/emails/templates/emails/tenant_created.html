@@ -12,7 +12,7 @@
             <li><strong>Tenant Name:</strong> {{ tenant_name }}</li>
             <li><strong>Company:</strong> {{ company }}</li>
             <li><strong>Owner Name:</strong> {{ owner_name }}</li>
-            <li><strong>Owner Email:</strong> {{ owner_email }}</li>
+            <li><strong>Owner Email:</strong> {{ email }}</li>
             <li><strong>Plan:</strong> {{ plan }}</li>
             <li><strong>Subscription Type:</strong> {{ subscription_type }}</li>
             <li><strong>Username:</strong> {{ username }}</li>
@@ -38,20 +38,26 @@
         {% if is_trial %}
             <p style="margin-top:12px;">
                 ✅ Your <strong>{{ trial_days }}-day trial</strong> is active.
-                Trial ends on <strong>{{ valid_until }}</strong>.
             </p>
             <p style="margin-top:12px;">
                 During the trial, you can add products, test checkout, and explore the dashboard.
             </p>
         {% else %}
             <p style="margin-top:12px;">
-                ✅ Your subscription is <strong>active</strong> ({{ plan }} – {{ subscription_type }}).
+                ✅ Your subscription is <strong>{{ plan }}</strong> now <strong>active</strong>.
             </p>
-            {% if payment_id %}
-                <p style="margin-top:8px;">
-                Payment Reference: <strong>{{ payment_id }}</strong>
-                </p>
-            {% endif %}
+            <p style="margin-top:8px;">
+                Payment Reference: <strong>{{ order_id }}</strong>
+            </p>
+            <p style="margin-top:8px;">
+                Amount Paid: {{ currency }} <strong>{{ amount }}</strong>
+            </p>
+            <p style="margin-top:8px;">
+                Billing Cycle: <strong>{{ billing_cycle }}</strong>
+            </p>
+            <p style="margin-top:12px;">
+                Duration: <strong>{{ duration }}</strong> days and ends on <strong>{{ end_date }}</strong>.
+            </p>
         {% endif %}
 
         <p style="margin-top:20px;">You can now start adding your products in store.</p>
