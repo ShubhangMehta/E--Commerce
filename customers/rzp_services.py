@@ -3,7 +3,7 @@
 import razorpay
 from django.conf import settings
 
-from .models import Invoice
+from .models import Invoice, PlanPricing
 
 # Initialize Razorpay client
 rzp_client = razorpay.Client(
@@ -30,6 +30,10 @@ def get_or_create_order_for_invoice(invoice: Invoice) -> dict:
             "invoice_id": str(invoice.id),
             "tenant_request_id": str(tr.id),
             "desired_domain": str(tr.desired_domain),
+            "plan": str(tr.plan.name),
+            "pricing": str(tr.pricing.price),
+            "billing_cycle": str(tr.pricing.billing_cycle),
+            "duration": str(tr.pricing.duration_days),
         },
     })
 

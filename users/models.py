@@ -1,14 +1,13 @@
+import uuid
+from datetime import timedelta
 from django.db import models
-from django.contrib.auth.models import User
-from customers.models import Client
+from django.utils import timezone
 
 class TenantRole(models.TextChoices):
     OWNER = "OWNER", "Owner"
     ADMIN = "ADMIN", "Admin"
     STAFF = "STAFF", "Staff"
     CUSTOMER = "CUSTOMER", "Customer"
-
-
 
 class SubjectMember(models.Model):
     """
@@ -30,11 +29,29 @@ class SubjectMember(models.Model):
         ]
         constraints = [
             models.UniqueConstraint(fields=["global_user_id"], name="uniq_tenant_member_global_user"),
-            models.UniqueConstraint(fields=["email"], name="uniq_subjectmember_email"),
         ]
 
     def __str__(self):
         return f"global_user_id={self.global_user_id} ({self.role})"
+
+def invite_default_expiry():
+    return timezone.now() + timedelta(days=7)
+
+class StaffInvite(models.Model):
+    email = models.EmailField(db_index=True)
+    role = models.CharField(max_length=20, choices=TenantRole.choices, default=TenantRole.STAFF)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    invited_by_global_user_id = models.BigIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=invite_default_expiry)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    def is_valid(self):
+        return self.revoked_at is None and self.accepted_at is None and self.expires_at > timezone.now()
+    
+    class Meta:
+        indexes = [ models.Index(fields=["token"]), models.Index(fields=["email"]) ]
 
 
 class Coordinate(models.Model):
