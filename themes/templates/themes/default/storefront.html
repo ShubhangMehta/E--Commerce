@@ -295,6 +295,7 @@
       align-items:center;
       gap:20px;
     }
+    
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -347,7 +348,7 @@
         </ul>
 
         <!-- Search (points to product list) -->
-        <form class="d-flex me-2" method="get" action="{% url 'product_list' %}">
+        <form class="d-flex me-2" method="get" action="{% url 'catalog:single-product-list' %}">
           <input class="form-control form-control-sm me-2" type="search" name="q" placeholder="Search products" value="{{ request.GET.q|default:'' }}">
           <button class="btn btn-sm btn-outline-dark" type="submit">Search</button>
         </form>

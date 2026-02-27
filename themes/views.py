@@ -22,16 +22,22 @@ def _theme_path(request, template_name: str) -> str:
 
 
 def index(request):
-    """
-    Home page.
-    Optional: You can pass featured_products + counts pulled from tenant if you want.
-    """
-    # Example for featured list: you can change filter later (e.g. is_featured=True)
     featured_products = (
-            SingleProduct.objects
-            .filter(is_featured=True)
-            .prefetch_related("images")
-            .order_by("featured_order")[:3]
+        SingleProduct.objects
+        .filter(is_featured=True)
+        .prefetch_related("images")
+        .order_by("featured_order")[:3]
+    )
+
+    # Attach banner & product images safely
+    for product in featured_products:
+        product.banner_image = next(
+            (img for img in product.images.all() if img.image_type == "banner"),
+            None
+        )
+        product.product_image = next(
+            (img for img in product.images.all() if img.image_type == "product"),
+            None
         )
 
     context = {
@@ -40,57 +46,59 @@ def index(request):
         "order_count": getattr(request.tenant, "order_count", None),
         "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
     }
+
     return render(request, _theme_path(request, "index.html"), context)
 
 
-def product_list(request):
-    """
-    Product listing page with basic search/sort.
-    Template: product_list.html expects 'products'.
-    """
-    qs = SingleProduct.objects.all()
 
-    q = (request.GET.get("q") or "").strip()
-    if q:
-        # Adjust fields if your model uses different names
-        qs = qs.filter(name__icontains=q) | qs.filter(description__icontains=q)
-
-    sort = request.GET.get("sort") or ""
-    if sort == "price_asc":
-        qs = qs.order_by("price")
-    elif sort == "price_desc":
-        qs = qs.order_by("-price")
-    elif sort == "new":
-        # If you have created_at; otherwise fallback to id desc
-        if hasattr(SingleProduct, "created_at"):
-            qs = qs.order_by("-created_at")
-        else:
-            qs = qs.order_by("-id")
-
-    return render(
-        request,
-        _theme_path(request, "product_list.html"),
-        {"products": qs},
-    )
-
-
-def product_detail(request, id):
-    """
-    Product details page.
-    Template: product_details.html expects 'product' (and optionally 'related_products').
-    """
-    product = get_object_or_404(SingleProduct, id=id)
-
-    # Optional related products. Adjust logic as needed.
-    related_products = SingleProduct.objects.exclude(id=product.id)[:4]
-
-    return render(
-        request,
-        _theme_path(request, "product_details.html"),
-        {"product": product, "related_products": related_products},
-    )
-
-
+#def product_list(request):
+#    """
+#    Product listing page with basic search/sort.
+#    Template: product_list.html expects 'products'.
+#    """
+#    qs = SingleProduct.objects.all()
+#
+#    q = (request.GET.get("q") or "").strip()
+#    if q:
+#        # Adjust fields if your model uses different names
+#        qs = qs.filter(name__icontains=q) | qs.filter(description__icontains=q)
+#
+#    sort = request.GET.get("sort") or ""
+#    if sort == "price_asc":
+#        qs = qs.order_by("price")
+#    elif sort == "price_desc":
+#        qs = qs.order_by("-price")
+#    elif sort == "new":
+#        # If you have created_at; otherwise fallback to id desc
+#        if hasattr(SingleProduct, "created_at"):
+#            qs = qs.order_by("-created_at")
+#        else:
+#            qs = qs.order_by("-id")
+#
+#    return render(
+#        request,
+#        _theme_path(request, "product_list.html"),
+#        {"products": qs},
+#    )
+#
+#
+#def product_detail(request, id):
+#    """
+#    Product details page.
+#    Template: product_details.html expects 'product' (and optionally 'related_products').
+#    """
+#    product = get_object_or_404(SingleProduct, id=id)
+#
+#    # Optional related products. Adjust logic as needed.
+#    related_products = SingleProduct.objects.exclude(id=product.id)[:4]
+#
+#    return render(
+#        request,
+#        _theme_path(request, "product_details.html"),
+#        {"product": product, "related_products": related_products},
+#    )
+#
+#
 # -----------------------------
 # CART (Session-based reference implementation)
 # -----------------------------

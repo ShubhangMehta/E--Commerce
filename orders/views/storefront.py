@@ -31,6 +31,8 @@ def checkout_view(request):
     if request.method == "POST":
         address_id = request.POST.get("address_id")
 
+        
+
         order = OrderService.create_order_from_cart(
             tenant=request.tenant,
             subject=subject,
@@ -81,7 +83,7 @@ def order_detail_view(request, order_id):
     items = order.items.all()
 
     return render(
-        request, "orders/customer/order_detail.html",
+        request, _theme_path(request, "cust_order_detail.html"),
         {
             "order": order,
             "items": items,
@@ -103,7 +105,7 @@ def invoice_view(request, order_id):
 
     return render(
         request,
-        "orders/storefront/invoice.html",  # fixed path
+         _theme_path(request, "cust_invoice.html"),  # fixed path
         {
             "order": order,
             "items": items,
