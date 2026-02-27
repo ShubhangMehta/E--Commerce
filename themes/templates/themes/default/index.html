@@ -3,80 +3,123 @@
 {% block title %}Home | Default Store{% endblock %}
 
 {% block content %}
-<section class="hero py-5">
-  <div class="container">
-    <div class="row align-items-center g-4">
-      <div class="col-lg-7">
-        <h1 class="display-6 fw-bold mb-3">Welcome to your store</h1>
-        <p class="text-muted2 mb-4">
-          A clean, normal storefront experience with a white background, black text, and blue accents.
-        </p>
-        <div class="d-flex gap-2 flex-wrap">
-          
-          <a class="btn btn-outline-dark" href="#featured">Featured</a>
-        </div>
-      </div>
 
-      
+{% if featured_products %}
+<section class="mb-5">
+  <div id="homepageBanner" class="carousel slide" data-bs-ride="carousel">
+
+    <div class="carousel-inner">
+
+      {% for p in featured_products %}
+      <div class="carousel-item {% if forloop.first %}active{% endif %}">
+
+        <div class="position-relative">
+
+          {% if p.banner_image %}
+            <img src="{{ p.banner_image.image.url }}" class="d-block w-100" style="height:420px;object-fit:cover;">
+          {% elif p.product_image %}
+            <img src="{{ p.product_image.image.url }}" class="d-block w-100" style="height:420px;object-fit:cover;">
+          {% endif %}
+
+          <!-- Overlay content -->
+          <div class="position-absolute top-50 start-0 translate-middle-y text-white ps-5">
+            <h2 class="fw-bold">{{ p.name }}</h2>
+            <p class="w-50">{{ p.description|truncatechars:120 }}</p>
+            <a href="{% url 'catalog:single-product-detail' p.id %}" class="btn btn-light">
+              Shop Now
+            </a>
+          </div>
+
+        </div>
+
       </div>
+      {% endfor %}
 
     </div>
+
+    <!-- Carousel arrows -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#homepageBanner" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+
+    <button class="carousel-control-next" type="button" data-bs-target="#homepageBanner" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+
   </div>
 </section>
+{% endif %}
+
 
 <section id="featured" class="py-5">
   <div class="container">
+
     <div class="d-flex justify-content-between align-items-end mb-3">
       <div>
         <h2 class="h4 fw-bold mb-1">Featured Products</h2>
         <div class="text-muted2">A few items to highlight on your homepage.</div>
       </div>
-      <a class="btn btn-sm btn-outline-dark" href="{% url 'product_list' %}">View all</a>
+      <a class="btn btn-sm btn-outline-dark" href="{% url 'catalog:single-product-list' %}">View all</a>
     </div>
 
     <div class="row g-3">
-      {# Expecting: featured_products = list of product objects #}
+
       {% for p in featured_products %}
-        <div class="col-12 col-sm-6 col-lg-4">
-          <a href="{% url 'catalog:single-product-detail' p.id %}" class="text-decoration-none">
-            <div class="card card-hover p-3 h-100">
-              {% with img=p.images.first %}
-<div class="product-img mb-3">
-  {% if img %}
-    <img src="{{ img.image.url }}" alt="{{ p.name }}">
-  {% else %}
-    <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
-      No image
-    </div>
-  {% endif %}
-</div>
-{% endwith %}
+      <div class="col-12 col-sm-6 col-lg-4">
+        <a href="{% url 'catalog:single-product-detail' p.id %}" class="text-decoration-none">
+          <div class="card card-hover p-3 h-100">
 
-
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="me-2">
-                  <div class="fw-semibold">{{ p.name }}</div>
-                  <div class="text-muted2 small">{{ p.short_description|default:p.description|truncatechars:70 }}</div>
+            <div class="product-img mb-3">
+              {% if p.product_image %}
+                <img src="{{ p.product_image.image.url }}" alt="{{ p.name }}">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
+                  No image
                 </div>
-                <div class="price">₹{{ p.price }}</div>
-              </div>
-
-              <div class="mt-3 d-flex gap-2">
-                <span class="btn btn-sm btn-brand">View</span>
-                <span class="btn btn-sm btn-outline-dark">Add to cart</span>
-              </div>
+              {% endif %}
             </div>
-          </a>
-        </div>
+
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="me-2">
+                <div class="fw-semibold">{{ p.name }}</div>
+                <div class="text-muted2 small">
+                  {{ p.short_description|default:p.description|truncatechars:70 }}
+                </div>
+              </div>
+              <div class="price">₹{{ p.price }}</div>
+            </div>
+
+            <div class="mt-auto d-flex gap-2">
+              <a href="{% url 'catalog:single-product-detail' p.id %}"
+                 class="btn btn-soft w-50">
+                View
+              </a>
+
+              <form method="post" action="{% url 'cart' %}" class="w-50">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ p.id }}">
+              <button type="submit" class="btn btn-brand w-100">
+                Add to cart
+              </button>
+            </form>
+            </div>
+
+          </div>
+        </a>
+      </div>
       {% empty %}
-        <div class="col-12">
-          <div class="card p-4">
-            <div class="fw-semibold">No featured products yet</div>
-            <div class="text-muted2">Add products in your admin/dashboard and pass them as <code>featured_products</code>.</div>
+      <div class="col-12">
+        <div class="card p-4">
+          <div class="fw-semibold">No featured products yet</div>
+          <div class="text-muted2">
+            Add products in your admin/dashboard and pass them as <code>featured_products</code>.
           </div>
         </div>
+      </div>
       {% endfor %}
+
     </div>
   </div>
 </section>
+
 {% endblock %}

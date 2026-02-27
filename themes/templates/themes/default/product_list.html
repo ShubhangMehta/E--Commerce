@@ -1,97 +1,82 @@
 {% extends "themes/default/storefront.html" %}
 
-{% block title %}Products | Default Store{% endblock %}
+{% block title %}Products{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end gap-2 mb-3">
-    <div>
-      <h1 class="h4 fw-bold mb-1">Products</h1>
-      <div class="text-muted2">Browse available items.</div>
+<div class="container py-4">
+
+  <h1 class="page-title">Products</h1>
+
+  <div class="section">
+    <div class="row g-3">
+
+      {% for product in products %}
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+        <div class="card h-100 card-hover">
+
+          <!-- IMAGE -->
+          <a href="{% url 'catalog:single-product-detail' product.id %}">
+            {% with product.images.first as img %}
+<div class="product-img">
+  {% if img %}
+    <img src="{{ img.image.url }}" alt="{{ product.name }}">
+  {% else %}
+    <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
+        No image
     </div>
+  {% endif %}
+</div>
+{% endwith %}
 
-    <form class="d-flex gap-2" method="get" action="">
-      <input class="form-control form-control-sm" type="search" name="q" placeholder="Search" value="{{ request.GET.q|default:'' }}">
-      <select class="form-select form-select-sm" name="sort">
-        <option value="">Sort</option>
-        <option value="new" {% if request.GET.sort == "new" %}selected{% endif %}>Newest</option>
-        <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: Low to High</option>
-        <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
-      </select>
-      <button class="btn btn-sm btn-brand" type="submit">Apply</button>
-    </form>
-  </div>
-
-  <div class="row g-3">
-    {# Expecting: products = iterable of product objects with id, name, price, image(optional) #}
-    {% for p in products %}
-      <div class="col-12 col-sm-6 col-lg-4">
-        <div class="card card-hover p-3 h-100">
-          <a class="text-decoration-none" href="{% url 'product_detail' p.id %}">
-            {% if p.image %}
-              <img class="product-img mb-3" src="{{ p.image.url }}" alt="{{ p.name }}">
-            {% else %}
-              <div class="product-img mb-3 d-flex align-items-center justify-content-center text-muted2">No image</div>
-            {% endif %}
           </a>
 
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="me-2">
-              <a class="text-decoration-none text-dark" href="{% url 'product_detail' p.id %}">
-                <div class="fw-semibold">{{ p.name }}</div>
-              </a>
-              <div class="text-muted2 small">{{ p.short_description|default:p.description|truncatechars:70 }}</div>
+          <!-- BODY -->
+          <div class="card-body d-flex flex-column">
+
+            <h6 class="mb-1 text-truncate">
+              {{ product.name }}
+            </h6>
+
+            <div class="text-muted2 small mb-1">
+              {{ product.brand_name }}
             </div>
-            <div class="price">{{ p.price }}</div>
-          </div>
 
-          <div class="mt-3 d-flex gap-2">
-            <a class="btn btn-sm btn-brand" href="{% url 'product_detail' p.id %}">View</a>
+            <div class="fw-semibold mb-3">
+              ₹{{ product.price }}
+            </div>
 
-            {# Update URL name if your cart add view differs #}
-            <form method="post" action="{% url 'cart' %}">
+            <!-- ACTIONS -->
+            <div class="mt-auto d-flex gap-2">
+              <a href="{% url 'catalog:single-product-detail' product.id %}"
+                 class="btn btn-soft w-50">
+                View
+              </a>
+
+              <form method="post" action="{% url 'cart' %}" class="w-50">
               {% csrf_token %}
-              <input type="hidden" name="product_id" value="{{ p.id }}">
-              <button class="btn btn-sm btn-outline-dark" type="submit">Add to cart</button>
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <button type="submit" class="btn btn-brand w-100">
+                Add to cart
+              </button>
             </form>
+            </div>
+
           </div>
         </div>
+
       </div>
-    {% empty %}
+
+      {% empty %}
       <div class="col-12">
-        <div class="card p-4">
-          <div class="fw-semibold">No products found</div>
-          <div class="text-muted2">Add products or adjust your filters/search.</div>
+        <div class="alert-soft text-center p-5">
+          No products available
         </div>
       </div>
-    {% endfor %}
+      {% endfor %}
+
+    </div>
   </div>
 
-  {# Optional pagination (expects page_obj) #}
-  {% if page_obj %}
-    <nav class="mt-4">
-      <ul class="pagination">
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q|default:'' }}&sort={{ request.GET.sort|default:'' }}">Previous</a>
-          </li>
-        {% else %}
-          <li class="page-item disabled"><span class="page-link">Previous</span></li>
-        {% endif %}
-
-        <li class="page-item disabled">
-          <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        </li>
-
-        {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q|default:'' }}&sort={{ request.GET.sort|default:'' }}">Next</a>
-          </li>
-        {% else %}
-          <li class="page-item disabled"><span class="page-link">Next</span></li>
-        {% endif %}
-      </ul>
-    </nav>
-  {% endif %}
 </div>
 {% endblock %}

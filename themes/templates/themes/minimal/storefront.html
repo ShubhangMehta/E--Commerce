@@ -35,18 +35,27 @@
     <header class="bg-white border-b-2 border-brandGold/20 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
         <a href="/" class="serif text-2xl font-bold tracking-tight text-brandViolet">
-            <span class="text-brandGold">★</span> {{ request.tenant.name }}
+            <span class="text-brandGold">★</span> {{ t.tenant_name}}
         </a>
         
         <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-[0.2em]">
-            <a href="/products/" class="text-gray-600 hover:text-brandGold transition-colors">Shop</a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
+              href="{% url 'catalog:single-product-list' %}">
+            Shop
+            </a>
             <a href="/cart/" class="text-gray-600 hover:text-brandGold transition-colors">Cart</a>
             <a href="/orders/" class="text-gray-600 hover:text-brandGold transition-colors">Orders</a>
             
             <div class="h-4 w-[1px] bg-brandGold/30"></div>
 
-            <a href="/login/" class="text-brandViolet hover:text-brandGold transition-colors">Login</a>
-            <a href="/signup/" class="px-5 py-2 border border-brandViolet text-brandViolet hover:bg-brandViolet hover:text-white transition-all shadow-sm">Signup</a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'login' %}active-link{% endif %}" href="{% url 'login' %}">
+                Login
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'tenant_customer_signup' %}">
+                Sign up
+              </a>
         </nav>
     </div>
 </header>

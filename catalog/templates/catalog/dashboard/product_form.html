@@ -1,23 +1,119 @@
 {% extends theme_storefront %}
-
 {% block content %}
-<h1>{{ title }}</h1>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+<div class="container py-4" style="max-width:1000px">
 
-    {{ form.as_p }}
+    <div class="page-title mb-4">{{ title }}</div>
 
-    <h3>Product Images</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    {{ formset.management_form }}
+        <!-- PRODUCT CARD -->
+        <div class="card p-4 mb-4">
+            <h4 class="mb-3">Product Details</h4>
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
 
-    {% for image_form in formset %}
-        {{ image_form.as_p }}
-    {% endfor %}
+        <!-- IMAGES CARD -->
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Product Images</h4>
+                <button type="button" id="add-image" class="btn btn-brand">
+                    + Add Image
+                </button>
+            </div>
 
-    <button type="submit">Save</button>
-</form>
+            {{ formset.management_form }}
 
-<a href="{% url 'catalog:product_list' %}">Back</a>
+            <div id="image-formset" class="row g-4">
+                {% for image_form in formset %}
+                    <div class="col-md-4 image-form">
+                        <div class="card p-3 h-100">
+
+                            <div class="mb-2 fw-semibold">Image</div>
+                            {{ image_form.image }}
+
+                            <div class="mt-3">
+                                <label class="small">Image Type</label>
+                                {{ image_form.image_type }}
+                            </div>
+
+                            <div class="form-check mt-2">
+                                {{ image_form.is_primary }}
+                                <label class="form-check-label">Primary image</label>
+                            </div>
+
+                            <button type="button" class="btn btn-sm btn-soft mt-3 remove-image">
+                                Remove
+                            </button>
+
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-brand px-5">Save Product</button>
+        <a href="{% url 'catalog:product_list' %}">Back</a>
+    </form>
+    
+</div>
+
+<!-- HIDDEN EMPTY FORM TEMPLATE -->
+<div id="empty-form-template" class="d-none">
+    <div class="col-md-4 image-form">
+        <div class="card p-3 h-100">
+            <div class="mb-2 fw-semibold">Image</div>
+            __IMAGE__
+
+            <div class="mt-3">
+                <label class="small">Image Type</label>
+                __TYPE__
+            </div>
+
+            <div class="form-check mt-2">
+                __PRIMARY__
+                <label class="form-check-label">Primary image</label>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-soft mt-3 remove-image">
+                Remove
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const addBtn = document.getElementById("add-image");
+const totalForms = document.getElementById("id_images-TOTAL_FORMS");
+const formsetDiv = document.getElementById("image-formset");
+const template = document.getElementById("empty-form-template").innerHTML;
+
+addBtn.onclick = function() {
+    let formNum = parseInt(totalForms.value);
+
+    let newForm = template
+        .replace(/__prefix__/g, formNum)
+        .replace("__IMAGE__", document.querySelector('[name$="-image"]').outerHTML.replace(/-\d+-/g, `-${formNum}-`))
+        .replace("__TYPE__", document.querySelector('[name$="-image_type"]').outerHTML.replace(/-\d+-/g, `-${formNum}-`))
+        .replace("__PRIMARY__", document.querySelector('[name$="-is_primary"]').outerHTML.replace(/-\d+-/g, `-${formNum}-`));
+
+    formsetDiv.insertAdjacentHTML("beforeend", newForm);
+    totalForms.value = formNum + 1;
+};
+
+document.addEventListener("click", function(e){
+    if(e.target.classList.contains("remove-image")){
+        e.target.closest(".image-form").remove();
+    }
+});
+</script>
+
 {% endblock %}
