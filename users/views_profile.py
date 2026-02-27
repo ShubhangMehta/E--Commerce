@@ -250,7 +250,7 @@ def profile_view(request):
 def address_add(request):
     member = request.subject_member
     if member is None:
-        return redirect("profile")
+        return redirect("users:profile")
     
     if request.method == "POST":
         addr = Coordinate.objects.create(
@@ -270,7 +270,7 @@ def address_add(request):
             Coordinate.objects.filter(user=member).exclude(id=addr.id).update(is_default=False)
 
         messages.success(request, "Address added.")
-        return redirect("profile")
+        return redirect("users:profile")
     
 
     return render(request, _theme_path(request, "address_form.html"), {
