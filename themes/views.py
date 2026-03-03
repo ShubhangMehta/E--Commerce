@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 
 from catalog.models import SingleProduct
+from users.models import SubjectMember
 
 # If you already have an Order model in your project, import it here.
 # Example:
@@ -39,12 +40,22 @@ def index(request):
             (img for img in product.images.all() if img.image_type == "product"),
             None
         )
+#   # ✅ Role Check
+#   is_owner = False
+#   if request.user.is_authenticated:
+#       member = SubjectMember.objects.filter(
+#           global_user_id=request.user.id
+#       ).first()
+#
+#       if member and member.role == "OWNER":
+#           is_owner = True
 
     context = {
         "featured_products": featured_products,
         "product_count": getattr(request.tenant, "product_count", None),
         "order_count": getattr(request.tenant, "order_count", None),
         "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
+        #is_owner": is_owner,
     }
 
     return render(request, _theme_path(request, "index.html"), context)
@@ -162,7 +173,7 @@ def cart(request):
             cart_data[str(product_id)]["qty"] = int(cart_data[str(product_id)]["qty"]) + 1
             _set_cart(request.session, cart_data)
             messages.success(request, "Added to cart.")
-            return redirect("cart")
+            return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
@@ -195,14 +206,14 @@ def cart_update(request):
         qty_int = max(1, int(qty))
     except ValueError:
         messages.error(request, "Quantity must be a number.")
-        return redirect("cart")
+        return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     if str(product_id) in cart_data:
         cart_data[str(product_id)]["qty"] = qty_int
         _set_cart(request.session, cart_data)
         messages.success(request, "Cart updated.")
-    return redirect("cart")
+    return redirect("themes:cart")
 
 
 @require_http_methods(["POST"])
@@ -213,13 +224,13 @@ def cart_remove(request):
     """
     product_id = request.POST.get("product_id")
     if not product_id:
-        return redirect("cart")
+        return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     cart_data.pop(str(product_id), None)
     _set_cart(request.session, cart_data)
     messages.success(request, "Item removed.")
-    return redirect("cart")
+    return redirect("themes:cart")
 
 
 # -----------------------------

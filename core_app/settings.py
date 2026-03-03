@@ -94,6 +94,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core_app.context_processors.tenant_settings",
                 "themes.context_processors.tenant_theme",
+                "users.context_processors.owner_status",
             ],
         },
     },

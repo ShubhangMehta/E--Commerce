@@ -53,7 +53,7 @@
                 View
               </a>
 
-              <form method="post" action="{% url 'cart' %}" class="w-50">
+              <form method="post" action="{% url 'themes:cart' %}" class="w-50">
               {% csrf_token %}
               <input type="hidden" name="product_id" value="{{ product.id }}">
               <button type="submit" class="btn btn-brand w-100">
