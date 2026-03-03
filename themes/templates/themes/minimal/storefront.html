@@ -69,7 +69,7 @@
     .brand-dot { color: var(--brand-blue); }
 
     .tenant-logo {
-      width: 34px;
+    width: 34px;
       height: 34px;
       border-radius: 10px;
       object-fit: cover;
@@ -81,17 +81,19 @@
     .nav-link { color: var(--ink); font-weight: 500; }
     .nav-link:hover { color: var(--brand-blue); }
 
-    .btn-brand {
-      background: var(--brand-blue);
-      border-color: var(--brand-blue);
-      color: var(--ink); /* Dark text on gold looks more premium */
-      font-weight: 700;
-    }
-    .btn-brand:hover {
-      background: var(--brand-blue-dark);
-      border-color: var(--brand-blue-dark);
-      color: #fff;
-    }
+.btn-brand {
+    background: #007bff !important; /* Nykaa Blue */
+    color: #fff !important;
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-brand:hover {
+    opacity: 0.9;
+    background: #0056b3; /* Darker blue */
+}
 
     .text-muted2 { color: var(--muted) !important; }
 
@@ -166,34 +168,33 @@
     .mini-stat .v { font-weight:800; color: var(--brand-blue-dark); }
 
     .active-link {
-      color: var(--brand-blue) !important;
-      font-weight: 700;
-      border-bottom: 2px solid var(--brand-blue);
+    color: var(--brand-blue) !important;
+    font-weight: 700;
+    border-bottom: 2px solid var(--brand-blue);
     }
     
     .page-title {
-      font-weight: 800;
+    font-weight: 800;
       font-size: 32px; /* Slightly larger for serif elegance */
-      margin-bottom: 18px;
+    margin-bottom: 18px;
     }
 
-    .section {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 22px;
-      margin-bottom: 22px;
-    }
+ .section {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+}
 
     .table thead {
-       background: var(--soft);
+    background: var(--soft);
     }
 
     .table th {
-       color: var(--ink);
-       text-transform: uppercase;
-       font-size: 0.75rem;
-       letter-spacing: 1px;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
     }
 
     /* Semantic Pills - Keeping logic but updating tones */
@@ -202,36 +203,36 @@
     .pill-warning { background: var(--soft); color: var(--brand-blue-dark); border-color: var(--line); }
 
     .btn-soft {
-       background: var(--soft);
-       border: 1px solid var(--line);
-       color: var(--ink);
-       font-weight: 600;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-weight: 600;
     }
 
     .btn-soft:hover {
-       background: var(--ink);
-       color: #fff;
-       border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
     }
 
-    .stat-card {
-       background:#fff;
-       border:1px solid var(--line);
-       border-radius:18px;
-       padding:20px;
-       transition: .3s ease;
-    }
+.stat-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 30px 20px;
+    text-align: center; /* Crucial for horizontal centered look */
+}
 
-    .stat-value {
-       color: var(--ink);
-    }
+.stat-value {
+    font-size: 2.5rem !important; /* Larger for impact */
+    font-weight: 800;
+}
 
-    .card-hover:hover {
-       transform: translateY(-5px);
-       box-shadow: 0 15px 35px rgba(212, 175, 55, 0.15);
-       border-color: var(--brand-blue);
-    }
-    
+.card-hover:hover {
+    transform: translateX(8px); /* Slides right slightly like the video */
+    border-color: var(--brand-blue);
+    background: #fff;
+}
     .order-item img {
       border: 2px solid var(--soft);
     }
@@ -247,15 +248,22 @@
         </a>
         
         <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-[0.2em]">
+
+             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
+                Dashboard
+              </a>
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
+                Profile
+              </a>
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
-              href="{% url 'catalog:single-product-list' %}">
+            href="{% url 'catalog:single-product-list' %}">
             Shop
             </a>
             <a href="/cart/" class="text-gray-600 hover:text-brandGold transition-colors">Cart</a>
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
             Orders
             </a>
-
+            
             
             <div class="h-4 w-[1px] bg-brandGold/30"></div>
 

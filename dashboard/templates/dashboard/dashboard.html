@@ -2,97 +2,71 @@
 {% load static %}
 
 {% block content %}
-
-<div class="d-flex gap-4">
-
-    <!-- SIDEBAR -->
-    <div style="width:280px">
-
-        <div class="section">
-            <h5 class="fw-bold mb-3">Management</h5>
-
-            {% for app in apps %}
-            <a href="{{ app.url }}" class="card card-hover mb-3 p-3 text-decoration-none d-block">
-                <div class="fw-bold">{{ app.name }}</div>
-                <div class="text-muted2 small">{{ app.description }}</div>
-            </a>
-            {% endfor %}
-
+<div class="container-fluid py-4 px-lg-5">
+    <div class="row gx-5">
+        
+        <div class="col-md-3 col-lg-2 mb-4">
+            <div class="section shadow-sm border-0">
+                <h5 class="fw-bold mb-4">Management</h5>
+                <div class="d-flex flex-column gap-3">
+                    {% for app in apps %}
+                    <a href="{{ app.url }}" class="card card-hover p-3 text-decoration-none d-block">
+                        <div class="fw-bold text-dark">{{ app.name }}</div>
+                        <div class="text-muted2 small">{{ app.description }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-    </div>
 
-
-    <!-- MAIN CONTENT -->
-    <div class="flex-grow-1">
-
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <div class="page-title">{{ tenant.tenant_name }} Dashboard</div>
-                <div class="text-muted2">Welcome back 👋 Here’s your store overview.</div>
+        <div class="col-md-9 col-lg-10 ps-md-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h1 class="page-title mb-0">{{ tenant.tenant_name }} Dashboard</h1>
+                    <p class="text-muted2 fs-5">Welcome back 👋 Here’s your store overview.</p>
+                </div>
+                <a href="{% url 'catalog:product_create' %}" class="btn btn-brand px-4 py-2 rounded-3 shadow-sm">
+                    + Add Product
+                </a>
             </div>
 
-            <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
-                + Add Product
-            </a>
-        </div>
-
-
-        <!-- QUICK STATS -->
-        <div class="row g-4 mb-4">
-
-            <div class="col-md-4">
-                <div class="stat-card text-center">
-                    <div class="stat-title">Products</div>
-                    <div class="stat-value">{{ product_count|default:"—" }}</div>
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="text-muted2 small fw-bold text-uppercase mb-2">Products</div>
+                        <div class="stat-value display-5 fw-bold">{{ product_count|default:"0" }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="text-muted2 small fw-bold text-uppercase mb-2">Orders</div>
+                        <div class="stat-value display-5 fw-bold">{{ order_count|default:"0" }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="text-muted2 small fw-bold text-uppercase mb-2">Visitors</div>
+                        <div class="stat-value display-5 fw-bold">{{ visitor_count|default:"0" }}</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="stat-card text-center">
-                    <div class="stat-title">Orders</div>
-                    <div class="stat-value">{{ order_count|default:"—" }}</div>
+            <div class="card p-4 shadow-sm border-0 rounded-4">
+                <h4 class="fw-bold mb-4 serif">Top Selling Products (This Month)</h4>
+                <div style="height: 350px;">
+                    <canvas id="topProductsChart"></canvas>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="stat-card text-center">
-                    <div class="stat-title">Visitors</div>
-                    <div class="stat-value">{{ visitor_count|default:"—" }}</div>
-                </div>
-            </div>
+        </div> </div> </div>
 
-        </div>
-
-
-        <!-- OPTIONAL EMPTY STATE -->
-        {% if product_count == 0 %}
-        <div class="alert-soft p-4 text-center">
-            <h5 class="fw-bold mb-2">Your store is empty</h5>
-            <p class="text-muted2 mb-3">Start by adding your first product.</p>
-            <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
-                Add First Product
-            </a>
-        </div>
-        {% endif %}
-            <div class="card p-4 mt-4">
-    <h4>Top Selling Products (This Month)</h4>
-    <canvas id="topProductsChart"></canvas>
-    </div>
-
-    </div>
-
-
-</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 fetch("/dashboard/api/monthly-top-products/")
     .then(res => res.json())
     .then(data => {
-
         const ctx = document.getElementById("topProductsChart");
-
         new Chart(ctx, {
             type: "bar",
             data: {
@@ -100,17 +74,22 @@ fetch("/dashboard/api/monthly-top-products/")
                 datasets: [{
                     label: "Units Sold",
                     data: data.data,
+                    backgroundColor: '#A0D1FB', 
+                    borderRadius: 6,
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
                 }
             }
         });
-
     });
 </script>
-
 {% endblock %}
