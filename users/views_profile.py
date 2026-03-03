@@ -16,13 +16,12 @@ from .models import SubjectMember, Coordinate, TenantRole, StaffInvite
 from core_app.emails.utils import send_html_email
 from accounts.services import get_or_create_global_user
 from django.db.models import Q
-from orders.views.pages import is_owner
 from django.contrib.auth import get_user_model
 from django_tenants.utils import schema_context, get_public_schema_name
 
 @login_required
 def users_home(request):
-    if is_owner(request):
+
         users = SubjectMember.objects.all()
 
         User = get_user_model()
@@ -57,8 +56,7 @@ def users_home(request):
             "tenant": client,
             "theme_base": f"themes/{theme}/storefront.html",
         })
-    else:
-        return redirect("users:profile")
+
 
 INVITE_RULES = {
     TenantRole.OWNER: {TenantRole.ADMIN, TenantRole.STAFF},
