@@ -45,4 +45,3 @@ Role-Based Access — Super Admin, Staff, Tenant Admin, and Customer user levels
 Automated Backups & SSL — Incremental + full backups, Let’s Encrypt for SSL.
 
 Template System — Pre-built website templates that can be customized per tenant.
-

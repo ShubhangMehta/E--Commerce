@@ -14,12 +14,12 @@ from users.models import SubjectMember
 # from orders.models import Order, OrderItem
 
 def _theme_path(request, template_name: str) -> str:
-    """
-    Returns the theme-aware template path.
-    Works for all themes as long as templates exist under: templates/themes/<theme>/
-    """
+
     theme = getattr(request.tenant, "theme", "default") or "default"
     return f"themes/{theme}/{template_name}"
+
+
+
 
 
 def index(request):
@@ -117,7 +117,7 @@ def index(request):
 def _get_cart(session) -> dict:
     """
     Cart stored in session as:
-      cart = { "<product_id>": {"qty": int} }
+    cart = { "<product_id>": {"qty": int} }
     """
     return session.get("cart", {})
 
@@ -349,7 +349,7 @@ def signup(request):
     Template: signup.html expects 'form'
     """
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("users:profile")
 
     form = UserCreationForm(request.POST or None)
     if request.method == "POST":
@@ -357,7 +357,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created.")
-            return redirect("profile")
+            return redirect("users:profile")
         messages.error(request, "Please correct the errors below.")
 
     return render(request, _theme_path(request, "signup.html"), {"form": form})
