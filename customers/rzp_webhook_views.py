@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 
 from .models import Invoice, RzpPayment, RzpWebhookEvent
 from .services.provisioning import provision_tenant_from_request
+from core_app.emails.utils import send_html_email
 
 def verify_razorpay_signature(body: bytes, received_signature: str) -> bool:
     """
@@ -98,7 +99,7 @@ def razorpay_webhook(request):
 
     # Captured: provision tenant and activate
     if event == "payment.captured" or status == "captured":
-        tenant, domain, subscription = provision_tenant_from_request(
+        tenant, domain, subscription, username, temp_password = provision_tenant_from_request(
             tenant_request=tr, plan=tr.plan, pricing=tr.pricing
         )
 
@@ -128,6 +129,43 @@ def razorpay_webhook(request):
         # Mark request paid_created
         tr.status = "approved"
         tr.save(update_fields=["status"])
+
+        # Send welcome email to tenant owner
+        try:
+            send_html_email(
+                subject="Your Store Is Ready",
+                to_email=tr.email,
+                template_name="emails/tenant_created.html",
+                context={
+                    "owner_name": tr.tenant_name,
+                    "tenant_name": tenant.tenant_name,
+                    "company": tr.company,
+                    "domain": domain,
+                    "plan": tr.plan.name,
+                    "email": tr.email,
+                    "order_id": rzp_payment_id,
+                    "amount": amount/100,
+                    "currency": currency,
+                    "billing_cycle": tr.pricing.billing_cycle,
+                    "duration": tr.pricing.duration_days,
+                    "username": username,
+                    "end_date": subscription.end_date,
+                    "subscription_type": "Trial" if subscription.is_trial else "Paid",
+                    "login_url": f"https://{domain.domain}/login/",
+                    "dashboard_url": f"https://{domain.domain}/dashboard/",
+                    "temp_password": temp_password,
+                    "is_trial": subscription.is_trial,
+                    "order_id": tr.id,
+                    #"trial_days": settings.BILLING_TRIAL_DAYS,
+                    "trial_days": (subscription.end_date - subscription.start_date).days if subscription.is_trial else 7,
+                }
+            )
+        except Exception:
+            pass
+
+        print("Tenant provisioned and payment recorded for tenant_request_id:", tr.id, "tenant_domain:", domain.domain, "✅")
+        print("Email sent from webhook:", tr.email)
+
 
         return JsonResponse({"ok": True, "provisioned": True, "tenant_domain": domain.domain})
     

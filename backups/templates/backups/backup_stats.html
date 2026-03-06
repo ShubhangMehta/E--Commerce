@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Backup Statistics</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 85%;
+            margin: 40px auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .card p {
+            margin-top: 8px;
+            color: #666;
+        }
+
+        .success { color: #2ecc71; }
+        .failed { color: #e74c3c; }
+        .total { color: #3498db; }
+        .rate { color: #9b59b6; }
+
+        .chart-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>📊 Backup Statistics Overview</h1>
+
+    <!-- DEMO STATS -->
+    <div class="stats-grid">
+        <div class="card">
+            <h2 class="total">120</h2>
+            <p>Total Backups</p>
+        </div>
+
+        <div class="card">
+            <h2 class="success">98</h2>
+            <p>Successful</p>
+        </div>
+
+        <div class="card">
+            <h2 class="failed">22</h2>
+            <p>Failed</p>
+        </div>
+
+        <div class="card">
+            <h2 class="rate">81%</h2>
+            <p>Success Rate</p>
+        </div>
+    </div>
+
+    <!-- DEMO CHART -->
+    <div class="chart-box">
+        <canvas id="backupChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('backupChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [
+                "Tenant A",
+                "Tenant B",
+                "Tenant C",
+                "Tenant D"
+            ],
+            datasets: [
+                {
+                    label: 'Success',
+                    data: [30, 25, 28, 15],
+                    backgroundColor: '#2ecc71'
+                },
+                {
+                    label: 'Failed',
+                    data: [5, 8, 4, 5],
+                    backgroundColor: '#e74c3c'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 5 }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
