@@ -47,16 +47,15 @@
         </form>
 
         <div class="d-flex justify-content-between mt-3">
-          
+          <!-- Forgot password feature -->
+          <a class="small text-decoration-none" href="{% url 'password_reset' %}">
+            Forgot password?
+          </a>        
+
           {# If you have signup #}
           <a class="small text-decoration-none" href="{% url 'signup' %}">Create account</a>
         </div>
 
-        <hr class="my-4">
-
-        <div class="text-muted2 small">
-          Tip: If you’re stuck in a login loop, confirm your auth middleware + redirect URLs and that the tenant domain is correct.
-        </div>
       </div>
     </div>
   </div>

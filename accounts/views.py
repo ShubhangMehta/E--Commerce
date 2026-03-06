@@ -79,6 +79,11 @@ def signup_view(request):
     return render(request, template)
 
 def forgot_password_view(request):
+    template = "accounts/forgot_password.html" # default for public schema
+
+    if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
+        template = _theme_path(request, "password_reset.html")
+
     if request.method == 'POST':
         email = request.POST['email']
         form = PasswordResetForm({'email': email})
@@ -90,7 +95,7 @@ def forgot_password_view(request):
             )
             messages.success(request, 'Password reset email sent.')
             return redirect('/login/')
-    return render(request, 'accounts/forgot_password.html')
+    return render(request, template)
 
 @login_required
 def session_logs_view(request):
