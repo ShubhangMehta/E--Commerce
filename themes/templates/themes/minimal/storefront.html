@@ -58,7 +58,7 @@
     }
 
     .brand-link {
-      text-decoration:none;
+    text-decoration:none;
       font-weight:800;
       letter-spacing:.2px;
       color: var(--ink);
@@ -81,28 +81,34 @@
     .nav-link { color: var(--ink); font-weight: 500; }
     .nav-link:hover { color: var(--brand-blue); }
 
-.btn-brand {
-    background: #007bff !important; /* Nykaa Blue */
-    color: #fff !important;
-    border: none;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+.btn-brand{
+    background: linear-gradient(135deg,#d4af37,#b8952e);
+    color:#fff;
+    border:none;
+    padding:10px 22px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    border-radius:10px;
+    box-shadow:0 6px 16px rgba(212,175,55,0.25);
+    transition:all .25s ease;
+
+    
 }
 
-.btn-brand:hover {
-    opacity: 0.9;
-    background: #0056b3; /* Darker blue */
+.btn-brand:hover{
+    background: linear-gradient(135deg,#e1c45a,#b8952e);
+    transform: translateY(-2px);
+    box-shadow:0 8px 20px rgba(212,175,55,0.35);
 }
 
     .text-muted2 { color: var(--muted) !important; }
 
     .card {
-      border: 1px solid var(--line);
-      background: var(--card);
-      border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 14px;
       /* Soft gold shadow */
-      box-shadow: 0 4px 20px rgba(45, 27, 77, 0.05);
+    box-shadow: 0 4px 20px rgba(45, 27, 77, 0.05);
     }
 
     .product-img {
@@ -179,7 +185,7 @@
     margin-bottom: 18px;
     }
 
- .section {
+.section {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 16px;
@@ -215,27 +221,54 @@
     border-color: var(--ink);
     }
 
-.stat-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 30px 20px;
-    text-align: center; /* Crucial for horizontal centered look */
+.stat-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 8px 24px rgba(0,0,0,.04);
+
+    text-align:center;
+    width:100%;
+}
+
+.row.g-4.mb-5{
+    display:flex;
+    justify-content:center;
+    gap:24px;
+}
+
+.row.g-4.mb-5 > div{
+    flex:0 0 300px;
+}
+
+.stat-card .text-muted2{ 
+    margin-bottom: 0 !important;
+}
+
+.stat-title {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .stat-value {
-    font-size: 2.5rem !important; /* Larger for impact */
+    font-size: 36px;
     font-weight: 800;
+    color: var(--ink);
 }
 
 .card-hover:hover {
-    transform: translateX(8px); /* Slides right slightly like the video */
-    border-color: var(--brand-blue);
-    background: #fff;
+    transform: translateY(-4px);
+    box-shadow: 
+        0 12px 32px rgba(212,175,55,0.35);
 }
     .order-item img {
-      border: 2px solid var(--soft);
+    border: 2px solid var(--soft);
     }
+
+
 </style>
 
 </head>
@@ -249,12 +282,12 @@
         
         <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-[0.2em]">
 
-             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard:home' %} active-link{% endif %}" href="{% url 'dashboard:home' %}">
                 Dashboard
-              </a>
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
+            </a>
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'users:profile' %} active-link{% endif %}" href="{% url 'users:profile' %}">
                 Profile
-              </a>
+            </a>
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'single-product-list' %}active-link{% endif %}"
             href="{% url 'catalog:single-product-list' %}">
             Shop
@@ -269,12 +302,12 @@
 
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'login' %}active-link{% endif %}" href="{% url 'login' %}">
                 Login
-              </a>
+            </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'tenant_customer_signup' %}">
+            <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'tenant_customer_signup' %}">
                 Sign up
-              </a>
+            </a>
         </nav>
     </div>
 </header>
