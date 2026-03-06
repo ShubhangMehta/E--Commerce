@@ -24,4 +24,5 @@ urlpatterns = [
     path("signup/", views.signup, name="tenant_customer_signup"),
 
     path("login/", c_views.login_view, name="login"),
+    #path("orders/invoice/<int:order_id>/pdf/", views.invoice_pdf, name="invoice_pdf"),
 ]

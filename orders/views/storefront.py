@@ -122,7 +122,7 @@ def invoice_pdf_view(request, order_id):
     )
     items = order.items.all()
 
-    template = get_template("orders/storefront/invoice.html")  # fixed path
+    template = get_template("themes/default/cust_invoice.html")  # fixed path
     html = template.render({
         "order": order,
         "items": items,
