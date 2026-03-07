@@ -1,4 +1,3 @@
-
 {% extends "themes/minimal/storefront.html" %}
 
 {% block title %}Checkout | {{ request.tenant.name }}{% endblock %}
@@ -7,26 +6,58 @@
 
 <div class="max-w-2xl mx-auto">
 
-    <h1 class="serif text-4xl text-brandViolet mb-8">Checkout # 
+    <h1 class="serif text-4xl text-brandViolet mb-8">
+        Checkout
+    </h1>
 
-    <form class="space-y-6 bg-white p-8 border border-brandGold/10">
+    <form method="POST" class="space-y-6 bg-white p-8 border border-brandGold/10 rounded-lg">
+        {% csrf_token %}
 
-        
+        <!-- Cart Summary -->
+        <div class="border-b border-brandGold/20 pb-4">
+            <h2 class="serif text-lg text-brandViolet mb-4">Order Summary</h2>
 
-            <label class="block text-xs font-bold uppercase tracking-widest text-brandViolet mb-2">Shipping Address</label>
+            {% for item in cart_items %}
+            <div class="flex justify-between text-sm mb-2">
+                <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                <span>₹ {{ item.line_total }}</span>
+            </div>
+            {% endfor %}
 
-            <textarea class="w-full border-brandGold/20 focus:border-brandGold focus:ring-0 p-3 bg-gray-50"></textarea>
+            <div class="flex justify-between font-semibold text-brandViolet mt-4">
+                <span>Total</span>
+                <span>₹ {{ cart_total }}</span>
+            </div>
+        </div>
 
-        
 
-        <button type="submit" class="w-full py-4 bg-brandGold text-white font-bold uppercase tracking-[0.2em] text-sm hover:bg-opacity-90 transition-all">
+        <!-- Address Selection -->
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-brandViolet mb-2">
+                Shipping Address
+            </label>
 
+            <select name="address_id"
+                    class="w-full border border-brandGold/20 p-3 bg-gray-50 rounded">
+
+                {% for addr in addresses %}
+                    <option value="{{ addr.id }}">
+                        {{ addr.house_no }}, {{ addr.landmark }}, {{ addr.city }}, {{ addr.state }} - {{ addr.postal_code }}
+                    </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+
+        <!-- Submit Button -->
+        <button type="submit"
+            class="btn-brand w-100 py-3 font-bold uppercase tracking-[0.2em] text-sm">
             Complete Purchase
-
         </button>
 
     </form>
 
-{% endblock %}
+</div>
 
-```
+{% endblock %}

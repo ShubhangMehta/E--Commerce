@@ -31,8 +31,10 @@ def single_product_detail_view(request, id):
     
     #theme_base = f"themes/{theme}/storefront.html"
 
-    primary_image = product.images.filter(is_primary=True).first() \
-                    or product.images.first()
+    primary_image = (
+        product.images.filter(is_primary=True).first() 
+        or product.images.first()
+    )
 
     return render( 
         request,

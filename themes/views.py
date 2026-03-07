@@ -162,7 +162,7 @@ def cart(request):
             cart_data[str(product_id)]["qty"] = int(cart_data[str(product_id)]["qty"]) + 1
             _set_cart(request.session, cart_data)
             messages.success(request, "Added to cart.")
-            return redirect("cart")
+            return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
@@ -189,20 +189,20 @@ def cart_update(request):
 
     if not product_id or not qty:
         messages.error(request, "Invalid cart update.")
-        return redirect("cart")
+        return redirect("themes:cart")
 
     try:
         qty_int = max(1, int(qty))
     except ValueError:
         messages.error(request, "Quantity must be a number.")
-        return redirect("cart")
+        return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     if str(product_id) in cart_data:
         cart_data[str(product_id)]["qty"] = qty_int
         _set_cart(request.session, cart_data)
         messages.success(request, "Cart updated.")
-    return redirect("cart")
+    return redirect("themes:cart")
 
 
 @require_http_methods(["POST"])
@@ -213,13 +213,13 @@ def cart_remove(request):
     """
     product_id = request.POST.get("product_id")
     if not product_id:
-        return redirect("cart")
+        return redirect("themes:cart")
 
     cart_data = _get_cart(request.session)
     cart_data.pop(str(product_id), None)
     _set_cart(request.session, cart_data)
     messages.success(request, "Item removed.")
-    return redirect("cart")
+    return redirect("themes:cart")
 
 
 # -----------------------------
