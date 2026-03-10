@@ -467,3 +467,19 @@ class RzpRefund(models.Model):
         return f"Refund {self.id} - {self.payment}"
     
 
+class RazorpayOrderMap(models.Model):
+
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE)
+    local_order_id = models.PositiveBigIntegerField()
+    local_order_number = models.CharField(max_length=50, blank=True)
+
+    razorpay_order_id = models.CharField(max_length=64, unique=True, db_index=True)
+    amount_paise = models.PositiveIntegerField()
+    currency = models.CharField(max_length=10, default="INR")
+    receipt = models.CharField(max_length=100, blank=True)
+
+    status = models.CharField(max_length=30, default="created")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    
