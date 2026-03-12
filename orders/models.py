@@ -3,7 +3,6 @@ from users.models import SubjectMember
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-
 class Order(models.Model):
 
     PAYMENT_STATUS_CHOICES = [
