@@ -46,6 +46,8 @@ class Order(models.Model):
         default="pending"
     )
 
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
+
     # 🔥 shipping snapshot (VERY IMPORTANT)
     shipping_full_name = models.CharField(max_length=255, default="Not Provided")
     shipping_phone = models.CharField(max_length=20, default="Not Provided")
@@ -70,7 +72,6 @@ class OrderItem(models.Model):
         related_name="items",
         on_delete=models.CASCADE
     )
-    product_image_url = models.URLField(blank=True, default="")
 
     # ⭐ GENERIC PRODUCT RELATION (supports SingleProduct OR MultiProduct)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
