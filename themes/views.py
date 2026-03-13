@@ -49,8 +49,6 @@ def index(request):
 
     return render(request, _theme_path(request, "index.html"), context)
 
-
-
 #def product_list(request):
 #    """
 #    Product listing page with basic search/sort.
