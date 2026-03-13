@@ -10,6 +10,9 @@ from orders.models import Order
 from orders.api.serializers import StartPaymentSerializer
 from orders.services.payment_start import create_razorpay_order_for_order
 
+from orders.serializers.tenant_serializers import TenantOrderSerializer
+from orders.serializers.customer_serializers import CustomerOrderSerializer
+
 class StartPaymentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -38,3 +41,34 @@ class StartPaymentAPIView(APIView):
             "customer_name": order.customer_name,
             }, status=status.HTTP_200_OK
         )
+  
+class OrderListAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Tenant → sees all orders
+        Customer → sees only their orders
+        """
+        if request.user.is_staff:
+            orders = Order.objects.all()
+            serializer = TenantOrderSerializer(orders, many=True)
+        else:
+            orders = Order.objects.filter(customer=request.user)
+            serializer = CustomerOrderSerializer(orders, many=True)
+
+        return Response(serializer.data)
+
+
+class OrderDetailAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        order = Order.objects.get(id=pk)
+
+        if request.user.is_staff:
+            serializer = TenantOrderSerializer(order)
+        else:
+            serializer = CustomerOrderSerializer(order)
+
+        return Response(serializer.data)

@@ -12,7 +12,7 @@
 from django.urls import path
 from .views import pages as dashboard_views
 from .views import storefront as storefront_views
-from .orders.api.views import StartPaymentAPIView
+from orders.api.views import StartPaymentAPIView
 
 app_name='orders'
     
