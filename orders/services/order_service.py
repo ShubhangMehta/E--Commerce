@@ -3,8 +3,6 @@ from orders.models import Order, OrderItem
 from users.models import Coordinate
 from django.contrib.contenttypes.models import ContentType
 
-
-
 class OrderService:
     """
     CENTRAL ORDER ENGINE
