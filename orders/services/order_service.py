@@ -104,8 +104,9 @@ class OrderService:
                     object_id=product.id,
 
                     # snapshot
-                    product_name=product.name,
-                    product_price=product.price,
+                    product_name_snapshot=product.name,
+                    product_price_snapshot=product.price,
+                    #product_image_url_snapshot=product.image_url,
 
                     quantity=item["quantity"],
                     line_total=item["line_total"],

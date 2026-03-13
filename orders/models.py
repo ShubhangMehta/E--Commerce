@@ -19,7 +19,7 @@ class Order(models.Model):
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
     ]
-
+    tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
     customer_email = models.EmailField(default="")
     customer_name = models.CharField(max_length=255, blank=True, default="")
 
