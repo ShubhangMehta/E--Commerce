@@ -1,7 +1,7 @@
 <h2>Invoice</h2>
 
-<p>Order Number: {{ order.order_number }}</p>
-<p>User: {{ order.user.username }}</p>
+<p>Order Number: ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</p>
+<p>User: {{ order.subject.full_name}}</p>
 <p>Status: {{ order.status }}</p>
 <p>Date: {{ order.created_at }}</p>
 
@@ -12,7 +12,7 @@
     <p>
         {{ item.product_name }} |
         Qty: {{ item.quantity }} |
-        Price: {{ item.price }}
+        Price: {{ item.product_price }}
     </p>
 {% endfor %}
 

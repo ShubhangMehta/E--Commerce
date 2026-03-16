@@ -15,6 +15,7 @@ from .services.provisioning import provision_tenant_from_request
 
 User = get_user_model()
 
+
 def home(request):
     context = {
         "page_title": "E-Cartel",

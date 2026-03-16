@@ -19,7 +19,7 @@ def checkout_view(request):
 
     if not cart_items:
         messages.info(request, "Your cart is empty.")
-        return redirect("product_list")
+        return redirect("catalog:single-product-list")
 
     # ⭐ get tenant user the SAME WAY whole project does
     subject = get_subject_member(request)
@@ -111,7 +111,7 @@ def invoice_pdf_view(request, order_id):
     )
     items = order.items.all()
 
-    template = get_template("orders/storefront/invoice.html")  # fixed path
+    template = get_template(_theme_path(request, "cust_invoice.html"))
     html = template.render({
         "order": order,
         "items": items,

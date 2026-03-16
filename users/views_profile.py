@@ -15,26 +15,48 @@ from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole, StaffInvite
 from core_app.emails.utils import send_html_email
 from accounts.services import get_or_create_global_user
-
+from django.db.models import Q
+from django.contrib.auth import get_user_model
+from django_tenants.utils import schema_context, get_public_schema_name
 
 @login_required
 def users_home(request):
-    users = SubjectMember.objects.all()
+        if connection.schema_name == "public": #temp fix 
+            return redirect("/")  # or raise 404
+        users = SubjectMember.objects.all()
 
-    # get tenant
-    if not request.user.is_authenticated:
-        # Replace with a tenant you want to preview
-        from customers.models import Client  # or whatever your Tenant model is
-        client = Client.objects.first()  # pick the first tenant for testing
-    else:
+        User = get_user_model()
+        search_query = request.GET.get("q", "").strip()
+
+        # 🔍 Search by full_name only
+        if search_query:
+            users = users.filter(
+                full_name__icontains=search_query
+            )
+
+        # Get all global_user_ids from tenant users
+        global_ids = [u.global_user_id for u in users]
+
+        # Fetch last_login from public schema
+        with schema_context(get_public_schema_name()):
+            global_users = User.objects.filter(id__in=global_ids).values("id", "last_login")
+
+        # Convert to dictionary {id: last_login}
+        last_login_map = {u["id"]: u["last_login"] for u in global_users}
+
+        # Attach last_login to each SubjectMember instance
+        for user in users:
+            user.last_login = last_login_map.get(user.global_user_id)
+
+        # Tenant + theme
         client = request.tenant
-    theme = client.theme
+        theme = client.theme
 
-    return render(request, "dashboard.html", {
-        "users": users,
-        "tenant": client,
-        "theme_base": f"themes/{theme}/storefront.html",
-    })
+        return render(request, "dashboard.html", {
+            "users": users,
+            "tenant": client,
+            "theme_base": f"themes/{theme}/storefront.html",
+        })
 
 
 INVITE_RULES = {
