@@ -16,6 +16,7 @@ class Client(TenantMixin):
     on_trial = models.BooleanField(default=True)
     created_on = models.DateField(auto_now_add=True)"""
 
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     tenant_name = models.CharField(max_length=100)
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
