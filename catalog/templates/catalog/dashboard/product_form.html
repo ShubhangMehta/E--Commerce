@@ -4,9 +4,49 @@
 <div class="container py-4" style="max-width:1000px">
 
     <div class="page-title mb-4">{{ title }}</div>
+    <!-- CATEGORY + SUBCATEGORY -->
+    <div class="card p-4 mb-4">
+        <h4 class="mb-3">Category Management</h4>
+
+        <div class="row g-4">
+
+            <!-- ADD CATEGORY -->
+            <div class="col-md-6">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-2 fw-semibold">Add Category</div>
+                    {{ category_form.name }}
+                    <button type="submit" name="create_category" class="btn btn-sm btn-brand mt-2">
+                        Add Category
+                    </button>
+                </form>
+            </div>
+
+            <!-- ADD SUBCATEGORY -->
+            <div class="col-md-6">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-2 fw-semibold">Add SubCategory</div>
+
+                    <label class="small">Category</label>
+                    {{ subcategory_form.category }}
+
+                    <label class="small mt-2">SubCategory Name</label>
+                    {{ subcategory_form.name }}
+
+                    <button type="submit" name="create_subcategory" class="btn btn-sm btn-brand mt-2">
+                        Add SubCategory
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        
 
         <!-- PRODUCT CARD -->
         <div class="card p-4 mb-4">

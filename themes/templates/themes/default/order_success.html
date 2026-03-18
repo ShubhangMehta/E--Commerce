@@ -18,7 +18,7 @@
         <div class="row g-3 mt-1">
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Order ID</div>
-            <div class="fw-bold">#{{ order.id|default:"—" }}</div>
+            <div class="fw-bold">ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
           </div>
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Date</div>
@@ -26,11 +26,7 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Total</div>
-            <div class="fw-bold">{{ order.total|default:"—" }}</div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="text-muted2 small">Payment</div>
-            <div class="fw-bold">{{ order.payment_status|default:"—" }}</div>
+            <div class="fw-bold">{{ order.total_amount|default:"—" }}</div>
           </div>
         </div>
 
@@ -62,14 +58,10 @@
         <div class="d-flex gap-2 flex-wrap mt-4">
           <a class="btn btn-brand" href="{% url 'orders_storefront:my_orders' %}">View orders</a>
           <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
-          {# Optional order detail #}
-          {% if order %}
-            <a class="btn btn-outline-dark" href="{% url 'orders_storefront:order_detail' order.id %}">View order</a>
-          {% endif %}
         </div>
 
         <div class="text-muted2 small mt-3">
-          If you are using Razorpay/Stripe, you can show payment confirmation details here.
+          We’ll keep you updated on your order’s journey via email.
         </div>
       </div>
     </div>
