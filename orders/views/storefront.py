@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from orders.services.order_service import OrderService
-from orders.models import Order
-from users.models import Coordinate,SubjectMember
+from orders.models import Order,Coupon
+from users.models import Coordinate
 from django.template.loader import get_template
 from io import BytesIO
 from xhtml2pdf import pisa
@@ -30,6 +30,14 @@ def checkout_view(request):
 
     if request.method == "POST":
         address_id = request.POST.get("address_id")
+        coupon = None
+        coupon_id = request.session.get("coupon_id")
+
+        if coupon_id:
+            try:
+                coupon = Coupon.objects.get(id=coupon_id)
+            except Coupon.DoesNotExist:
+                coupon = None
 
         
 
@@ -38,9 +46,11 @@ def checkout_view(request):
             subject=subject,
             cart_items=cart_items,
             address_id=address_id,
+            coupon=coupon,
         )
 
         _set_cart(request.session, {})
+        request.session.pop("coupon_id", None)  # ✅ ADD THIS
 
         return redirect("orders_storefront:order_success", order_id=order.id)
 
@@ -49,6 +59,32 @@ def checkout_view(request):
         "cart_total": cart_total,
         "addresses": addresses,
     })
+
+@login_required
+def apply_coupon(request):
+
+    if request.method == "POST":
+
+        code = request.POST.get("coupon_code")
+
+        try:
+            coupon = Coupon.objects.get(code__iexact=code)
+
+            cart_data = _get_cart(request.session)
+            cart_items, cart_subtotal, _ = _cart_items_and_totals(cart_data)
+
+            if coupon.is_valid(cart_subtotal):
+
+                request.session["coupon_id"] = coupon.id
+                messages.success(request, "Coupon applied successfully!")
+
+            else:
+                messages.error(request, "Coupon not valid.")
+
+        except Coupon.DoesNotExist:
+            messages.error(request, "Invalid coupon code.")
+
+    return redirect("themes:cart")
 
 @login_required
 def order_success_view(request, order_id):

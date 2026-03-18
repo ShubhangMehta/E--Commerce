@@ -1,7 +1,8 @@
 from django.db import transaction
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem,Coupon
 from users.models import Coordinate
-from django.contrib.contenttypes.models import ContentType
+from decimal import Decimal
+from django.db.models import F
 
 
 
@@ -19,11 +20,14 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def create_order_from_cart(
+        
         *,
         tenant,
-        subject,        # SubjectMember (customer)
-        cart_items,     # from theme cart helper
+        subject,
+        cart_items,
         address_id,
+        coupon=None,
+        
     ):
         """
         Convert session cart → DB Order + OrderItems
@@ -35,28 +39,46 @@ class OrderService:
             user=subject
         )
 
-        # 2️⃣ Calculate totals from cart_items
         totals = OrderService._calculate_totals(cart_items)
 
-        # 3️⃣ Create ORDER (with SHIPPING SNAPSHOT)
+        subtotal = totals["subtotal"]
+        discount = Decimal("0")
+
+        if coupon and coupon.is_valid(subtotal):
+        
+            discount = (subtotal * coupon.discount_percent) / Decimal("100")
+
+            if coupon.max_discount:
+                discount = min(discount, coupon.max_discount)
+
+        else:
+            coupon = None
+
+        final_total = max(totals["grand_total"] - discount, 0)
+
         order = Order.objects.create(
             tenant=tenant,
             subject=subject,
-            total_amount=totals["grand_total"],
+            total_amount=final_total,
+            coupon=coupon,
+            discount_amount=discount,
 
-            # 🚚 SHIPPING SNAPSHOT (VERY IMPORTANT)
             shipping_full_name=address.full_name,
             shipping_phone=address.phone,
             shipping_house_no=address.house_no,
             shipping_landmark=address.landmark,
+            shipping_address=address.address,  # fix this field
             shipping_city=address.city,
             shipping_state=address.state,
             shipping_postal_code=address.postal_code,
         )
 
-        # 4️⃣ Create ORDER ITEMS
         OrderService._create_order_items(order, cart_items)
 
+        if coupon:
+            Coupon.objects.filter(id=coupon.id).update(
+                used_count=F("used_count") + 1
+            )
         return order
 
     # =========================================================
@@ -95,15 +117,13 @@ class OrderService:
 
         for item in cart_items:
             product = item["product"]
-            content_type = ContentType.objects.get_for_model(product)
 
             order_items.append(
                 OrderItem(
                     order=order,
 
-                    # ⭐ Generic FK fields
-                    content_type=content_type,
-                    object_id=product.id,
+                    # ✅ direct FK now
+                    product=product,
 
                     # snapshot
                     product_name=product.name,
@@ -115,7 +135,6 @@ class OrderService:
             )
 
         OrderItem.objects.bulk_create(order_items)
-
 
        
     # =========================================================
