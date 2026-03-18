@@ -22,35 +22,33 @@
           {% csrf_token %}
 
           <div class="mb-3">
-  <div class="fw-semibold mb-2">Select delivery address</div>
+            <div class="fw-semibold mb-2">Select delivery address</div>
 
-  {% if addresses %}
-      {% for address in addresses %}
-        <label class="border rounded p-3 mb-2 w-100 d-block">
-            <input 
-                type="radio"
-                name="address_id"
-                value="{{ address.id }}"
-                required
-                class="form-check-input me-2"
-            >
-
-            <strong>{{ address.full_name }}</strong><br>
-            {{ address.house_no }}, {{ address.landmark }}<br>
-            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
-            Phone: {{ address.phone }}
-        </label>
-      {% endfor %}
-  {% else %}
-      <div class="alert alert-warning">
-          No address found. Please add an address in your profile first.
-      </div>
-  {% endif %}
-</div>
-
-          <div class="mt-4 d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-brand">Pay for Order</button>
-            <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
+            {% if addresses %}
+                {% for address in addresses %}
+                  <label class="border rounded p-3 mb-2 w-100 d-block">
+                      <input 
+                        type="radio"
+                        name="address_id"
+                        value="{{ address.id }}"
+                        required
+                        class="form-check-input me-2"
+                      >
+                      <strong>{{ address.full_name }}</strong><br>
+                      {{ address.house_no }}, {{ address.landmark }}<br>
+                      {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                      Phone: {{ address.phone }}
+                  </label>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning" role="alert" style="font-size: 0.9rem;" >
+                  No address found. Please add an address in your profile first.
+                </div>
+            {% endif %}
+            <div class="mt-4 d-flex gap-2 flex-wrap">
+              <button id="test-start-payment" class="btn btn-brand" data-order-id="{{ order.id }}">Test Start Payment API</button>
+              <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
+            </div>
           </div>
         </form>
       </div>
@@ -87,3 +85,22 @@
   </div>
 </div>
 {% endblock %}
+
+<script>
+document.getElementById("test-start-payment").addEventListener("click", async function () {
+    const orderId = this.dataset.orderId;
+
+    const response = await fetch(`/api/orders/${orderId}/start-payment/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({})
+    });
+
+    const data = await response.json();
+    console.log(data);
+    alert(JSON.stringify(data, null, 2));
+});
+</script>

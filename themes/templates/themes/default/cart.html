@@ -23,7 +23,7 @@
                   <th>Product</th>
                   <th style="width:140px;">Qty</th>
                   <th class="text-end">Price</th>
-                  <th class="text-end">Total</th>
+                  <!-- <th class="text-end">Total</th> -->
                   <th style="width:80px;"></th>
                 </tr>
               </thead>
@@ -60,9 +60,9 @@
                       {{ item.product.price }}
                     </td>
 
-                    <td class="text-end fw-semibold">
+                    <!-- <td class="text-end fw-semibold">
                       {{ item.line_total|default:"—" }}
-                    </td>
+                    </td> -->
 
                     <td class="text-end">
                       {# Update to your cart remove endpoint #}
@@ -113,7 +113,7 @@
           {% if cart_items %}
             <a class="btn btn-brand" href="{% url 'orders_storefront:checkout' %}">Select Delivery Address</a>
           {% else %}
-            <button class="btn btn-brand" disabled>Proceed to checkout</button>
+            <button class="btn btn-brand" disabled>Select Delivery Address</button>
           {% endif %}
           <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Add more items</a>
         </div>
