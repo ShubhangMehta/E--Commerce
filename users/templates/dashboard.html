@@ -1,0 +1,73 @@
+{% extends theme_base %}
+
+{% block content %}
+<div class="page-section">
+    <h1 class="page-title">Customers</h1>
+    <p class="page-subtitle text-muted2">Manage and view all registered customers in your system.</p>
+
+    <div class="section">
+        <div class="invoice-box">
+            <div class="table-cell">
+                <form method="GET" class="mb-4">
+                    <input 
+                        type="text"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Search by full name"
+                        class="form-control"
+                    >
+                </form>
+            </div>
+            
+            <div>
+                <button class="btn btn-brand">
+                    Add New Customer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="v">{{ user.full_name }}</td>
+                        <td class="text-muted2">{{ user.email }}</td>
+                        <td>{{ user.phone|default:"—" }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="pill pill-success">Active</span>
+                            {% else %}
+                                <span class="pill pill-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.last_login %}
+                                {{ user.last_login|date:"M d, Y H:i" }}
+                            {% else %}
+                                Never logged in
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-muted2">No customers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

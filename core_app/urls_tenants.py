@@ -20,6 +20,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("themes.urls",namespace="themesss")),  # Storefront and cart/checkout
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
+
+    path("", include("themes.urls",namespace="themes")),       # Storefront and cart/checkout
+
     path('catalog/', include('catalog.urls',namespace="catalog")),
     path('orders/', include('orders.urls',namespace="orders")),
     path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),

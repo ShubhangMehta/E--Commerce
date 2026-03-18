@@ -70,7 +70,9 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
                     client=tenant,
                     plan=plan,
                     pricing=pricing,
-                    status='active'
+                    status='active',
+                    # start_date=timezone.now(),
+                    # end_date=timezone.now() + timedelta(days=pricing.duration_days),  # e.g. 30 days for monthly
                 )
 
     temp_password = get_random_string(length=12)
@@ -104,30 +106,32 @@ def provision_tenant_from_request(*, tenant_request, plan, pricing):
         
     print("U1 SubjectMember created:", U1[1], "for user:", user.email, "with role OWNER ✅")
     
-    try:
-        send_html_email(
-            subject="Your Store Is Ready",
-            to_email=tenant_request.email,
-            template_name="emails/tenant_created.html",
-            context={
-                "owner_name": tenant_request.tenant_name,
-                "tenant_name": tenant.tenant_name,
-                "company": tenant_request.company,
-                "domain": full_domain,
-                "plan": plan.name,
-                "email": tenant_request.email,
-                "username": username,
-                "subscription_type": "Trial" if subscription.is_trial else "Paid",
-                "login_url": f"https://{full_domain}/login/",
-                "dashboard_url": f"https://{full_domain}/dashboard/",
-                "temp_password": temp_password,
-                "is_trial": subscription.is_trial,
-                "trial_days": settings.BILLING_TRIAL_DAYS,
-            }
-        )
-    except Exception:
-        pass
+    # try:
+    #     send_html_email(
+    #         subject="Your Store Is Ready",
+    #         to_email=tenant_request.email,
+    #         template_name="emails/tenant_created.html",
+    #         context={
+    #             "owner_name": tenant_request.tenant_name,
+    #             "tenant_name": tenant.tenant_name,
+    #             "company": tenant_request.company,
+    #             "domain": full_domain,
+    #             "plan": plan.name,
+    #             "email": tenant_request.email,
+    #             "username": username,
+    #             "subscription_type": "Trial" if subscription.is_trial else "Paid",
+    #             "login_url": f"https://{full_domain}/login/",
+    #             "dashboard_url": f"https://{full_domain}/dashboard/",
+    #             "temp_password": temp_password,
+    #             "is_trial": subscription.is_trial,
+    #             "order_id": tenant_request.id,
+    #             #"trial_days": settings.BILLING_TRIAL_DAYS,
+    #             "trial_days": (subscription.end_date - subscription.start_date).days if subscription.is_trial else 7,
+    #         }
+    #     )
+    # except Exception:
+    #     pass
       
-    print("Sent tenant created email to:", tenant_request.email, "✅")    
+    # print("Sent tenant created email to:", tenant_request.email, "✅")    
 
-    return tenant, domain, subscription
+    return tenant, domain, subscription, username, temp_password
