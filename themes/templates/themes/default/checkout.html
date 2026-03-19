@@ -46,7 +46,7 @@
                 </div>
             {% endif %}
             <div class="mt-4 d-flex gap-2 flex-wrap">
-              <button id="test-start-payment" class="btn btn-brand" data-order-id="{{ order.id }}">Test Start Payment API</button>
+              <button type="button" id="test-start-payment" class="btn btn-brand" data-order-id="2" data-url="{% url 'api-start-payment' order_id=2 %}">Test Start Payment API</button>
               <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
             </div>
           </div>
@@ -84,13 +84,13 @@
     </div>
   </div>
 </div>
-{% endblock %}
+
 
 <script>
 document.getElementById("test-start-payment").addEventListener("click", async function () {
     const orderId = this.dataset.orderId;
 
-    const response = await fetch(`/api/orders/${orderId}/start-payment/`, {
+    const response = await fetch(`orders/${orderId}/start-payment/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -104,3 +104,5 @@ document.getElementById("test-start-payment").addEventListener("click", async fu
     alert(JSON.stringify(data, null, 2));
 });
 </script>
+
+{% endblock %}
