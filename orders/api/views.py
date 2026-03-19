@@ -8,7 +8,7 @@ from rest_framework import status
 
 from orders.models import Order
 from orders.serializers.serializers import StartPaymentSerializer
-from orders.services.payment_start import create_razorpay_order_for_order
+from orders.services.payment_start import RazorpayGatewayError, create_razorpay_order_for_order
 
 from orders.serializers.tenant_serializers import TenantOrderSerializer
 from orders.serializers.customer_serializers import CustomerOrderSerializer
@@ -28,7 +28,10 @@ class StartPaymentAPIView(APIView):
         if order.status == "cancelled":
             return Response({"detail": "Cannot start payment for a cancelled order."}, status=status.HTTP_400_BAD_REQUEST)
         
-        rp_order = create_razorpay_order_for_order(tenant=request.tenant, order=order)
+        try:
+            rp_order = create_razorpay_order_for_order(tenant=request.tenant, order=order)
+        except RazorpayGatewayError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         return Response({
             "key": settings.RAZORPAY_KEY_ID,
