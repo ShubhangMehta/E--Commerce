@@ -48,7 +48,7 @@ def cart_view(request):
                 return redirect("cart")
             CartService.set_selected_address(request.session, addr_id)
             messages.success(request, "Address selected.")
-            return redirect("cart")
+            return redirect("checkout")
 
     cart_items, cart_subtotal, cart_total = CartService.items_and_totals(request.session)
 
@@ -101,7 +101,7 @@ def checkout_view(request):
     cart_items, cart_subtotal, cart_total = CartService.items_and_totals(request.session)
     if not cart_items:
         messages.info(request, "Your cart is empty.")
-        return redirect("product_list")
+        return redirect(request, _theme_path(request, "product_list"))
 
     subject = get_subject_member(request)
 

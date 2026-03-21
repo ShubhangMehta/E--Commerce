@@ -19,5 +19,6 @@ urlpatterns = [    # TENANT DASHBOARD ORDERS ONLY
     path("invoice/<int:order_id>/pdf/", storefront_views.invoice_pdf_view, name="invoice_pdf"),
 
     #API ENDPOINTS FOR STARTING PAYMENT
+    path("payment_page/<int:order_id>/", storefront_views.payment_page, name="payment_page"),
     path("orders/<int:order_id>/start-payment/", PaymentAPI.StartPaymentAPIView.as_view(), name="api_start_payment"),
 ]
