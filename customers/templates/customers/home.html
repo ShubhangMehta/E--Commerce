@@ -138,6 +138,106 @@
         </div>
       </div>
     </section>
+    
+
+
+<section class="section themes">
+  <h2>Explore Themes</h2>
+  <p class="muted">Choose a design that fits your brand</p>
+
+  <div class="scroll-container">
+    <div class="scroll-track">
+
+      <!-- Set 1 -->
+      <img src="https://via.placeholder.com/300x200" alt="theme1">
+      <img src="https://via.placeholder.com/300x200" alt="theme2">
+      <img src="https://via.placeholder.com/300x200" alt="theme3">
+
+      <!-- Set 2 (duplicate for infinite scroll) -->
+      <img src="https://via.placeholder.com/300x200" alt="theme1">
+      <img src="https://via.placeholder.com/300x200" alt="theme2">
+      <img src="https://via.placeholder.com/300x200" alt="theme3">
+
+    </div>
+  </div>
+</section>
+
+<style>
+/* ===== THEMES SECTION ===== */
+.themes {
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Scroll container */
+.scroll-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #f9f9f9;
+  padding: 20px 0;
+  border-radius: 10px;
+}
+
+/* Moving track */
+.scroll-track {
+  display: flex;
+  width: max-content;
+  animation: scroll-left 20s linear infinite;
+}
+
+/* Images */
+.scroll-track img {
+  width: 300px;
+  height: 200px;
+  margin: 0 15px;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* Hover zoom */
+.scroll-track img:hover {
+  transform: scale(1.05);
+}
+
+/* Animation */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Pause on hover */
+.scroll-container:hover .scroll-track {
+  animation-play-state: paused;
+  cursor: pointer;
+}
+
+/* Gradient fade effect */
+.scroll-container::before,
+.scroll-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  z-index: 2;
+}
+
+.scroll-container::before {
+  left: 0;
+  background: linear-gradient(to right, #ffffff, transparent);
+}
+
+.scroll-container::after {
+  right: 0;
+  background: linear-gradient(to left, #ffffff, transparent);
+}
+</style>
 
     <section id="pricing" class="section">
       <h2>Simple pricing</h2>
