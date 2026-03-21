@@ -36,7 +36,7 @@ def checkout_view(request):
             address_id=address_id,
         )
         _set_cart(request.session, {})
-        return redirect("orders_storefront:order_success", order_id=order.id)
+        return redirect("orders_storefront:payment_page", order_id=order.id)
 
     return render(request, _theme_path(request, "checkout.html"), {
         "cart_items": cart_items,
