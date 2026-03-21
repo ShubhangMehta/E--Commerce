@@ -163,7 +163,6 @@
         <div class="summary-card mt-3">
           <div class="d-flex justify-content-between align-items-center">
             <div class="fw-semibold">Order totals</div>
-            <a class="small text-decoration-none" href="{% url 'catalog:single-product-list' %}">Add more items</a>
           </div>
 
           <div class="d-flex justify-content-between py-2 border-top mt-2">
@@ -226,7 +225,7 @@
 
         {% if addresses %}
           {# Send selected address to checkout. Use GET or POST depending on your checkout implementation. #}
-          <form method="get" action="{% url 'orders_storefront:checkout' %}">
+          <form method="get" action="{% url 'cart' %}">
             <div class="d-flex flex-column gap-2">
               {% for addr in addresses %}
                 <label class="addr-option d-flex gap-2 align-items-start">
@@ -263,7 +262,7 @@
               {% else %}
                 <button class="btn btn-brand" type="button" disabled>Proceed to checkout</button>
               {% endif %}
-              <a class="btn btn-outline-dark" href="{% url 'profile' %}">Manage addresses</a>
+              <a class="btn btn-outline-dark" href="{% url 'users:profile' %}">Manage addresses</a>
             </div>
           </form>
         {% else %}

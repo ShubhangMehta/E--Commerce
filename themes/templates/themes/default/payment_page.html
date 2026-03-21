@@ -1,0 +1,103 @@
+{% extends "themes/default/storefront.html" %}
+
+{% block title %}Payment | Default Store{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row g-3">
+    <div class="col-12 col-lg-7">
+      <div class="card p-3 p-md-4">
+        <h1 class="h4 fw-bold mb-3">Complete Payment</h1>
+
+        <div class="mb-3">
+          <div><strong>Order ID:</strong> {{ order.id }}</div>
+          <div><strong>Status:</strong> {{ order.status }}</div>
+          <div><strong>Payment Status:</strong> {{ order.payment_status }}</div>
+        </div>
+
+        <button
+          type="button"
+          id="pay-now-btn"
+          class="btn btn-brand"
+          data-url="{% url 'api-start-payment' order_id=order.id %}">
+          Pay Now
+        </button>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card p-3 p-md-4">
+        <div class="fw-semibold mb-2">Order Summary</div>
+
+        {% for item in order.items.all %}
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <div class="fw-semibold">{{ item.product_name_snapshot }}</div>
+              <div class="text-muted2 small">Qty: {{ item.quantity }}</div>
+            </div>
+            <div>{{ item.line_total }}</div>
+          </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between py-2 border-top mt-2">
+          <div>Subtotal</div>
+          <div>{{ order.subtotal_amount }}</div>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-top">
+          <div>Shipping</div>
+          <div>{{ order.shipping_amount }}</div>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-top">
+          <div>Discount</div>
+          <div>{{ order.discount_amount }}</div>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-top">
+          <div class="fw-bold">Total</div>
+          <div class="fw-bold">{{ order.total_amount }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById("pay-now-btn").addEventListener("click", async function (e) {
+    e.preventDefault();
+
+    const apiUrl = this.dataset.url;
+
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({})
+    });
+
+    const data = await response.json();
+    console.log("Start payment response:", data);
+
+    const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        name: "E-cartel",
+        description: `Order #${data.local_order_id}`,
+        order_id: data.razorpay_order_id,
+        prefill: {
+            name: data.customer_name,
+            email: data.customer_email
+        },
+        handler: function (response) {
+            console.log("Razorpay success callback:", response);
+            alert("Payment submitted. Waiting for confirmation.");
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+});
+</script>
+{% endblock %}
