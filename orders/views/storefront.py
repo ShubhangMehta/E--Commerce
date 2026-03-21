@@ -55,6 +55,7 @@ def order_success_view(request, order_id):
     return render(request, _theme_path(request, "order_success.html"), {
         "order": order
     })
+
 @login_required
 def my_orders_view(request):
     orders = Order.objects.filter(

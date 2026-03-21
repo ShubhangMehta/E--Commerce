@@ -18,17 +18,16 @@
           <!-- IMAGE -->
           <a href="{% url 'catalog:single-product-detail' product.id %}">
             {% with product.images.first as img %}
-<div class="product-img">
-  {% if img %}
-    <img src="{{ img.image.url }}" alt="{{ product.name }}">
-  {% else %}
-    <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
-        No image
-    </div>
-  {% endif %}
-</div>
-{% endwith %}
-
+            <div class="product-img">
+              {% if img %}
+                <img src="{{ img.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 text-muted2">
+                  No Image
+                </div>
+              {% endif %}
+            </div>
+            {% endwith %}
           </a>
 
           <!-- BODY -->
@@ -52,7 +51,6 @@
                  class="btn btn-soft w-50">
                 View
               </a>
-
               <form method="post" action="{% url 'cart' %}" class="w-50">
               {% csrf_token %}
               <input type="hidden" name="product_id" value="{{ product.id }}">
@@ -61,12 +59,9 @@
               </button>
             </form>
             </div>
-
           </div>
         </div>
-
       </div>
-
       {% empty %}
       <div class="col-12">
         <div class="alert-soft text-center p-5">
@@ -74,9 +69,7 @@
         </div>
       </div>
       {% endfor %}
-
     </div>
   </div>
-
 </div>
 {% endblock %}
