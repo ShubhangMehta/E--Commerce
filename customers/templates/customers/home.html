@@ -86,28 +86,42 @@
           <div style="font-weight:700; margin-bottom:10px;">Platform snapshot</div>
           <div class="stat">
             <div class="box">
+            <div class="box">
+              <button class="num" onclick="toggleThemes()">Themes</button>
+              <div class="muted">Per-tenant branding</div>
+            </div>
+            </div>
+
+            <div class="box">
               <div class="num">Multi-tenant</div>
               <div class="muted">Schema isolation</div>
             </div>
-            <div class="box">
-              <div class="num">Themes</div>
-              <div class="muted">Per-tenant branding</div>
-            </div>
+
             <div class="box">
               <div class="num">Subscriptions</div>
               <div class="muted">Trial / monthly / yearly</div>
             </div>
+
             <div class="box">
               <div class="num">Admin-ready</div>
               <div class="muted">Ops and insights</div>
             </div>
           </div>
+
           <div class="muted" style="margin-top:12px;">
             Tip: connect “Start” to your tenant creation flow.
           </div>
         </div>
       </div>
     </section>
+
+
+        <div id="themeFolders" class="theme-folders hidden">
+          <div class="theme-card">📁 Default</div>
+          <div class="theme-card">📁 Minimal</div>
+          <div class="theme-card">📁 Modern</div>
+        </div>
+
 
     <section id="features" class="section">
       <h2>Core features</h2>
@@ -163,6 +177,49 @@
 </section>
 
 <style>
+  /* Theme button */
+.num {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+/* 
+.theme-btn:hover {
+  background: #333;
+} */
+
+/* Theme folder section */
+.theme-folders {
+  margin: 20px 0;
+  display: flex;
+  gap: 80px;
+  justify-content: center;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Folder cards */
+.theme-card {
+  width: 180px;
+  height: 100px;
+  background: #fff;
+  border: 1px solid #bbb;   
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-card:hover {
+  border-color: #111;   /* becomes black on hover */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  transform: translateY(-5px);
+}
 /* ===== THEMES SECTION ===== */
 .themes {
   text-align: center;
@@ -312,5 +369,11 @@
   <footer class="container footer">
     <div>© {{ page_title|default:"Platform" }}. All rights reserved.</div>
   </footer>
+  <script>
+function toggleThemes() {
+  const section = document.getElementById("themeFolders");
+  section.classList.toggle("hidden");
+}
+</script>
 </body>
 </html>

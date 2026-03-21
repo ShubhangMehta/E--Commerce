@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from accounts import views as c_views
 from users.views.theme_views import customer_profile
+from django.contrib.auth.views import LogoutView
 app_name="themes"
 
 urlpatterns = [
