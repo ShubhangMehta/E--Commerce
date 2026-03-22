@@ -15,6 +15,7 @@ def admin_login_redirect(request):
     return redirect("/login/?" + urlencode({"next": next_url}))                                   
 
 urlpatterns = [
+    #Webhook for Tenant admin payments
     path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
     
     # Keep admin enabled

@@ -199,8 +199,7 @@ def order_detail_view(request, order_id):
 
     items = order.items.all()
 
-    return render(
-        request, _theme_path(request, "cust_order_detail.html"),
+    return render(request, _theme_path(request, "cust_order_detail.html"),
         {
             "order": order,
             "items": items,

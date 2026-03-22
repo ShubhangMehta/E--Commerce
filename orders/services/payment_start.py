@@ -6,7 +6,7 @@ from django.conf import settings
 from customers.models import RazorpayOrderMap
 
 def rupess_to_paise(amount: Decimal) -> int:
-    return int(amount / 100)
+    return int(amount * 100)
 
 class RazorpayGatewayError(Exception):
     pass    

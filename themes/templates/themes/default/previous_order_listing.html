@@ -32,7 +32,7 @@
                 <td class="text-end fw-semibold">₹{{ o.total_amount|default:"—" }}</td>
                 <td class="text-end">
                   {# If you have an order detail page, update this url name #}
-                  <a class="btn btn-sm btn-outline-dark" href="{% url 'orders_storefront:order_detail' o.id %}">View</a>
+                  <a class="btn btn-sm btn-outline-dark" href="{% url 'order_detail' o.id %}">View</a>
                 </td>
               </tr>
             {% endfor %}
