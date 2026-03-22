@@ -1,0 +1,51 @@
+from decimal import Decimal
+from django.utils import timezone
+from django.db import transaction
+
+from orders.models import Order
+from payments.models import OrderPayment
+from notifications.services.services import send_order_paid_email
+
+def paise_to_rupees(amount_paise: int) -> Decimal:
+    return Decimal(amount_paise) / Decimal("100")
+
+def register_razorpay_payment_success(
+        *,
+        local_order_id,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        payment_method,
+        amount_paise,
+        currency,
+        raw_payload,
+):
+    with transaction.atomic():
+        order = Order.objects.select_for_update().get(id=local_order_id)
+
+        payment, created = OrderPayment.objects.get_or_create(
+            razorpay_payment_id=razorpay_payment_id,
+            defaults={
+                "order": order,
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_signature": razorpay_signature,
+                "status": "captured",
+                "payment_method": payment_method,
+                "amount": paise_to_rupees(amount_paise),
+                "currency": currency,
+                "paid_at": timezone.now(),
+                "raw_payload": raw_payload,
+            },
+        )
+
+        if not created:
+            return payment #Idempotent - payment already exists
+        
+        # Update order status to 'paid'
+        order.payment_status = "paid"
+        order.status = "confirmed"
+        order.save(update_fields=["payment_status", "status"])
+
+        transaction.on_commit(lambda: send_order_paid_email(order_id=order.id, payment_id=payment.id))
+
+        return payment
