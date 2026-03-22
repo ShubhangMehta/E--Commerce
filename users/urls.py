@@ -9,7 +9,7 @@ urlpatterns = [
     # path("api/", include("users.api")),
     #path('profile/', theme_views.customer_profile, name='profile'),
     #path('address/', theme_views.customer_address, name='address'),
-    path("signup", views_profile.tenant_customer_signup, name="tenant_customer_signup"),
+    path("signup", views_profile.tenant_customer_signup, name="users:tenant_customer_signup"),
     
     path("profile/", views_profile.profile_view, name="profile"),
     path("profile/address/add/", views_profile.address_add, name="address_add"),

@@ -18,7 +18,7 @@ def admin_login_redirect(request):
 urlpatterns = [
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
-    path("", include("themes.urls",namespace="themesss")),  # Storefront and cart/checkout
+    # path("", include("themes.urls",namespace="themesss")),  # Storefront and cart/checkout
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
 
     path("", include("themes.urls",namespace="themes")),       # Storefront and cart/checkout
@@ -27,7 +27,7 @@ urlpatterns = [
     path('orders/', include('orders.urls',namespace="orders")),
     path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),
     path('dashboard/', include('dashboard.urls')),  
-
+    path('billing/', include('billing.urls')),
     path("users/", include("users.urls", namespace="users")),
 ]
 

@@ -375,18 +375,18 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-outline-dark ms-lg-2" href="{% url 'logout' %}">
+              <a class="btn btn-sm btn-outline-dark ms-lg-2" href="{% url 'themes:logout' %}">
                 Logout
               </a>
             </li>
           {% else %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'login' %}active-link{% endif %}" href="{% url 'login' %}">
+              <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'login' %}active-link{% endif %}" href="{% url 'themes:login' %}">
                 Login
               </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'signup' %}">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'themes:signup' %}">
                 Sign up
               </a>
             </li>
