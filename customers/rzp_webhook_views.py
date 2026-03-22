@@ -194,16 +194,22 @@ class TenantRazorpayWebhookAPIView(APIView):
         ).hexdigest()
 
         if not hmac.compare_digest(expected_signature, received_signature):
+            print("⚠️ Invalid Razorpay signature ⚠️")
+            print("Expected signature:", expected_signature)
+            print("Received signature:", received_signature)
             return JsonResponse({"detail": "Invalid signature"}, status=400)
         
         payload = json.loads(raw_body.decode("utf-8"))
         event = payload.get("event")
+        print(f"Received Razorpay webhook event: {event}")
 
-        if event != "order.paid":
+        if event not in ["order.paid", "payment.captured"]:
+            print(f"Ignoring unsupported event type: {event}")
             return JsonResponse({"detail": "Event ignored"}, status=200)
         
         payment_entity = payload["payload"]["payment"]["entity"]
         razorpay_order_id = payment_entity["order_id"]
+        print(f"Processing payment for Razorpay Order ID: {razorpay_order_id}")
 
         try:
             order_map = RazorpayOrderMap.objects.select_related("tenant").get(razorpay_order_id=razorpay_order_id)

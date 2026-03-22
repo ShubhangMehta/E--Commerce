@@ -38,6 +38,8 @@ def register_razorpay_payment_success(
             },
         )
 
+        print(f"Payment record {'created' if created else 'already exists'} for Razorpay Payment ID: {razorpay_payment_id}")
+
         if not created:
             return payment #Idempotent - payment already exists
         

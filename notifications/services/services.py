@@ -18,6 +18,8 @@ def render_order_paid_email(*, tenant, context):
         f"themes/{tenant.theme}/emails/order_paid.txt",
         "themes/default/emails/order_paid.txt",
     ])
+    print(f"Selected HTML template for tenant '{tenant.schema_name}': {html_tpl.template.name}")
+    print(f"Selected Text template for tenant '{tenant.schema_name}': {text_tpl.template.name}")
     return html_tpl.render(context), text_tpl.render(context)
 
 def send_order_paid_email(*, order_id, payment_id):
@@ -63,6 +65,8 @@ def send_order_paid_email(*, order_id, payment_id):
         "payment_method": payment.payment_method,
         "paid_at": payment.paid_at,
     }
+
+    print(f"Preparing to send order_paid email for Order ID: {order.id}, Payment ID: {payment.id}, Tenant: {tenant_obj.schema_name if tenant_obj else 'N/A'}")
 
     # If your email theme depends on tenant.theme, pass the tenant object into this function.
     # For now, assume you can obtain it from current tenant context or order snapshot.
