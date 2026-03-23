@@ -131,7 +131,7 @@ class BackupAlert(models.Model):
 from django.db import models
 
 # backups/models.py
-"""class BackupFailure(models.Model):
+class BackupFailure(models.Model):
     tenant_name = models.CharField(max_length=255)
     backup_type = models.CharField(max_length=50)  # daily/weekly/master
     status = models.CharField(max_length=10)  # success/failed
@@ -148,4 +148,4 @@ from django.db import models
         return f"{self.tenant_name} - {self.backup_type} - {self.status}"
 
         
-        """
+        
