@@ -92,12 +92,26 @@ document.getElementById("pay-now-btn").addEventListener("click", async function 
         },
         handler: function (response) {
             console.log("Razorpay success callback:", response);
-            alert("Payment submitted. Waiting for confirmation.");
+            
+            //Start polling backend to see when webhook marks order as paid
+            pollOrderStatus(data.local_order_id);
         }
     };
 
     const rzp = new Razorpay(options);
     rzp.open();
 });
+
+async function pollOrderStatus(orderId){
+  const interval = setInterval(async () => {
+    const res = await fetch(`/orders/${ordersId}/status/`);
+    const data = await res.json();
+
+    if (data.payment_status === "paid") {
+      clearInterval(interval);
+      window.location.href = `/orders/${ordersId}/success/`;
+    }
+  }, 3000);
+}
 </script>
 {% endblock %}
