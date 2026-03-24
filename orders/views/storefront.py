@@ -131,11 +131,13 @@ def checkout_view(request):
             tenant=request.tenant,
             subject=subject,
             cart_items=cart_items,
-            address_id=address.id,
+            address_id=address_id,
+            coupon=coupon,
         )
         CartService.clear(request.session)
 
-        # you already redirect to payment_page in your project
+        # you already redirect to payment_page in your project        request.session.pop("coupon_id", None)  # ✅ ADD THIS
+
         return redirect("payment_page", order_id=order.id)
 
     return render(request, _theme_path(request, "checkout.html"), {
@@ -166,6 +168,33 @@ def my_orders(request):
     orders = OrderService.get_customer_orders(subject=subject)  # exists in your OrderService :contentReference[oaicite:9]{index=9}
     return render(request, _theme_path(request, "previous_order_listing.html"), {"orders": orders})
     
+
+@login_required
+def apply_coupon(request):
+
+    if request.method == "POST":
+
+        code = request.POST.get("coupon_code")
+
+        try:
+            coupon = Coupon.objects.get(code__iexact=code)
+
+            cart_data = _get_cart(request.session)
+            cart_items, cart_subtotal, _ = _cart_items_and_totals(cart_data)
+
+            if coupon.is_valid(cart_subtotal):
+
+                request.session["coupon_id"] = coupon.id
+                messages.success(request, "Coupon applied successfully!")
+
+            else:
+                messages.error(request, "Coupon not valid.")
+
+        except Coupon.DoesNotExist:
+            messages.error(request, "Invalid coupon code.")
+
+    return redirect("themes:cart")
+
 @login_required
 def order_success_view(request, order_id):
     order = get_object_or_404(
@@ -204,12 +233,17 @@ def order_detail_view(request, order_id):
 
     items = order.items.all()
 
-    return render(request, _theme_path(request, "cust_order_detail.html"),
+    return render(
+        request, _theme_path(request, "cust_order_detail.html"),
         {
             "order": order,
             "items": items,
         }
     )
+
+
+
+
 
 @login_required
 def invoice_view(request, order_id):
