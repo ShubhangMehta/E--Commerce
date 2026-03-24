@@ -1,4 +1,4 @@
-from customers.models import Client
+
 
 def tenant_settings(request):
 

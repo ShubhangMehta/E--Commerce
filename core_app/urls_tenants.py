@@ -1,3 +1,5 @@
+
+
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
@@ -15,10 +17,10 @@ def admin_login_redirect(request):
 urlpatterns = [
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
-
+    path("", include("themes.urls")),  # Storefront and cart/checkout
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
 
-    path("", include("themes.urls")),       # Storefront and cart/checkout
+    path("", include("themes.urls",namespace="themes")),       # Storefront and cart/checkout
 
     path('catalog/', include('catalog.urls', namespace="catalog")),
     path("", include("orders.urls")),

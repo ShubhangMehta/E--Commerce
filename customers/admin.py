@@ -42,7 +42,6 @@ class DomainAdmin(ModelAdmin):
 class ClientAdmin(ModelAdmin):
     list_display = (
         'tenant_name',
-        'owner_name',
         'status',
         'theme',
         'current_plan',

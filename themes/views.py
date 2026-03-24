@@ -7,18 +7,19 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 
 from catalog.models import SingleProduct
+from users.models import SubjectMember
 
 # If you already have an Order model in your project, import it here.
 # Example:
 # from orders.models import Order, OrderItem
 
 def _theme_path(request, template_name: str) -> str:
-    """
-    Returns the theme-aware template path.
-    Works for all themes as long as templates exist under: templates/themes/<theme>/
-    """
+
     theme = getattr(request.tenant, "theme", "default") or "default"
     return f"themes/{theme}/{template_name}"
+
+
+
 
 
 def index(request):
@@ -39,12 +40,22 @@ def index(request):
             (img for img in product.images.all() if img.image_type == "product"),
             None
         )
+#   # ✅ Role Check
+#   is_owner = False
+#   if request.user.is_authenticated:
+#       member = SubjectMember.objects.filter(
+#           global_user_id=request.user.id
+#       ).first()
+#
+#       if member and member.role == "OWNER":
+#           is_owner = True
 
     context = {
         "featured_products": featured_products,
         "product_count": getattr(request.tenant, "product_count", None),
         "order_count": getattr(request.tenant, "order_count", None),
         "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
+        #is_owner": is_owner,
     }
 
     return render(request, _theme_path(request, "index.html"), context)
@@ -336,7 +347,7 @@ def signup(request):
     Template: signup.html expects 'form'
     """
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("users:profile")
 
     form = UserCreationForm(request.POST or None)
     if request.method == "POST":
@@ -344,7 +355,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created.")
-            return redirect("profile")
+            return redirect("users:profile")
         messages.error(request, "Please correct the errors below.")
 
     return render(request, _theme_path(request, "signup.html"), {"form": form})
