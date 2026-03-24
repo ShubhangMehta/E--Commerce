@@ -7,7 +7,7 @@ from django.template.loader import get_template
 from io import BytesIO
 from xhtml2pdf import pisa
 
-from orders.models import Order
+from orders.models import Order, Coupon
 from users.models import Coordinate, SubjectMember
 from orders.services.cart_service import CartService
 from orders.services.order_service import OrderService
@@ -126,6 +126,15 @@ def checkout_view(request):
         if gateway not in allowed:
             messages.error(request, "Gateway not available.")
             return redirect("checkout")
+        address_id = request.POST.get("address_id")
+        coupon = None
+        coupon_id = request.session.get("coupon_id")
+
+        if coupon_id:
+            try:
+                coupon = Coupon.objects.get(id=coupon_id)
+            except Coupon.DoesNotExist:
+                coupon = None
 
         order = OrderService.create_order_from_cart(
             tenant=request.tenant,
@@ -135,10 +144,8 @@ def checkout_view(request):
             coupon=coupon,
         )
         CartService.clear(request.session)
-
-        # you already redirect to payment_page in your project        request.session.pop("coupon_id", None)  # ✅ ADD THIS
-
-        return redirect("payment_page", order_id=order.id)
+        request.session.pop("coupon_id", None)  # ✅ ADD THIS
+        return redirect("payment_page", order_id=order.id)  # you already redirect to payment_page in your project        
 
     return render(request, _theme_path(request, "checkout.html"), {
         "cart_items": cart_items,
@@ -179,8 +186,8 @@ def apply_coupon(request):
         try:
             coupon = Coupon.objects.get(code__iexact=code)
 
-            cart_data = _get_cart(request.session)
-            cart_items, cart_subtotal, _ = _cart_items_and_totals(cart_data)
+            cart_data = CartService.get_cart(request.session)
+            cart_items, cart_subtotal, _ = CartService.items_and_totals(cart_data)
 
             if coupon.is_valid(cart_subtotal):
 
@@ -240,10 +247,6 @@ def order_detail_view(request, order_id):
             "items": items,
         }
     )
-
-
-
-
 
 @login_required
 def invoice_view(request, order_id):

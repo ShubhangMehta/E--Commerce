@@ -17,9 +17,6 @@ def product_list(request):
         }
     )
 
-
-
-
 def product_create(request):
 
     # CATEGORY FORM

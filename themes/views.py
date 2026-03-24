@@ -19,10 +19,6 @@ def _theme_path(request, template_name: str) -> str:
     theme = getattr(request.tenant, "theme", "default") or "default"
     return f"themes/{theme}/{template_name}"
 
-
-
-
-
 def index(request):
     featured_products = (
         SingleProduct.objects

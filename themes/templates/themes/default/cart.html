@@ -179,10 +179,6 @@
               {% endif %}
             </div>
 
-            {# You need a backend endpoint to apply coupons.
-               Option A: point this to a new URL like 'cart_apply_coupon'
-               Option B: keep action="" and handle POST inside your cart view.
-            #}
             <form method="text" class="d-flex gap-2">
               {% csrf_token %}
               <input class="form-control" name="coupon_code" placeholder="Enter coupon code" value="{{ coupon_code|default:'' }}">
