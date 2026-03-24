@@ -3,7 +3,8 @@ from orders.views import pages as dashboard_views
 from orders.views import storefront as storefront_views
 from orders.api import views as PaymentAPI
 
-urlpatterns = [    # TENANT DASHBOARD ORDERS ONLY
+urlpatterns = [    
+    # TENANT DASHBOARD ORDERS ONLY
     path("orders/", dashboard_views.OrderListView.as_view(), name="dashboard_order_list"),
     path("orders/<int:pk>/", dashboard_views.OrderDetailView.as_view(), name="dashboard_order_detail"),
 
@@ -13,6 +14,7 @@ urlpatterns = [    # TENANT DASHBOARD ORDERS ONLY
     path("cart/remove/", storefront_views.cart_remove, name="cart_remove"),
     path("checkout/", storefront_views.checkout_view, name="checkout"),
     path("order-success/<int:order_id>/", storefront_views.order_success_view, name="order_success"),
+    path("orders/<int:order_id>/status/", PaymentAPI.OrderStatusAPIView.as_view(), name="order_status_api"),
     path("my-orders/", storefront_views.my_orders_view, name="my_orders"),
     path("order/<int:order_id>/", storefront_views.order_detail_view, name="order_detail"),
     path("invoice/<int:order_id>/", storefront_views.invoice_view, name="invoice"),

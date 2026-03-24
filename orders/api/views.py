@@ -12,6 +12,7 @@ from orders.services.payment_start import RazorpayGatewayError, create_razorpay_
 
 from orders.serializers.tenant_serializers import TenantOrderSerializer
 from orders.serializers.customer_serializers import CustomerOrderSerializer
+from users.views.customer_profile import get_subject_member
 
 class StartPaymentAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -45,6 +46,22 @@ class StartPaymentAPIView(APIView):
             }, status=status.HTTP_200_OK
         )
   
+
+class OrderStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        subject = get_subject_member(request)
+    
+        order = get_object_or_404(Order, id=order_id, subject=subject)
+
+        return Response({
+            "order_id": order.id,
+            "payment_status": order.payment_status,
+            "status": order.status,
+        })
+
+
 class OrderListAPI(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -66,7 +66,10 @@ document.getElementById("pay-now-btn").addEventListener("click", async function 
     e.preventDefault();
 
     const apiUrl = this.dataset.url;
-
+    const ordersId = "{{ order.id }}";
+    const successUrl = `{% url 'order_success' order_id=order.id %}`;
+    const statusUrl = `{% url 'order_status_api' order_id=order.id %}`;
+    
     const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -94,7 +97,7 @@ document.getElementById("pay-now-btn").addEventListener("click", async function 
             console.log("Razorpay success callback:", response);
             
             //Start polling backend to see when webhook marks order as paid
-            pollOrderStatus(data.local_order_id);
+            pollOrderStatus(statusUrl, successUrl);
         }
     };
 
@@ -102,16 +105,27 @@ document.getElementById("pay-now-btn").addEventListener("click", async function 
     rzp.open();
 });
 
-async function pollOrderStatus(orderId){
-  const interval = setInterval(async () => {
-    const res = await fetch(`/orders/${ordersId}/status/`);
-    const data = await res.json();
+async function pollOrderStatus(statusUrl, successUrl) {
+    const interval = setInterval(async () => {
+        try {
+            const res = await fetch(statusUrl, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
 
-    if (data.payment_status === "paid") {
-      clearInterval(interval);
-      window.location.href = `/orders/${ordersId}/success/`;
-    }
-  }, 3000);
+            const data = await res.json();
+
+            if (data.payment_status === "paid") {
+                clearInterval(interval);
+                window.location.href = successUrl;
+            }
+        } catch (err) {
+            console.error("Status poll failed:", err);
+        }
+    }, 3000);
 }
 </script>
 {% endblock %}
+

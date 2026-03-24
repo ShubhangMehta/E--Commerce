@@ -169,13 +169,18 @@ def my_orders(request):
 @login_required
 def order_success_view(request, order_id):
     order = get_object_or_404(
-        Order,
+        Order.objects.prefetch_related("items"),
         id=order_id,
         subject = get_subject_member(request)
     )
+    #Only show success page if order is paid, else redirect to payment page
+    if order.payment_status != "paid":
+        return redirect("payment_page", order_id=order.id)
 
     return render(request, _theme_path(request, "order_success.html"), {
-        "order": order
+        "order": order,
+        "order_items": order.items.all(),
+        "latest_payment": order.payments.order_by("-created_at").first(),  # assuming you have a related name 'payments' from Order to Payment model
     })
 
 @login_required
