@@ -3,71 +3,72 @@
 {% block title %}Checkout | Default Store{% endblock %}
 
 {% block content %}
-
 <div class="container">
   <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
     <div>
       <h1 class="h4 fw-bold mb-1">Checkout</h1>
-      <div class="text-muted2">Confirm details and place your order.</div>
     </div>
     <a class="btn btn-sm btn-outline-dark" href="{% url 'themes:cart' %}">Back to cart</a>
   </div>
 
   <div class="row g-3">
+    <!-- LEFT: Payment gateways -->
     <div class="col-12 col-lg-7">
       <div class="card p-3 p-md-4">
-        <div class="fw-semibold mb-3">Shipping / Billing Details</div>
+        <div class="fw-semibold mb-2">Payment gateway</div>
 
-        <form method="post" >
+        <form method="post">
           {% csrf_token %}
 
-          <div class="mb-3">
-  <div class="fw-semibold mb-2">Select delivery address</div>
-
-  {% if addresses %}
-      {% for address in addresses %}
-        <label class="border rounded p-3 mb-2 w-100 d-block">
-            <input 
-                type="radio"
-                name="address_id"
-                value="{{ address.id }}"
-                required
-                class="form-check-input me-2"
-            >
-
-            <strong>{{ address.full_name }}</strong><br>
-            {{ address.house_no }}, {{ address.landmark }}<br>
-            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
-            Phone: {{ address.phone }}
-        </label>
-      {% endfor %}
-  {% else %}
-      <div class="alert alert-warning">
-          No address found. Please add an address in your profile first.
-      </div>
-  {% endif %}
-</div>
-
-          <div class="mt-4 d-flex gap-2 flex-wrap">
-            <button type="submit" class="btn btn-brand">Place order</button>
-            <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
+          <div class="d-flex flex-column gap-2">
+            {% for g in payment_gateways %}
+              <label class="border rounded-3 p-3 d-flex justify-content-between align-items-start gap-3" style="border-color:#e5e7eb;">
+                <div class="d-flex gap-2">
+                  <input class="form-check-input mt-1" type="radio" name="gateway" value="{{ g.key }}"
+                         {% if selected_gateway == g.key %}checked{% endif %}>
+                  <div>
+                    <div class="fw-semibold">{{ g.label }}</div>
+                    <div class="text-muted2 small">{{ g.desc }}</div>
+                  </div>
+                </div>
+                <span class="badge text-bg-light border">Available</span>
+              </label>
+            {% endfor %}
           </div>
 
-          <div class="text-muted2 small mt-3">
-            If you use Razorpay/Stripe, this is where you will trigger the payment flow after order creation.
-          </div>
+          <button class="btn btn-brand w-100 mt-3" type="submit">Continue to payment</button>
         </form>
       </div>
     </div>
 
+    <!-- RIGHT: Read-only order info -->
     <div class="col-12 col-lg-5">
       <div class="card p-3 p-md-4">
-        <div class="fw-semibold mb-2">Order Summary</div>
+        <div class="fw-semibold mb-2">Order summary</div>
+
+        {% if selected_address %}
+          <div class="border rounded-3 p-3 mb-3" style="border-color:#e5e7eb;">
+            <div class="text-muted2 small">Deliver to</div>
+            <div class="fw-semibold">{{ selected_address.title|default:"Selected address" }}</div>
+            <div class="text-muted2 small">
+              {% if selected_address.address_line1 %}
+                {{ selected_address.address_line1 }}
+              {% elif selected_address.address %}
+                {{ selected_address.address }}
+              {% else %}
+                {{ selected_address }}
+              {% endif %}
+              {% if selected_address.city %}, {{ selected_address.city }}{% endif %}
+              {% if selected_address.state %}, {{ selected_address.state }}{% endif %}
+              {% if selected_address.pincode %} - {{ selected_address.pincode }}{% endif %}
+            </div>
+          </div>
+        {% endif %}
 
         {% if cart_items %}
-          <div class="border-top pt-3">
+          <div class="border-top pt-2">
             {% for item in cart_items %}
-              <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="d-flex justify-content-between align-items-start py-2">
                 <div class="me-2">
                   <div class="fw-semibold">{{ item.product.name }}</div>
                   <div class="text-muted2 small">Qty: {{ item.quantity }}</div>
@@ -76,16 +77,16 @@
               </div>
             {% endfor %}
           </div>
-
-          <div class="d-flex justify-content-between py-2 border-top mt-2">
-            <div class="fw-bold">Total</div>
-            <div class="fw-bold">{{ cart_total|default:"—" }}</div>
-          </div>
-        {% else %}
-          <div class="alert alert-light mb-0">
-            Your cart is empty. <a class="text-decoration-none" href="{% url 'catalog:single-product-list' %}">Browse products</a>.
-          </div>
         {% endif %}
+
+        <div class="d-flex justify-content-between py-2 border-top mt-2">
+          <div class="fw-bold">Total</div>
+          <div class="fw-bold">{{ cart_total|default:"—" }}</div>
+        </div>
+
+        <div class="text-muted2 small mt-2">
+          Address is selected in cart. To change it, go back to cart.
+        </div>
       </div>
     </div>
   </div>

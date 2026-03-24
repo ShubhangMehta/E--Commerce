@@ -6,7 +6,7 @@ from django.db import transaction
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
     Ticket, ClientSubscription, Invoice,
-    RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing
+    RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing, RazorpayOrderMap
 )
 from django.utils import timezone
 from datetime import timedelta
@@ -284,7 +284,6 @@ class RzpWebhookEventAdmin(admin.ModelAdmin):
     readonly_fields = ("event", "payload", "created_at")
     ordering = ("-created_at",)
     
-
     def has_add_permission(self, request):
         return False
 
@@ -292,3 +291,8 @@ class RzpWebhookEventAdmin(admin.ModelAdmin):
 @admin.register(RzpRefund)
 class RzpRefundAdmin(admin.ModelAdmin):
     list_display = ("payment", "razorpay_refund_id", "status", "created_at")
+
+@admin.register(RazorpayOrderMap)
+class RazorpayOrderMapAdmin(admin.ModelAdmin):
+    list_display = ("local_order_id", "razorpay_order_id", "tenant")
+    search_fields = ("local_order_id", "razorpay_order_id", "tenant__tenant_name")

@@ -1,13 +1,18 @@
 import hmac
 import hashlib
 import json
-from django.views.decorators.csrf import csrf_exempt
+
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
-from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
-from .models import Invoice, RzpPayment, RzpWebhookEvent
+from .models import Invoice, RzpPayment, RzpWebhookEvent, RazorpayOrderMap
+from django_tenants.utils import tenant_context
+from payments.services.services import register_razorpay_payment_success
 from .services.provisioning import provision_tenant_from_request
 from core_app.emails.utils import send_html_email
 
@@ -172,3 +177,55 @@ def razorpay_webhook(request):
     # Other events can be recorded if you want (authorized, created)
     return JsonResponse({"ok": True, "ignored_event": event})
 
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TenantRazorpayWebhookAPIView(APIView):
+    authentication_classes = []  # No auth, relies on signature
+    permission_classes = [AllowAny]      # No permissions, relies on signature
+
+    def post(self, request):
+        raw_body = request.body
+        received_signature = request.headers.get("X-Razorpay-Signature", "")
+
+        expected_signature = hmac.new(
+            key=settings.RAZORPAY_WEBHOOK_SECRET.encode(),
+            msg=raw_body,
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        if not hmac.compare_digest(expected_signature, received_signature):
+            print("⚠️ Invalid Razorpay signature ⚠️")
+            print("Expected signature:", expected_signature)
+            print("Received signature:", received_signature)
+            return JsonResponse({"detail": "Invalid signature"}, status=400)
+        
+        payload = json.loads(raw_body.decode("utf-8"))
+        event = payload.get("event")
+        print(f"Received Razorpay webhook event: {event}")
+
+        if event not in ["order.paid", "payment.captured"]:
+            print(f"Ignoring unsupported event type: {event}")
+            return JsonResponse({"detail": "Event ignored"}, status=200)
+        
+        payment_entity = payload["payload"]["payment"]["entity"]
+        razorpay_order_id = payment_entity["order_id"]
+        print(f"Processing payment for Razorpay Order ID: {razorpay_order_id}")
+
+        try:
+            order_map = RazorpayOrderMap.objects.select_related("tenant").get(razorpay_order_id=razorpay_order_id)
+        except RazorpayOrderMap.DoesNotExist:
+            return JsonResponse({"detail": "Order not found"}, status=404)
+        
+        with tenant_context(order_map.tenant):
+            register_razorpay_payment_success(
+                local_order_id=order_map.local_order_id,
+                razorpay_order_id=payment_entity["order_id"],
+                razorpay_payment_id=payment_entity["id"],
+                razorpay_signature="",
+                payment_method=payment_entity.get("method", ""),
+                amount_paise=payment_entity["amount"],
+                currency=payment_entity.get("currency", "INR"),
+                raw_payload=payload,
+            )
+
+        return JsonResponse({"status": "ok"}, status=200)

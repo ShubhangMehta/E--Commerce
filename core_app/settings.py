@@ -70,7 +70,6 @@ TENANT_APPS = [
     'notifications',
     'themes',
     'django_crontab',
-    'backups',
     'users',
 ]
 

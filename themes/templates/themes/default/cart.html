@@ -7,120 +7,271 @@
   <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
     <div>
       <h1 class="h4 fw-bold mb-1">Your Cart</h1>
-      <div class="text-muted2">Review items before checkout.</div>
     </div>
     <a class="btn btn-sm btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
   </div>
 
+  <style>
+    .cart-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px;
+    }
+    .cart-img {
+      width: 74px; height: 74px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .qty-pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid #e5e7eb;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background:#fff;
+      width: fit-content;
+    }
+    .qty-btn{
+      width: 30px; height: 30px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      line-height: 1;
+      font-weight: 800;
+    }
+    .qty-btn:hover{ background:#f8fafc; }
+    .price-box{
+      border-left: 1px solid #e5e7eb;
+      padding-left: 12px;
+    }
+    .summary-card{
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      padding: 16px;
+    }
+    .addr-card{
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      padding: 16px;
+      position: sticky;
+      top: 16px;
+    }
+    .addr-option{
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .addr-option:hover{ background:#f8fafc; }
+    .muted2{ color:#64748b; }
+    .money{ font-weight: 800; color:#0f172a; }
+  </style>
+
   <div class="row g-3">
+    <!-- LEFT: Order summary -->
     <div class="col-12 col-lg-8">
-      <div class="card p-3 p-md-4">
-        {% if cart_items %}
-          <div class="table-responsive">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th style="width:140px;">Qty</th>
-                  <th class="text-end">Price</th>
-                  <th class="text-end">Total</th>
-                  <th style="width:80px;"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in cart_items %}
-                  <tr>
-                    <td>
-                      <div class="d-flex align-items-center gap-3">
-                        {% if item.product.image %}
-                          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;">
+      {% if cart_items %}
+
+        <!-- Items -->
+        <div class="d-flex flex-column gap-3">
+          {% for item in cart_items %}
+            <div class="cart-item">
+              <div class="d-flex gap-3">
+                <!-- Image -->
+                <div>
+                  {% if item.product.image %}
+                    <img class="cart-img" src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                  {% else %}
+                    <div class="cart-img d-flex align-items-center justify-content-center muted2">—</div>
+                  {% endif %}
+                </div>
+
+                <!-- Details -->
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                      <div class="fw-semibold">{{ item.product.name }}</div>
+
+                      {# Prefer brand if exists; otherwise short_description/description #}
+                      <div class="muted2 small">
+                        {% if item.product.brand %}
+                          {{ item.product.brand }}
                         {% else %}
-                          <div class="d-flex align-items-center justify-content-center text-muted2" style="width:54px;height:54px;border-radius:10px;border:1px solid #e5e7eb;">
-                            —
-                          </div>
+                          {{ item.product.short_description|default:item.product.description|truncatechars:70 }}
                         {% endif %}
-                        <div>
-                          <div class="fw-semibold">{{ item.product.name }}</div>
-                          <div class="text-muted2 small">{{ item.product.short_description|default:item.product.description|truncatechars:60 }}</div>
-                        </div>
                       </div>
-                    </td>
+                    </div>
 
-                    <td>
-                      {# Update to your cart update endpoint #}
-                      <form method="post" action="{% url 'themes:cart_update' %}" class="d-flex gap-2">
+                    <!-- Remove -->
+                    <form method="post" action="{% url 'cart_remove' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                    </form>
+                  </div>
+
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mt-3">
+                    <!-- Quantity controls -->
+                    <div class="qty-pill">
+                      <!-- Decrease -->
+                      <form method="post" action="{% url 'cart_update' %}" class="m-0">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                        <input type="number" name="quantity" min="1" class="form-control form-control-sm" value="{{ item.quantity }}">
-                        <button class="btn btn-sm btn-outline-dark" type="submit">Update</button>
+                        <input type="hidden" name="quantity" value="{{ item.quantity|add:'-1' }}">
+                        <button
+                          class="qty-btn"
+                          type="submit"
+                          {% if item.quantity <= 1 %}disabled{% endif %}
+                          aria-label="Decrease quantity">−</button>
                       </form>
-                    </td>
 
-                    <td class="text-end fw-semibold">
-                      {{ item.product.price }}
-                    </td>
+                      <div class="fw-semibold" style="min-width:22px; text-align:center;">
+                        {{ item.quantity }}
+                      </div>
 
-                    <td class="text-end fw-semibold">
-                      {{ item.line_total|default:"—" }}
-                    </td>
-
-                    <td class="text-end">
-                      {# Update to your cart remove endpoint #}
-                      <form method="post" action="{% url 'themes:cart_remove' %}">
+                      <!-- Increase -->
+                      <form method="post" action="{% url 'cart_update' %}" class="m-0">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                        <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                        <input type="hidden" name="quantity" value="{{ item.quantity|add:'1' }}">
+                        <button class="qty-btn" type="submit" aria-label="Increase quantity">+</button>
                       </form>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="price-box ms-md-auto text-end">
+                      <div class="muted2 small">Unit price</div>
+                      <div class="fw-semibold">{{ item.product.price }}</div>
+
+                      <div class="muted2 small mt-2">Item total</div>
+                      <div class="money">{{ item.line_total|default:"—" }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Totals + Coupon -->
+        <div class="summary-card mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">Order totals</div>
           </div>
-        {% else %}
-          <div class="alert alert-light mb-0">
-            Your cart is empty. <a class="text-decoration-none" href="{% url 'catalog:single-product-list' %}">Browse products</a>.
+
+          <div class="d-flex justify-content-between py-2 border-top mt-2">
+            <div class="muted2">Subtotal</div>
+            <div class="fw-semibold">{{ cart_subtotal|default:"—" }}</div>
           </div>
-        {% endif %}
-      </div>
+
+          <!-- Coupon -->
+          <div class="py-2 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="muted2">Coupon</div>
+              {% if coupon_code %}
+                <span class="badge text-bg-light border">Applied: {{ coupon_code }}</span>
+              {% endif %}
+            </div>
+
+            {# You need a backend endpoint to apply coupons.
+               Option A: point this to a new URL like 'cart_apply_coupon'
+               Option B: keep action="" and handle POST inside your cart view.
+            #}
+            <form method="text" class="d-flex gap-2">
+              {% csrf_token %}
+              <input class="form-control" name="coupon_code" placeholder="Enter coupon code" value="{{ coupon_code|default:'' }}">
+              <button class="btn btn-outline-dark" type="submit">Apply</button>
+            </form>
+
+            {% if discount_total %}
+              <div class="d-flex justify-content-between mt-2">
+                <div class="muted2 small">Discount</div>
+                <div class="fw-semibold">- {{ discount_total }}</div>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between py-2 border-top">
+            <div class="muted2">Tax</div>
+            <div class="fw-semibold">{{ tax_total|default:"—" }}</div>
+          </div>
+
+          <div class="d-flex justify-content-between py-2 border-top">
+            <div class="fw-bold">Grand total</div>
+            <div class="fw-bold">
+              {{ grand_total|default:cart_total|default:"—" }}
+            </div>
+          </div>
+
+        </div>
+
+      {% else %}
+        <div class="alert alert-light mb-0">
+          Your cart is empty. <a class="text-decoration-none" href="{% url 'catalog:single-product-list' %}">Browse products</a>.
+        </div>
+      {% endif %}
     </div>
 
+    <!-- RIGHT: Address selection -->
     <div class="col-12 col-lg-4">
-      <div class="card p-3 p-md-4">
-        <div class="fw-semibold mb-2">Order Summary</div>
+      <div class="addr-card">
+        <div class="fw-semibold mb-2">Choose delivery address</div>
 
-        <div class="d-flex justify-content-between py-2 border-top">
-          <div class="text-muted2">Subtotal</div>
-          <div class="fw-semibold">{{ cart_subtotal|default:cart_total|default:"—" }}</div>
-        </div>
+        {% if addresses %}
+          {# Send selected address to checkout. Use GET or POST depending on your checkout implementation. #}
+          <form method="post" action="{% url 'cart' %}">
+            {% csrf_token %}
 
-        <div class="d-flex justify-content-between py-2 border-top">
-          <div class="text-muted2">Shipping</div>
-          <div class="fw-semibold">{{ shipping_total|default:"—" }}</div>
-        </div>
+            <div class="d-flex flex-column gap-2">
+              {% for addr in addresses %}
+                <label class="addr-option d-flex gap-2 align-items-start">
+                  <input
+                    class="form-check-input mt-1"
+                    type="radio"
+                    name="address_id"
+                    value="{{ addr.id }}"
+                    {% if selected_address_id %}
+                      {% if addr.id|stringformat:"s" == selected_address_id|stringformat:"s" %}checked{% endif %}
+                    {% else %}
+                      {% if forloop.first %}checked{% endif %}
+                    {% endif %}
+                  >
+                  <div>
+                    <div class="fw-semibold">{{ addr.title|default:"Address" }}</div>
+                    <div class="muted2 small">
+                      {% if addr.address_line1 %}{{ addr.address_line1 }}{% elif addr.address %}{{ addr.address }}{% else %}{{ addr }}{% endif %}
+                      {% if addr.city %}, {{ addr.city }}{% endif %}
+                      {% if addr.state %}, {{ addr.state }}{% endif %}
+                      {% if addr.pincode %} - {{ addr.pincode }}{% endif %}
+                    </div>
+                  </div>
+                </label>
+              {% endfor %}
+            </div>
 
-        <div class="d-flex justify-content-between py-2 border-top">
-          <div class="text-muted2">Tax</div>
-          <div class="fw-semibold">{{ tax_total|default:"—" }}</div>
-        </div>
-
-        <div class="d-flex justify-content-between py-2 border-top">
-          <div class="fw-bold">Total</div>
-          <div class="fw-bold">{{ cart_total|default:"—" }}</div>
-        </div>
-
-        <div class="mt-3 d-grid gap-2">
-          {% if cart_items %}
-            <a class="btn btn-brand" href="{% url 'orders_storefront:checkout' %}">Proceed to checkout</a>
-          {% else %}
-            <button class="btn btn-brand" disabled>Proceed to checkout</button>
-          {% endif %}
-          <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Add more items</a>
-        </div>
-
-        <div class="text-muted2 small mt-3">
-          Payments and order status can be customized later.
-        </div>
+            <div class="d-grid gap-2 mt-3">
+              {% if cart_items %}
+                <!-- IMPORTANT: this tells the view to redirect to checkout after saving address -->
+                <button class="btn btn-brand" type="submit" name="checkout" value="1">
+                  Proceed to checkout
+                </button>
+              {% else %}
+                <button class="btn btn-brand" type="button" disabled>Proceed to checkout</button>
+              {% endif %}
+              <a class="btn btn-outline-dark" href="{% url 'users:profile' %}">Manage addresses</a>
+            </div>
+          </form>
+        {% else %}
+          <div class="alert alert-light mb-3">
+            No address found. Add one in your profile first.
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

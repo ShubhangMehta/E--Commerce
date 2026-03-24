@@ -14,6 +14,13 @@ def admin_login_redirect(request):
 
 
 urlpatterns = [
+    #Webhook for Tenant admin payments
+    #path("razorpay/webhook/", rzp_webhook_views.razorpay_webhook, name="razorpay_webhook"),
+
+    #Webhook from end user orders
+    path("orders/razorpay/webhook/", rzp_webhook_views.TenantRazorpayWebhookAPIView.as_view(), name="orders_razorpay_webhook"),
+    
+    # Keep admin enabled
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
 

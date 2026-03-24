@@ -340,7 +340,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'my_orders' %}">
               Orders
             </a>
           </li>
@@ -367,12 +367,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'orders_storefront:checkout' %}">
-                Checkout
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="btn btn-sm btn-outline-dark ms-lg-2" href="{% url 'logout' %}">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'logout' %}">
                 Logout
               </a>
             </li>

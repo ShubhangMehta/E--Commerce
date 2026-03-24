@@ -16,13 +16,11 @@ urlpatterns = [
     #path("products/<int:id>/", views.product_detail, name="product_detail"),
 
     # Cart
-    path("cart/", views.cart, name="cart"),
-    path("cart/update/", views.cart_update, name="cart_update"),
-    path("cart/remove/", views.cart_remove, name="cart_remove"),
+    # path("cart/", views.cart, name="cart"),
+    # path("cart/update/", views.cart_update, name="cart_update"),
+    # path("cart/remove/", views.cart_remove, name="cart_remove"),
 
-    # Checkout + order success
-    #path("profile/", views.profile, name="profile"),
-    # path("login/", views.login, name="login"),
+    path("login/", views.login, name="login"),
     path("signup/", views.signup, name="tenant_customer_signup"),
 
     path("login/", c_views.login_view, name="login"),

@@ -9,10 +9,20 @@
       <div class="card p-4 p-md-5">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
           <div>
-            <h1 class="h4 fw-bold mb-1">Order placed successfully</h1>
-            <div class="text-muted2">Thank you. Your order has been created.</div>
+            <h1 class="h4 fw-bold mb-1">Payment successful</h1>
+            <div class="text-muted2">
+              Thank you. Your payment has been received and your order is confirmed.
+            </div>
           </div>
-          <span class="badge text-bg-light border">Status: {{ order.status|default:"Processing" }}</span>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge text-bg-light border">
+              Order: {{ order.status|default:"confirmed" }}
+            </span>
+            <span class="badge text-bg-light border">
+              Payment: {{ order.payment_status|default:"paid" }}
+            </span>
+          </div>
         </div>
 
         <div class="row g-3 mt-1">
@@ -20,22 +30,48 @@
             <div class="text-muted2 small">Order ID</div>
             <div class="fw-bold">#{{ order.id|default:"—" }}</div>
           </div>
+
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Date</div>
             <div class="fw-bold">{{ order.created_at|date:"d M Y, h:i A"|default:"—" }}</div>
           </div>
+
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Total</div>
-            <div class="fw-bold">{{ order.total|default:"—" }}</div>
+            <div class="fw-bold">{{ order.total_amount|default:"—" }}</div>
           </div>
+
           <div class="col-12 col-md-6">
-            <div class="text-muted2 small">Payment</div>
-            <div class="fw-bold">{{ order.payment_status|default:"—" }}</div>
+            <div class="text-muted2 small">Payment Status</div>
+            <div class="fw-bold text-capitalize">{{ order.payment_status|default:"—" }}</div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Payment Reference</div>
+            <div class="fw-bold">
+              {% if latest_payment %}
+                {{ latest_payment.razorpay_payment_id|default:"—" }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Paid Via</div>
+            <div class="fw-bold text-capitalize">
+              {% if latest_payment and latest_payment.payment_method %}
+                {{ latest_payment.payment_method }}
+              {% else %}
+                Razorpay
+              {% endif %}
+            </div>
           </div>
         </div>
 
         {% if order_items %}
           <hr class="my-4">
+
           <div class="fw-semibold mb-2">Items</div>
           <div class="table-responsive">
             <table class="table align-middle">
@@ -43,14 +79,38 @@
                 <tr>
                   <th>Product</th>
                   <th style="width:100px;">Qty</th>
+                  <th class="text-end">Price</th>
                   <th class="text-end">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {% for item in order_items %}
                   <tr>
-                    <td class="fw-semibold">{{ item.product.name }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        {% if item.product_image_url_snapshot %}
+                          <img
+                            src="{{ item.product_image_url_snapshot }}"
+                            alt="{{ item.product_name_snapshot }}"
+                            style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;"
+                          >
+                        {% else %}
+                          <div
+                            class="d-flex align-items-center justify-content-center text-muted2"
+                            style="width:54px;height:54px;border-radius:10px;border:1px solid #e5e7eb;"
+                          >
+                            —
+                          </div>
+                        {% endif %}
+
+                        <div>
+                          <div class="fw-semibold">{{ item.product_name_snapshot }}</div>
+                        </div>
+                      </div>
+                    </td>
+
                     <td>{{ item.quantity }}</td>
+                    <td class="text-end fw-semibold">{{ item.product_price_snapshot }}</td>
                     <td class="text-end fw-semibold">{{ item.line_total|default:"—" }}</td>
                   </tr>
                 {% endfor %}
@@ -59,17 +119,41 @@
           </div>
         {% endif %}
 
-        <div class="d-flex gap-2 flex-wrap mt-4">
-          <a class="btn btn-brand" href="{% url 'orders_storefront:my_orders' %}">View orders</a>
-          <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
-          {# Optional order detail #}
-          {% if order %}
-            <a class="btn btn-outline-dark" href="{% url 'orders_storefront:order_detail' order.id %}">View order</a>
-          {% endif %}
+        <hr class="my-4">
+
+        <div class="row g-2">
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Subtotal</span>
+              <span class="fw-semibold">{{ order.subtotal_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Shipping</span>
+              <span class="fw-semibold">{{ order.shipping_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Discount</span>
+              <span class="fw-semibold">{{ order.discount_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="fw-bold">Grand Total</span>
+              <span class="fw-bold">{{ order.total_amount|default:"—" }}</span>
+            </div>
+          </div>
         </div>
 
-        <div class="text-muted2 small mt-3">
-          If you are using Razorpay/Stripe, you can show payment confirmation details here.
+        <div class="d-flex gap-2 flex-wrap mt-4">
+          <a class="btn btn-brand" href="{% url 'my_orders' %}">View orders</a>
+          <a class="btn btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Continue shopping</a>
         </div>
       </div>
     </div>

@@ -5,11 +5,7 @@
 {% block content %}
 <div class="container">
   <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-    <div>
-      <h1 class="h4 fw-bold mb-1">Previous Orders</h1>
-      <div class="text-muted2">Track your order history and status.</div>
-    </div>
-    <a class="btn btn-sm btn-outline-dark" href="{% url 'catalog:single-product-list' %}">Shop</a>
+    <h1 class="h4 fw-bold mb-1">Previous Orders</h1>
   </div>
 
   <div class="card p-3 p-md-4">
@@ -36,7 +32,7 @@
                 <td class="text-end fw-semibold">₹{{ o.total_amount|default:"—" }}</td>
                 <td class="text-end">
                   {# If you have an order detail page, update this url name #}
-                  <a class="btn btn-sm btn-outline-dark" href="{% url 'orders_storefront:order_detail' o.id %}">View</a>
+                  <a class="btn btn-sm btn-outline-dark" href="{% url 'order_detail' o.id %}">View</a>
                 </td>
               </tr>
             {% endfor %}
