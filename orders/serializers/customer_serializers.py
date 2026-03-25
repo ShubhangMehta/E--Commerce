@@ -1,9 +1,4 @@
-from serializers import BaseOrderSerializer
-
-class CustomerOrderSerializer(BaseOrderSerializer):
-    class Meta(BaseOrderSerializer.Meta):
-        read_only_fields = ("status", "tenant")
+from orders.serializers.serializers import BaseOrderSerializer
 
 class CustomerOrderSerializer(BaseOrderSerializer):
     pass
-
