@@ -43,6 +43,6 @@ foreach ($app in $apps) {
 }
 
 Write-Host "Running migrate..." -ForegroundColor Cyan
-& "$PSScriptRoot\venv\Scripts\python.exe" manage.py migrate
+& "$PSScriptRoot\venv\Scripts\python.exe" manage.py migrate_schemas
 
 Write-Host "Done." -ForegroundColor Green
