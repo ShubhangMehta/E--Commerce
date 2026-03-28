@@ -145,28 +145,19 @@ class OrderItem(models.Model):
         related_name="items",
         on_delete=models.CASCADE
     )
-    product = models.ForeignKey(
-        SingleProduct,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-    ## ⭐ GENERIC PRODUCT RELATION (supports SingleProduct OR MultiProduct)
-    #content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    #object_id = models.PositiveIntegerField()
-    #product = GenericForeignKey("content_type", "object_id")
+
+    # ⭐ GENERIC PRODUCT RELATION (supports SingleProduct OR MultiProduct)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    product = GenericForeignKey("content_type", "object_id")
 
     # 🔒 SNAPSHOT (SUPER IMPORTANT — never remove)
-    product_name = models.CharField(max_length=255)
-    product_price = models.DecimalField(max_digits=10, decimal_places=2)
+    product_name_snapshot = models.CharField(max_length=255, default="")
+    product_price_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
+    product_image_url_snapshot = models.URLField(blank=True, default="")    
 
     quantity = models.PositiveIntegerField()
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"Order #{self.id}"
-
-
-
-
-
+        return f"{self.product_name_snapshot} x {self.quantity}"

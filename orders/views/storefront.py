@@ -90,7 +90,6 @@ def cart_remove(request):
     messages.success(request, "Item removed.")
     return redirect("cart")
 
-
 @login_required
 @require_http_methods(["GET", "POST"])
 def checkout_view(request):
@@ -126,7 +125,8 @@ def checkout_view(request):
         if gateway not in allowed:
             messages.error(request, "Gateway not available.")
             return redirect("checkout")
-        address_id = request.POST.get("address_id")
+        
+        address_id = address_id
         coupon = None
         coupon_id = request.session.get("coupon_id")
 

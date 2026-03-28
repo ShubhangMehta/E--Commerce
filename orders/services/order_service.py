@@ -24,7 +24,7 @@ class OrderService:
         subject,
         cart_items,
         address_id,
-        coupon=None,
+        coupon,
         
     ):
         """
@@ -65,7 +65,6 @@ class OrderService:
             shipping_phone=address.phone,
             shipping_house_no=address.house_no,
             shipping_landmark=address.landmark,
-            shipping_address=address.address,  # fix this field
             shipping_city=address.city,
             shipping_state=address.state,
             shipping_postal_code=address.postal_code,
