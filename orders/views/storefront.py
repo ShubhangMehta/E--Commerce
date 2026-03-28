@@ -73,6 +73,8 @@ def cart_view(request):
         "tax_total": 0,
         "discount_total": None,
         "grand_total": cart_total,
+        "customer_name": SubjectMember.objects.filter(id=request.session.get("subject_id")).first().name if request.session.get("subject_id") else "",
+        "customer_email": subject.email if request.user.is_authenticated else "",
     }
     return render(request, _theme_path(request, "cart.html"), context)
 

@@ -2,72 +2,153 @@
 {% block title %}Order Details{% endblock %}
 
 {% block content %}
+<style>
+  .page-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .page-title{margin:0;font-weight:800;}
+  .pill{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:999px;border:1px solid #e5e7eb;background:#f8fafc;font-weight:700;font-size:.85rem;text-transform:capitalize;}
+  .pill-success{border-color:#bbf7d0;background:#f0fdf4;color:#166534;}
+  .pill-danger{border-color:#fecaca;background:#fef2f2;color:#991b1b;}
+  .pill-info{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;}
+
+  .section{border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;}
+  .text-muted2{color:#64748b;}
+  .rowline{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #e5e7eb;}
+  .rowline:first-child{border-top:none;padding-top:0;}
+  .k{color:#64748b;}
+  .v{font-weight:700;color:#0f172a;}
+
+  .items-table{width:100%;border-collapse:collapse;}
+  .items-table th,.items-table td{padding:10px;border-top:1px solid #e5e7eb;vertical-align:middle;}
+  .items-table thead th{border-top:none;color:#64748b;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+  .item-cell{display:flex;gap:12px;align-items:center;}
+  .item-img{width:54px;height:54px;object-fit:cover;border-radius:12px;border:1px solid #e5e7eb;background:#fff;}
+  .item-name{font-weight:800;color:#0f172a;line-height:1.2;}
+
+  .btn-brand{background:#0d6efd;border:1px solid #0d6efd;color:#fff;padding:.5rem .9rem;border-radius:10px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;}
+  .btn-brand:hover{background:#0b5ed7;border-color:#0b5ed7;color:#fff;}
+</style>
 
 <div class="page-header">
-    <h1 class="page-title">Order #{{ order.order_number }}</h1>
+  <h1 class="page-title">Order #{{ order.id }}</h1>
 
-    {% if order.status == "delivered" %}
-        <span class="pill pill-success">{{ order.status }}</span>
-    {% elif order.status == "cancelled" %}
-        <span class="pill pill-danger">{{ order.status }}</span>
-    {% elif order.status == "shipped" %}
-        <span class="pill pill-info">{{ order.status }}</span>
-    {% else %}
-        <span class="pill pill-info">{{ order.status }}</span>
-    {% endif %}
+  {% if order.status == "delivered" %}
+    <span class="pill pill-success">{{ order.status }}</span>
+  {% elif order.status == "cancelled" %}
+    <span class="pill pill-danger">{{ order.status }}</span>
+  {% else %}
+    <span class="pill pill-info">{{ order.status|default:"processing" }}</span>
+  {% endif %}
 </div>
-
 
 <!-- ORDER SUMMARY -->
 <div class="section">
-    <h3>Order Summary</h3>
+  <h3 style="margin:0 0 10px 0;">Order Summary</h3>
 
-    <div class="table-row">
-        <div class="table-cell text-muted2">Order Number</div>
-        <div class="table-cell"><strong>ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</strong></div>
-    </div>
+  <div class="rowline">
+    <div class="k">Order Number</div>
+    <div class="v">ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
+  </div>
 
-    <div class="table-row">
-        <div class="table-cell text-muted2">Total Amount</div>
-        <div class="table-cell"><strong>₹{{ order.total_amount }}</strong></div>
-    </div>
+  <div class="rowline">
+    <div class="k">Total Amount</div>
+    <div class="v">₹{{ order.total_amount|default:"0.00" }}</div>
+  </div>
 
-    <div class="table-row">
-        <div class="table-cell text-muted2">Placed On</div>
-        <div class="table-cell">{{ order.created_at }}</div>
+  <div class="rowline">
+    <div class="k">Placed On</div>
+    <div class="v">{{ order.created_at|date:"d M Y, h:i A" }}</div>
+  </div>
+
+  <div class="rowline">
+    <div class="k">Delivery Address</div>
+    <div class="v" style="max-width:70%;text-align:right;">
+      {% if order.shipping_house_no %}{{ order.shipping_house_no }}{% endif %}
+      {% if order.shipping_landmark %}, {{ order.shipping_landmark }}{% endif %}
+      {% if order.shipping_city %}, {{ order.shipping_city }}{% endif %}
+      {% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}
+      {% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
     </div>
+  </div>
 </div>
-
 
 <!-- ORDER ITEMS -->
 <div class="section">
-    <h3>Items in this Order</h3>
+  <h3 style="margin:0 0 10px 0;">Items</h3>
 
-    {% for item in order.items.all %}
-        <div class="order-item">
-            <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product_name }}">
+  <div style="overflow:auto;">
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align:right;">Unit Price</th>
+          <th style="text-align:right;">Qty</th>
+          <th style="text-align:right;">Line Total</th>
+        </tr>
+      </thead>
 
-            <div class="order-item-details">
-                <h4>{{ item.product_name }}</h4>
-                <div class="text-muted2">Price: ₹{{ item.product_price }}</div>
-            </div>
-        </div>
-    {% empty %}
-        <p class="text-muted2">No items found.</p>
-    {% endfor %}
-</div>
+      <tbody>
+        {% for item in order.items.all %}
+          <tr>
+            <td>
+              <div class="item-cell">
+                {# --- IMAGE: try snapshot first, then fallback --- #}
+                {% if item.product_image_url_snapshot %}
+                  {% if item.product_image_url_snapshot|slice:":4" == "http" or item.product_image_url_snapshot|slice:":1" == "/" %}
+                    <img class="item-img" src="{{ item.product_image_url_snapshot }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
+                  {% else %}
+                    <img class="item-img" src="/{{ item.product_image_url_snapshot }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
+                  {% endif %}
+                {% elif item.product_image_url_snapshot == "" and item.product_image_url %}
+                  {% if item.product_image_url|slice:":4" == "http" or item.product_image_url|slice:":1" == "/" %}
+                    <img class="item-img" src="{{ item.product_image_url }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
+                  {% else %}
+                    <img class="item-img" src="/{{ item.product_image_url }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
+                  {% endif %}
+                {% else %}
+                  <div class="item-img d-flex align-items-center justify-content-center text-muted2"
+                       style="display:flex;align-items:center;justify-content:center;">—</div>
+                {% endif %}
 
+                <div>
+                  <div class="item-name">
+                    {{ item.product_name_snapshot|default:"(no name)" }}
+                  </div>
+                  <div class="text-muted2" style="font-size:.85rem;">
+                    {{ item.product_brand_snapshot|default:"" }}
+                  </div>
+                </div>
+              </div>
+            </td>
 
-<!-- INVOICE -->
-<div class="section invoice-box">
-    <div>
-        <h3>Invoice</h3>
-        <p class="text-muted2">You can download the invoice for this order.</p>
-    </div>
+            <td style="text-align:right;">
+              ₹{{ item.product_price_snapshot|default:"0.00" }}
+            </td>
 
-    <a href="{% url 'invoice_pdf' %}" class="btn-brand">
-        Download Invoice (PDF)
-    </a>
+            <td style="text-align:right;">
+              {{ item.quantity|default:"1" }}
+            </td>
+
+            <td style="text-align:right;font-weight:800;">
+              {% if item.line_total %}
+                ₹{{ item.line_total }}
+              {% else %}
+                ₹{{ item.product_price_snapshot|default:item.product_price|default:"0.00" }}
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-muted2">No items found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Invoice button bottom-right -->
+  <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+    <a href="{% url 'invoice_pdf' order.id %}" class="btn-brand">Download Invoice (PDF)</a>
+  </div>
 </div>
 
 {% endblock %}

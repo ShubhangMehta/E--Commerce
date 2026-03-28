@@ -131,7 +131,6 @@ class OrderService:
                     line_total=item["line_total"],
                 )
             )
-
         OrderItem.objects.bulk_create(order_items)
        
     # =========================================================
