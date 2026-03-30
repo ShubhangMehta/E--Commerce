@@ -67,34 +67,76 @@
         </div> </div> </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 fetch("/dashboard/api/monthly-top-products/")
-    .then(res => res.json())
-    .then(data => {
-        const ctx = document.getElementById("topProductsChart");
-        new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    label: "Units Sold",
-                    data: data.data,
-                    backgroundColor: '#A0D1FB', 
-                    borderRadius: 6,
-                }]
+.then(res => res.json())
+.then(data => {
+
+    // ✅ BAR CHART (existing)
+    const ctx = document.getElementById("topProductsChart");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: "Units Sold",
+                data: data.data,
+                backgroundColor: '#A0D1FB',
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+            scales: {
+                y: { beginAtZero: true },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 🔥 PIE CHART (NEW)
+    const pieCtx = document.getElementById("productPieChart");
+
+    new Chart(pieCtx, {
+        type: "doughnut",
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.data,
+                backgroundColor: [
+                    "#3B82F6",
+                    "#10B981",
+                    "#F59E0B",
+                    "#EF4444",
+                    "#8B5CF6"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: "60%",
+            plugins: {
+                legend: {
+                    position: "bottom"
                 },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
-                    x: { grid: { display: false } }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let percent = data.percentages[context.dataIndex];
+                            return `${context.label}: ${percent}%`;
+                        }
+                    }
                 }
             }
-        });
+        }
     });
+
+});
 </script>
 {% endblock %}
