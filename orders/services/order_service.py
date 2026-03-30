@@ -1,6 +1,6 @@
 from django.db import transaction
 from orders.models import Order, OrderItem,Coupon
-from users.models import Coordinate
+from users.models import Coordinate, SubjectMember
 from decimal import Decimal
 from django.db.models import F
 
@@ -40,6 +40,7 @@ class OrderService:
         totals = OrderService._calculate_totals(cart_items)
 
         subtotal = totals["subtotal"]
+        shipping_amount = 0.01 * subtotal
         discount = Decimal("0")
 
         if coupon and coupon.is_valid(subtotal):
@@ -57,10 +58,14 @@ class OrderService:
         order = Order.objects.create(
             tenant=tenant,
             subject=subject,
-            total_amount=final_total,
+            customer_email=SubjectMember.email,
+            customer_name=SubjectMember.full_name,
             coupon=coupon,
+            subtotal_amount=subtotal,
             discount_amount=discount,
-
+            shipping_amount=shipping_amount,
+            total_amount=final_total,
+            
             shipping_full_name=address.full_name,
             shipping_phone=address.phone,
             shipping_house_no=address.house_no,

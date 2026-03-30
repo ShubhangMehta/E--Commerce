@@ -71,7 +71,7 @@
                     {% endif %}
                   </div>
                   <div class="text-muted2 small">{{ a.full_name }} · {{ a.phone }}</div>
-                  <div>{{ a.house_no }}, {{ a.landmark }}, {{ a.city }}, {{ a.state }} - {{ a.postal_code }}</div>
+                  <div>{{ a.address_line1 }}, {{ a.address_line2 }}, {{ a.landmark }}, {{ a.city }}, {{ a.state }} - {{ a.postal_code }}</div>
                 </div>
                 <div class="d-flex gap-2">
                   <a class="btn btn-sm btn-outline-dark" href="{% url 'users:address_edit' a.id %}">Edit</a>
