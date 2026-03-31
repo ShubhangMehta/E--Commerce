@@ -15,7 +15,6 @@ urlpatterns = [
     path("checkout/", storefront_views.checkout_view, name="checkout"),
     path("order-success/<int:order_id>/", storefront_views.order_success_view, name="order_success"),
     path("orders/<int:order_id>/status/", PaymentAPI.OrderStatusAPIView.as_view(), name="order_status_api"),
-    path("my-orders/", storefront_views.my_orders_view, name="my_orders"),
     path("order/<int:order_id>/", storefront_views.order_detail_view, name="order_detail"),
     path("invoice/<int:order_id>/", storefront_views.invoice_view, name="invoice"),
     path("invoice/<int:order_id>/pdf/", storefront_views.invoice_pdf_view, name="invoice_pdf"),
