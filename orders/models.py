@@ -1,5 +1,5 @@
+import uuid
 from django.db import models
-from users.models import SubjectMember
 from catalog.models import SingleProduct
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -78,16 +78,12 @@ class Order(models.Model):
         ("cancelled", "Cancelled"),
     ]
     tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
-    customer_email = models.EmailField(default="")
-    customer_name = models.CharField(max_length=255, blank=True, default="")
-
-    # customer (storefront identity)
-    subject = models.ForeignKey(
-        SubjectMember,
-        on_delete=models.CASCADE,
-        related_name="orders",
-        null=True,   # allow NULL for existing rows
-        blank=True
+    order_id = models.CharField(max_length=20, unique=True, blank=True)  # Optional: can be auto-generated
+    address = models.ForeignKey(
+        "users.Coordinate",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="orders"
     )
 
     # totals
@@ -95,19 +91,7 @@ class Order(models.Model):
     shipping_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    coupon = models.ForeignKey(
-            Coupon,
-            on_delete=models.SET_NULL,
-            null=True,
-            blank=True
-        )
         
-    discount_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
-    
     # order lifecycle
     status = models.CharField(
         max_length=20,
@@ -116,27 +100,16 @@ class Order(models.Model):
     )
 
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
-
-    # 🔥 shipping snapshot (VERY IMPORTANT)
-    shipping_full_name = models.CharField(max_length=255, default="Not Provided")
-    shipping_phone = models.CharField(max_length=20, default="Not Provided")
-    shipping_house_no= models.CharField(max_length=100, default="Not Provided")
-    shipping_landmark= models.CharField(max_length=100, default="Not Provided")
-    shipping_address = models.TextField(default="Not Provided")
-    shipping_city = models.CharField(max_length=100,default="Not Provided")
-    shipping_state = models.CharField(max_length=100,default="Not Provided")
-    shipping_postal_code = models.CharField(max_length=20,default="Not Provided")
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    #def save(self, *args, **kwargs):
-    #    if not self.order_number:
-    #        self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-    #    super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+       if not self.order_id:
+           self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+       super().save(*args, **kwargs)
 
     def __str__(self):
-      return f"Order #{self.id}"
+      return self.order_id
 
 
 class OrderItem(models.Model):
