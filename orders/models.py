@@ -89,6 +89,7 @@ class Order(models.Model):
     shipping_full_name = models.CharField(max_length=255)
     shipping_phone = models.CharField(max_length=20)
     shipping_email = models.EmailField(max_length=254)
+    shipping_address_type = models.CharField(max_length=50)  # e.g., "home", "work"
     shipping_address_line1 = models.CharField(max_length=255)
     shipping_address_line2 = models.CharField(max_length=255, blank=True)
     shipping_landmark = models.CharField(max_length=255, blank=True)

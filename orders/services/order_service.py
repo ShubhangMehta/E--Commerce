@@ -36,9 +36,7 @@ class OrderService:
     @staticmethod
     def _build_shipping_snapshot(address: Coordinate) -> dict:
         return {
-            "shipping_full_name": address.full_name,
-            "shipping_phone": address.phone,
-            "shipping_email": address.email,
+            "shipping_address_type": address.address_type,
             "shipping_address_line1": address.address_line1,
             "shipping_address_line2": address.address_line2,
             "shipping_landmark": address.landmark,
@@ -81,9 +79,9 @@ class OrderService:
 
         order = Order.objects.create(
             tenant=OrderService._tenant_value(tenant),
-            subject=subject,
-            coordinate=address,
-            coupon=totals["coupon"],
+            #subject=subject,
+            #coordinate=address,
+            #coupon=totals["coupon"],
             subtotal_amount=totals["subtotal"],
             shipping_amount=totals["shipping_amount"],
             discount_amount=totals["discount_amount"],

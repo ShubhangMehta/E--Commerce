@@ -82,7 +82,7 @@ def cart_view(request):
 
     cart_items = CartService.build_items(request.session)
     Coupon = _get_coupon_from_session(request.session)
-    pricing = PricingService.calculate_from_items(cart_items, coupon=Coupon)
+    pricing = PricingService.calculate_from_items(items=cart_items, coupon=Coupon)
 
     addresses = []
     if subject:

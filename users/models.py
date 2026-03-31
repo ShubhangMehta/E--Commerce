@@ -80,5 +80,18 @@ class Coordinate(models.Model):
 
 
     def __str__(self):
-        return f"{self.address_line1}, {self.address_line2}, {self.landmark} {self.city}, {self.postal_code}"
+        return f"{self.address_line1}, {self.address_line2}, {self.landmark} {self.city}, {self.country}, {self.postal_code}"
     
+    @property
+    def formatted_address(self):
+        parts = [
+            self.address_line1,
+            self.address_line2,
+            self.landmark,
+            self.city,
+            self.state,
+            self.country,
+            self.postal_code,
+        ]
+        return ", ".join([p.strip() for p in parts if p and p.strip()])
+        
