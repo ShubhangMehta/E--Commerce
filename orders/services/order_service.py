@@ -32,7 +32,7 @@ class OrderService:
             id=address_id,
             user=subject,
         )
-
+    
     @staticmethod
     def _build_shipping_address(address):
         parts = [
@@ -73,14 +73,14 @@ class OrderService:
 
         order = Order.objects.create(
             tenant=OrderService._tenant_value(tenant),
-            subject=subject,
-            customer_email=subject.email or address.email or "",
-            customer_name=subject.full_name or address.full_name or "",
+            subject=address.user,
+            customer_email=address.user.email or address.email or "",
+            customer_name=address.user.full_name or address.full_name or "",
             
-            coupon=totals["coupon"],
+            #coupon=totals["coupon"],
 
-            shipping_full_name=address.full_name,
-            shipping_phone=address.phone,
+            shipping_full_name=address.user.full_name,
+            shipping_phone=address.user.phone,
             shipping_address_type=address.address_type,
             shipping_address=OrderService._build_shipping_address(address),
             shipping_city=address.city,

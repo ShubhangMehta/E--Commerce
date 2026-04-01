@@ -213,7 +213,7 @@ def payment_page(request, order_id):
     order = get_object_or_404(
         Order.objects
         .filter(id=order_id, subject=subject)
-        .select_related("subject", "coordinate", "coupon")
+        .select_related("subject")  #, "coordinate", "coupon"
         .prefetch_related("items__product"),
     )
 
