@@ -240,11 +240,9 @@
                   >
                   <div>
                     <div class="fw-semibold">{{ addr.title|default:"Address" }}</div>
-                    <div class="muted2 small">
-                      {% if addr.address_line1 %}{{ addr.address_line1 }}{% elif addr.address %}{{ addr.address }}{% else %}{{ addr }}{% endif %}
-                      {% if addr.city %}, {{ addr.city }}{% endif %}
-                      {% if addr.state %}, {{ addr.state }}{% endif %}
-                      {% if addr.pincode %} - {{ addr.pincode }}{% endif %}
+                    <div>
+                      <span class="fw-bold">{{ addr.address_type|capfirst }}</span>
+                      {{ addr.formatted_address }}
                     </div>
                   </div>
                 </label>

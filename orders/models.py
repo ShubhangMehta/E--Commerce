@@ -5,6 +5,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
+from users.models import Coordinate, SubjectMember
+
 class Coupon(models.Model):
 
     code = models.CharField(max_length=50, unique=True)
@@ -62,6 +64,11 @@ class Coupon(models.Model):
         return self.code
     
 class Order(models.Model):
+    tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
+    subject = models.ForeignKey(SubjectMember, on_delete=models.CASCADE, related_name="orders", null=True, blank=True)  # 🔥 SUBJECT FIELD (important for multi-tenancy)
+
+    customer_email = models.EmailField(default="Not Provided", blank=True)
+    customer_name = models.CharField(max_length=255, default="Not Provided", blank=True)
 
     PAYMENT_STATUS_CHOICES = [
         ("pending", "Pending"),
@@ -77,26 +84,18 @@ class Order(models.Model):
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
     ]
-    tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
-    order_id = models.CharField(max_length=20, unique=True, blank=True)  # Optional: can be auto-generated
-    address = models.ForeignKey(
-        "users.Coordinate",
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="orders"
-    )
+    Coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
 
-    shipping_full_name = models.CharField(max_length=255)
-    shipping_phone = models.CharField(max_length=20)
-    shipping_email = models.EmailField(max_length=254)
+    order_id = models.CharField(max_length=20, unique=True, blank=True)  # Optional: can be auto-generated
+
+    shipping_full_name = models.CharField(max_length=255, default="Not Provided")
+    shipping_phone = models.CharField(max_length=20, default="Not Provided")
     shipping_address_type = models.CharField(max_length=50)  # e.g., "home", "work"
-    shipping_address_line1 = models.CharField(max_length=255)
-    shipping_address_line2 = models.CharField(max_length=255, blank=True)
-    shipping_landmark = models.CharField(max_length=255, blank=True)
-    shipping_city = models.CharField(max_length=100)
-    shipping_state = models.CharField(max_length=100)
-    shipping_postal_code = models.CharField(max_length=20)
-    shipping_country = models.CharField(max_length=100)
+    shipping_address = models.TextField(default="Not Provided")
+    shipping_city = models.CharField(max_length=100, default="Not Provided")
+    shipping_state = models.CharField(max_length=100, default="Not Provided")
+    shipping_postal_code = models.CharField(max_length=20, default="Not Provided")
+    shipping_country = models.CharField(max_length=100, default="Not Provided")
     
     # totals
     subtotal_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

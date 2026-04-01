@@ -34,24 +34,18 @@ class OrderService:
         )
 
     @staticmethod
-    def _build_shipping_snapshot(address: Coordinate) -> dict:
-        return {
-            "shipping_address_type": address.address_type,
-            "shipping_address_line1": address.address_line1,
-            "shipping_address_line2": address.address_line2,
-            "shipping_landmark": address.landmark,
-            "shipping_city": address.city,
-            "shipping_state": address.state,
-            "shipping_postal_code": address.postal_code,
-            "shipping_country": address.country,
-        }
-
-    @staticmethod
-    def _build_customer_snapshot(*, subject, address: Coordinate) -> dict:
-        return {
-            "customer_email": subject.email or address.email or "",
-            "customer_name": subject.full_name or address.full_name or "",
-        }
+    def _build_shipping_address(address):
+        parts = [
+            address.address_type,
+            address.address_line1,
+            address.address_line2,
+            address.landmark,
+            address.city,
+            address.state,
+            address.postal_code,
+            address.country,
+        ]
+        return ", ".join(part.strip() for part in parts if part and part.strip())
 
     @staticmethod
     @transaction.atomic
@@ -79,15 +73,25 @@ class OrderService:
 
         order = Order.objects.create(
             tenant=OrderService._tenant_value(tenant),
-            #subject=subject,
-            #coordinate=address,
-            #coupon=totals["coupon"],
+            subject=subject,
+            customer_email=subject.email or address.email or "",
+            customer_name=subject.full_name or address.full_name or "",
+            
+            coupon=totals["coupon"],
+
+            shipping_full_name=address.full_name,
+            shipping_phone=address.phone,
+            shipping_address_type=address.address_type,
+            shipping_address=OrderService._build_shipping_address(address),
+            shipping_city=address.city,
+            shipping_state=address.state,
+            shipping_postal_code=address.postal_code,
+            shipping_country=address.country,
+
             subtotal_amount=totals["subtotal"],
             shipping_amount=totals["shipping_amount"],
             discount_amount=totals["discount_amount"],
             total_amount=totals["total_amount"],
-            **OrderService._build_customer_snapshot(subject=subject, address=address),
-            **OrderService._build_shipping_snapshot(address),
         )
 
         OrderService._create_order_items(order=order, cart_items=cart_items)
