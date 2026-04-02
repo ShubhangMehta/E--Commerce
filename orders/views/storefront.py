@@ -274,7 +274,7 @@ def order_success_view(request, order_id):
     order = get_object_or_404(
         Order.objects
         .filter(subject=subject, id=order_id)
-        .select_related("subject", "coordinate", "coupon")
+        .select_related("subject", "coupon")
         .prefetch_related("items__product"),
     )
 
