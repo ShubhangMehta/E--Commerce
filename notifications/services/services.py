@@ -10,24 +10,24 @@ from payments.models import OrderPayment
 from payments.services.invoice_service import build_invoice_pdf_bytes
 
 
-def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
+def safe_send_order_paid_email(*, schema_name, order_number, payment_id):
     try:
         send_order_paid_email(
             schema_name=schema_name,
-            order_id=order_id,
+            order_id=order_number,
             payment_id=payment_id,
         )
     except Exception as exc:
-        print(f"Order paid email failed for order_id={order_id}, payment_id={payment_id}: {exc}")
+        print(f"Order paid email failed for order_id={order_number}, payment_id={payment_id}: {exc}")
 
 
-def send_order_paid_email(*, schema_name, order_id, payment_id):
+def send_order_paid_email(*, schema_name, order_number, payment_id):
     with schema_context(schema_name):
         order = (
             Order.objects
             .select_related("subject")
             .prefetch_related("items")
-            .get(id=order_id)
+            .get(order_number=order_number)
         )
 
         payment = OrderPayment.objects.get(id=payment_id)
@@ -41,7 +41,7 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
             recipient = (order.subject.email or "").strip()
 
         if not recipient:
-            print(f"Skipping confirmation email for order {order.order_id}: no email found")
+            print(f"Skipping confirmation email for order {order.order_number}: no email found")
             return
 
         context = {
@@ -50,7 +50,7 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
             "latest_payment": payment,
         }
 
-        subject = f"Order Confirmation - {order.order_id}"
+        subject = f"Order Confirmation - {order.order_number}"
         html_body = render_to_string("emails/order_confirmation.html", context)
         text_body = strip_tags(html_body)
 
@@ -64,7 +64,7 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
 
         pdf_bytes = build_invoice_pdf_bytes(order=order, latest_payment=payment)
         message.attach(
-            f"invoice_{order.order_id}.pdf",
+            f"invoice_{order.order_number}.pdf",
             pdf_bytes,
             "application/pdf",
         )
