@@ -1,13 +1,24 @@
 from django.conf import settings
+from django.db import connection
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, select_template
 from django.utils import timezone
 from django_tenants.utils import schema_context
 
 from orders.models import Order
 from payments.models import OrderPayment
 from payments.services.invoice_service import build_invoice_pdf_bytes
+    
+def get_order_confirmation_template():
+    tenant = getattr(connection, "tenant", None)
+    theme = getattr(tenant, "theme", "default") if tenant else "default"
+
+    template = select_template([
+        f"themes/{theme}/emails/order_confirmation.html",
+        "emails/order_confirmation.html",
+    ])
+    return template.template.name
 
 
 def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
@@ -51,7 +62,8 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
         }
 
         subject = f"Order Confirmation - {order_id}"
-        html_body = render_to_string("emails/order_confirmation.html", context)
+        template_name = get_order_confirmation_template()
+        html_body = render_to_string(template_name, context)
         text_body = strip_tags(html_body)
 
         message = EmailMultiAlternatives(
