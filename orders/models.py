@@ -67,8 +67,8 @@ class Order(models.Model):
     tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
     subject = models.ForeignKey(SubjectMember, on_delete=models.CASCADE, related_name="orders", null=True, blank=True)  # 🔥 SUBJECT FIELD (important for multi-tenancy)
 
-    customer_email = models.EmailField(default="Not Provided", blank=True)
-    customer_name = models.CharField(max_length=255, default="Not Provided", blank=True)
+    customer_email = models.EmailField(default="", blank=True)
+    customer_name = models.CharField(max_length=255, default="", blank=True)
 
     PAYMENT_STATUS_CHOICES = [
         ("pending", "Pending"),
@@ -114,6 +114,8 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
 
     def save(self, *args, **kwargs):
        if not self.order_id:

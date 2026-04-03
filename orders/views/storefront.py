@@ -15,9 +15,9 @@ from users.models import Coordinate
 from orders.services.cart_service import CartService
 from orders.services.order_service import OrderService
 from orders.services.pricing_service import PricingService
-from users.views.theme_views import get_subject_member
+from payments.services.invoice_service import build_invoice_pdf_bytes
 
-# import theme helpers
+from users.views.theme_views import get_subject_member
 from themes.views import _theme_path
 
 def _get_coupon_from_session(session):
@@ -337,30 +337,12 @@ def invoice_pdf_view(request, order_id):
     subject = get_subject_member(request)
     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
 
-    latest_payment = (
-        OrderPayment.objects
-        .filter(order=order)
-        .order_by("-id")
-        .first()
-    )
-
-    template = get_template(_theme_path(request, "cust_invoice.html"))
-    html = template.render(
-        {
-            "order": order,
-            "items": order.items.all(),
-            "request": request,
-            "latest_payment": latest_payment,
-        }
-    )
-
-    result = BytesIO()
-    pdf = pisa.CreatePDF(html, dest=result)
-
-    if pdf.err:
+    try:
+        pdf_bytes = build_invoice_pdf_bytes(order=order)
+    except Exception as exc:
+        print("Error generating invoice PDF:", exc)
         return HttpResponse("Error generating PDF", status=500)
 
-    response = HttpResponse(result.getvalue(), content_type="application/pdf")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="invoice_{order.id}.pdf"'
     return response
-
