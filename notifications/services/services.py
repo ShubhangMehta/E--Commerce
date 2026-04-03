@@ -1,12 +1,25 @@
 from django.conf import settings
+from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string, select_template
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django_tenants.utils import schema_context
 
 from orders.models import Order
 from payments.models import OrderPayment
 from payments.services.invoice_service import build_invoice_pdf_bytes
+
+
+def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
+    try:
+        send_order_paid_email(
+            schema_name=schema_name,
+            order_id=order_id,
+            payment_id=payment_id,
+        )
+    except Exception as exc:
+        print(f"Order paid email failed for order_id={order_id}, payment_id={payment_id}: {exc}")
+
 
 def send_order_paid_email(*, schema_name, order_id, payment_id):
     with schema_context(schema_name):
@@ -38,8 +51,8 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
         }
 
         subject = f"Order Confirmation - {order.order_id}"
-        text_body = render_to_string("emails/order_confirmation.txt", context)
         html_body = render_to_string("emails/order_confirmation.html", context)
+        text_body = strip_tags(html_body)
 
         message = EmailMultiAlternatives(
             subject=subject,
