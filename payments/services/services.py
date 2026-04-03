@@ -20,10 +20,10 @@ def register_razorpay_payment_success(
         currency,
         raw_payload,
 ):
-    schema_name = connection.schema_name
+    tenant = getattr(connection, "tenant", None)
 
     with transaction.atomic():
-        order = Order.objects.select_for_update().get(id=local_order_id)
+        order = Order.objects.select_for_update().select_related("subject").get(id=local_order_id)
 
         payment, created = OrderPayment.objects.get_or_create(
             razorpay_payment_id=razorpay_payment_id,
@@ -60,9 +60,9 @@ def register_razorpay_payment_success(
 
         if not payment.confirmation_email_sent:
             transaction.on_commit(
-                lambda schema_name=schema_name, order_pk=order.id, payment_id=payment.id:
+                lambda tenant=tenant, order_pk=order.id, payment_id=payment.id:
                     safe_send_order_paid_email(
-                        schema_name=schema_name,
+                        tenant=tenant,
                         order_id=order_pk,
                         payment_id=payment_id,
                     )

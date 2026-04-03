@@ -21,10 +21,10 @@ def get_order_confirmation_template():
     return template.template.name
 
 
-def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
+def safe_send_order_paid_email(*, tenant, order_id, payment_id):
     try:
         send_order_paid_email(
-            schema_name=schema_name,
+            tenant=tenant,
             order_id=order_id,
             payment_id=payment_id,
         )
@@ -32,8 +32,8 @@ def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
         print(f"Order paid email failed for order_id={order_id}, "
               f"payment_id={payment_id}: {exc}")
 
-def send_order_paid_email(*, schema_name, order_id, payment_id):
-    with schema_context(schema_name):
+def send_order_paid_email(*, tenant, order_id, payment_id):
+    with schema_context(tenant):
         order = (
             Order.objects
             .select_related("subject")
@@ -59,7 +59,7 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
             "order": order,
             "items": order.items.all(),
             "latest_payment": payment,
-            "tenant": getattr(connection, "tenant", None),
+            "tenant": tenant,
         }
 
         subject = f"Order Confirmation - {order_id}"
