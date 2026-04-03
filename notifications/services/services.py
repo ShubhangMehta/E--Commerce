@@ -20,7 +20,6 @@ def safe_send_order_paid_email(*, schema_name, order_id, payment_id):
     except Exception as exc:
         print(f"Order paid email failed for order_id={order_id}, payment_id={payment_id}: {exc}")
 
-
 def send_order_paid_email(*, schema_name, order_id, payment_id):
     with schema_context(schema_name):
         order = (

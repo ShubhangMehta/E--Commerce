@@ -60,10 +60,10 @@ def register_razorpay_payment_success(
 
         if not payment.confirmation_email_sent:
             transaction.on_commit(
-                lambda schema_name=schema_name, order_id=order.order_id, payment_id=payment.id:
+                lambda schema_name=schema_name, order_pk=order.id, payment_id=payment.id:
                     safe_send_order_paid_email(
                         schema_name=schema_name,
-                        order_id=order_id,
+                        order_id=order_pk,
                         payment_id=payment_id,
                     )
             )
