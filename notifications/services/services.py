@@ -59,6 +59,7 @@ def send_order_paid_email(*, schema_name, order_id, payment_id):
             "order": order,
             "items": order.items.all(),
             "latest_payment": payment,
+            "tenant": getattr(connection, "tenant", None),
         }
 
         subject = f"Order Confirmation - {order_id}"
