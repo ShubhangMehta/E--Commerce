@@ -23,7 +23,7 @@ def register_razorpay_payment_success(
     tenant = getattr(connection, "tenant", None)
 
     with transaction.atomic():
-        order = Order.objects.select_for_update().select_related("subject").get(id=local_order_id)
+        order = Order.objects.select_for_update().get(id=local_order_id)
 
         payment, created = OrderPayment.objects.get_or_create(
             razorpay_payment_id=razorpay_payment_id,
