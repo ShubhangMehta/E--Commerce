@@ -33,7 +33,7 @@ def safe_send_order_paid_email(*, tenant, order_id, payment_id):
               f"payment_id={payment_id}: {exc}")
 
 def send_order_paid_email(*, tenant, order_id, payment_id):
-    with schema_context(tenant):
+    with schema_context(tenant.schema_name):
         order = (
             Order.objects
             .select_related("subject")
@@ -62,7 +62,7 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
             "tenant": tenant,
         }
 
-        subject = f"Order Confirmation - {order_id}"
+        subject = f"Order Confirmation - {order.order_id}"
         template_name = get_order_confirmation_template()
         html_body = render_to_string(template_name, context)
         text_body = strip_tags(html_body)
@@ -77,7 +77,7 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
 
         pdf_bytes = build_invoice_pdf_bytes(order=order, latest_payment=payment)
         message.attach(
-            f"invoice_{order_id}.pdf",
+            f"invoice_{order.order_id}.pdf",
             pdf_bytes,
             "application/pdf",
         )
