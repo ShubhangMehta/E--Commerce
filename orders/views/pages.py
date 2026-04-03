@@ -50,7 +50,7 @@ class OrderDetailView(OrderBaseView):
         new_status = request.POST.get("status")
         OrderService.update_status(order=order, new_status=new_status)
 
-        return redirect("orders:dashboard_order_detail", pk=pk)
+        return redirect("dashboard_order_detail", pk=pk)
 
 
 class OrderListView(OrderBaseView):
