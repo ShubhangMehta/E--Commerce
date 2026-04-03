@@ -48,10 +48,10 @@
         <div class="col-md-6">
           <label class="form-label">Address type</label>
           <select class="form-select" name="address_type">
-            <option value="home" {% if address and address.address_type == "home" %}selected{% endif %}>Home</option>
-            <option value="work" {% if address and address.address_type == "work" %}selected{% endif %}>Work</option>
-            <option value="office" {% if address and address.address_type == "office" %}selected{% endif %}>Office</option>
-            <option value="other" {% if address and address.address_type == "other" %}selected{% endif %}>Other</option>
+            <option value="Home" {% if address and address.address_type == "Home" %}selected{% endif %}>Home</option>
+            <option value="Work" {% if address and address.address_type == "Work" %}selected{% endif %}>Work</option>
+            <option value="Office" {% if address and address.address_type == "Office" %}selected{% endif %}>Office</option>
+            <option value="Other" {% if address and address.address_type == "Other" %}selected{% endif %}>Other</option>
           </select>
         </div>
 

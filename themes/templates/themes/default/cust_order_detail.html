@@ -1,154 +1,264 @@
 {% extends "themes/default/storefront.html" %}
-{% block title %}Order Details{% endblock %}
+
+{% block title %}Order Details | Default Store{% endblock %}
 
 {% block content %}
-<style>
-  .page-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
-  .page-title{margin:0;font-weight:800;}
-  .pill{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:999px;border:1px solid #e5e7eb;background:#f8fafc;font-weight:700;font-size:.85rem;text-transform:capitalize;}
-  .pill-success{border-color:#bbf7d0;background:#f0fdf4;color:#166534;}
-  .pill-danger{border-color:#fecaca;background:#fef2f2;color:#991b1b;}
-  .pill-info{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card p-4 p-md-5">
 
-  .section{border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;}
-  .text-muted2{color:#64748b;}
-  .rowline{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #e5e7eb;}
-  .rowline:first-child{border-top:none;padding-top:0;}
-  .k{color:#64748b;}
-  .v{font-weight:700;color:#0f172a;}
+        <!-- Header (keeps order_success fields) -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div>
+            <h1 class="h4 fw-bold mb-1">Payment successful</h1>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge text-bg-light border">
+              Order: {{ order.status|default:"confirmed" }}
+            </span>
+          </div>
+        </div>
 
-  .items-table{width:100%;border-collapse:collapse;}
-  .items-table th,.items-table td{padding:10px;border-top:1px solid #e5e7eb;vertical-align:middle;}
-  .items-table thead th{border-top:none;color:#64748b;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
-  .item-cell{display:flex;gap:12px;align-items:center;}
-  .item-img{width:54px;height:54px;object-fit:cover;border-radius:12px;border:1px solid #e5e7eb;background:#fff;}
-  .item-name{font-weight:800;color:#0f172a;line-height:1.2;}
+        <!-- Meta (keeps all fields from order_success) -->
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Order ID</div>
+            <div class="fw-bold">ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
+          </div>
 
-  .btn-brand{background:#0d6efd;border:1px solid #0d6efd;color:#fff;padding:.5rem .9rem;border-radius:10px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;}
-  .btn-brand:hover{background:#0b5ed7;border-color:#0b5ed7;color:#fff;}
-</style>
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Date</div>
+            <div class="fw-bold">{{ order.created_at|date:"d M Y, h:i A"|default:"—" }}</div>
+          </div>
 
-<div class="page-header">
-  <h1 class="page-title">Order #{{ order.id }}</h1>
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Total</div>
+            <div class="fw-bold">₹{{ order.total_amount|default:order.total_amount|default:"—" }}</div>
+          </div>
 
-  {% if order.status == "delivered" %}
-    <span class="pill pill-success">{{ order.status }}</span>
-  {% elif order.status == "cancelled" %}
-    <span class="pill pill-danger">{{ order.status }}</span>
-  {% else %}
-    <span class="pill pill-info">{{ order.status|default:"processing" }}</span>
-  {% endif %}
-</div>
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Payment Status</div>
+            <div class="fw-bold text-capitalize">{{ order.payment_status|default:"—" }}</div>
+          </div>
 
-<!-- ORDER SUMMARY -->
-<div class="section">
-  <h3 style="margin:0 0 10px 0;">Order Summary</h3>
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Payment Reference</div>
+            <div class="fw-bold">
+              {% if latest_payment %}
+                {{ latest_payment.razorpay_payment_id|default:"—" }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
 
-  <div class="rowline">
-    <div class="k">Order Number</div>
-    <div class="v">ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
-  </div>
+          <div class="col-12 col-md-6">
+            <div class="text-muted2 small">Paid Via</div>
+            <div class="fw-bold text-capitalize">
+              {% if latest_payment and latest_payment.payment_method %}
+                {{ latest_payment.payment_method }}
+              {% else %}
+                {{ order.payment_method|default:"Razorpay" }}
+              {% endif %}
+            </div>
+          </div>
 
-  <div class="rowline">
-    <div class="k">Total Amount</div>
-    <div class="v">₹{{ order.total_amount|default:"0.00" }}</div>
-  </div>
+          <!-- Extra useful delivery info (doesn't remove any existing field) -->
+          <div class="col-12">
+            <div class="text-muted2 small">Delivery Address</div>
+            <div class="fw-bold">
+              {% if order.shipping_address %}
+                {{ order.shipping_address }}
+              {% else %}
+                {% if order.shipping_house_no %}{{ order.shipping_house_no }}{% endif %}
+                {% if order.shipping_landmark %}, {{ order.shipping_landmark }}{% endif %}
+                {% if order.shipping_city %}, {{ order.shipping_city }}{% endif %}
+                {% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}
+                {% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
 
-  <div class="rowline">
-    <div class="k">Placed On</div>
-    <div class="v">{{ order.created_at|date:"d M Y, h:i A" }}</div>
-  </div>
+        <!-- Items -->
+        <hr class="my-4">
+        <div class="fw-semibold mb-2">Items</div>
 
-  <div class="rowline">
-    <div class="k">Delivery Address</div>
-    <div class="v" style="max-width:70%;text-align:right;">
-      {% if order.shipping_house_no %}{{ order.shipping_house_no }}{% endif %}
-      {% if order.shipping_landmark %}, {{ order.shipping_landmark }}{% endif %}
-      {% if order.shipping_city %}, {{ order.shipping_city }}{% endif %}
-      {% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}
-      {% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="width:100px;">Qty</th>
+                <th class="text-end">Price</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% if order_items %}
+                {% for item in order_items %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        {% if item.product_image_url_snapshot %}
+                          {% if item.product_image_url_snapshot|slice:":4" == "http" or item.product_image_url_snapshot|slice:":1" == "/" %}
+                            <img
+                              src="{{ item.product_image_url_snapshot }}"
+                              alt="{{ item.product_name_snapshot }}"
+                              style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;"
+                            >
+                          {% else %}
+                            <img
+                              src="/{{ item.product_image_url_snapshot }}"
+                              alt="{{ item.product_name_snapshot }}"
+                              style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;"
+                            >
+                          {% endif %}
+                        {% else %}
+                          <div
+                            class="d-flex align-items-center justify-content-center text-muted2"
+                            style="width:54px;height:54px;border-radius:10px;border:1px solid #e5e7eb;"
+                          >
+                            —
+                          </div>
+                        {% endif %}
+
+                        <div>
+                          <div class="fw-semibold">{{ item.product_name_snapshot|default:"—" }}</div>
+                          {% if item.product_brand_snapshot %}
+                            <div class="text-muted2 small">{{ item.product_brand_snapshot }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>{{ item.quantity|default:"1" }}</td>
+                    <td class="text-end fw-semibold">₹{{ item.product_price_snapshot|default:"—" }}</td>
+                    <td class="text-end fw-semibold">
+                      {% if item.line_total %}₹{{ item.line_total }}{% else %}₹{{ item.product_price_snapshot|default:"—" }}{% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="4" class="text-muted2">No items found.</td></tr>
+                {% endfor %}
+              {% else %}
+                {% for item in order.items.all %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        {% if item.product_image_url_snapshot %}
+                          {% if item.product_image_url_snapshot|slice:":4" == "http" or item.product_image_url_snapshot|slice:":1" == "/" %}
+                            <img
+                              src="{{ item.product_image_url_snapshot }}"
+                              alt="{{ item.product_name_snapshot }}"
+                              style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;"
+                            >
+                          {% else %}
+                            <img
+                              src="/{{ item.product_image_url_snapshot }}"
+                              alt="{{ item.product_name_snapshot }}"
+                              style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;"
+                            >
+                          {% endif %}
+                        {% else %}
+                          <div
+                            class="d-flex align-items-center justify-content-center text-muted2"
+                            style="width:54px;height:54px;border-radius:10px;border:1px solid #e5e7eb;"
+                          >
+                            —
+                          </div>
+                        {% endif %}
+
+                        <div>
+                          <div class="fw-semibold">{{ item.product_name_snapshot|default:"—" }}</div>
+                          {% if item.product_brand_snapshot %}
+                            <div class="text-muted2 small">{{ item.product_brand_snapshot }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>{{ item.quantity|default:"1" }}</td>
+                    <td class="text-end fw-semibold">₹{{ item.product_price_snapshot|default:"—" }}</td>
+                    <td class="text-end fw-semibold">
+                      {% if item.line_total %}₹{{ item.line_total }}{% else %}₹{{ item.product_price_snapshot|default:"—" }}{% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="4" class="text-muted2">No items found.</td></tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals (keeps all fields and adds coupon display) -->
+        <hr class="my-4">
+
+        <div class="row g-2">
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Subtotal</span>
+              <span class="fw-semibold">₹{{ order.subtotal_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Shipping</span>
+              <span class="fw-semibold">₹{{ order.shipping_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Tax</span>
+              <span class="fw-semibold">
+                ₹{{ order.tax_amount|default:order.tax_amount|default:"—" }}
+              </span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Discount</span>
+              <span class="fw-semibold">₹{{ order.discount_amount|default:"—" }}</span>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted2">Coupon Applied</span>
+              <span class="fw-semibold">
+                {% if order.coupon %}
+                  {{ order.coupon.code|default:order.coupon }}
+                {% elif order.coupon_code %}
+                  {{ order.coupon_code }}
+                {% else %}
+                  —
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex justify-content-between">
+              <span class="fw-bold">Grand Total</span>
+              <span class="fw-bold">₹{{ order.total_amount|default:"—" }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 flex-wrap mt-4">
+          <a class="btn btn-brand" href="{% url 'my_orders' %}">Back</a>
+          <a class="btn btn-outline-dark" href="{% url 'invoice_pdf' order.id %}">Download Invoice (PDF)</a>
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
-
-<!-- ORDER ITEMS -->
-<div class="section">
-  <h3 style="margin:0 0 10px 0;">Items</h3>
-
-  <div style="overflow:auto;">
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th style="text-align:right;">Unit Price</th>
-          <th style="text-align:right;">Qty</th>
-          <th style="text-align:right;">Line Total</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% for item in order.items.all %}
-          <tr>
-            <td>
-              <div class="item-cell">
-                {# --- IMAGE: try snapshot first, then fallback --- #}
-                {% if item.product_image_url_snapshot %}
-                  {% if item.product_image_url_snapshot|slice:":4" == "http" or item.product_image_url_snapshot|slice:":1" == "/" %}
-                    <img class="item-img" src="{{ item.product_image_url_snapshot }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
-                  {% else %}
-                    <img class="item-img" src="/{{ item.product_image_url_snapshot }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
-                  {% endif %}
-                {% elif item.product_image_url_snapshot == "" and item.product_image_url %}
-                  {% if item.product_image_url|slice:":4" == "http" or item.product_image_url|slice:":1" == "/" %}
-                    <img class="item-img" src="{{ item.product_image_url }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
-                  {% else %}
-                    <img class="item-img" src="/{{ item.product_image_url }}" alt="{{ item.product_name_snapshot|default:'Product' }}">
-                  {% endif %}
-                {% else %}
-                  <div class="item-img d-flex align-items-center justify-content-center text-muted2"
-                       style="display:flex;align-items:center;justify-content:center;">—</div>
-                {% endif %}
-
-                <div>
-                  <div class="item-name">
-                    {{ item.product_name_snapshot|default:"(no name)" }}
-                  </div>
-                  <div class="text-muted2" style="font-size:.85rem;">
-                    {{ item.product_brand_snapshot|default:"" }}
-                  </div>
-                </div>
-              </div>
-            </td>
-
-            <td style="text-align:right;">
-              ₹{{ item.product_price_snapshot|default:"0.00" }}
-            </td>
-
-            <td style="text-align:right;">
-              {{ item.quantity|default:"1" }}
-            </td>
-
-            <td style="text-align:right;font-weight:800;">
-              {% if item.line_total %}
-                ₹{{ item.line_total }}
-              {% else %}
-                ₹{{ item.product_price_snapshot|default:item.product_price|default:"0.00" }}
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="4" class="text-muted2">No items found.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Invoice button bottom-right -->
-  <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-    <a href="{% url 'invoice_pdf' order.id %}" class="btn-brand">Download Invoice (PDF)</a>
-  </div>
-</div>
-
 {% endblock %}

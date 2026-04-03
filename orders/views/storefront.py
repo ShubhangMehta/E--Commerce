@@ -10,6 +10,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 
 from orders.models import Order, Coupon
+from payments.models import OrderPayment
 from users.models import Coordinate
 from orders.services.cart_service import CartService
 from orders.services.order_service import OrderService
@@ -300,12 +301,20 @@ def order_detail_view(request, order_id):
     subject = get_subject_member(request)
     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
 
+    latest_payment = (
+        OrderPayment.objects
+        .filter(order=order)
+        .order_by("-id")
+        .first()
+    )
+
     return render(
         request,
         _theme_path(request, "cust_order_detail.html"),
         {
             "order": order,
             "items": order.items.all(),
+            "latest_payment": latest_payment,
         },
     )
 
@@ -328,12 +337,20 @@ def invoice_pdf_view(request, order_id):
     subject = get_subject_member(request)
     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
 
+    latest_payment = (
+        OrderPayment.objects
+        .filter(order=order)
+        .order_by("-id")
+        .first()
+    )
+
     template = get_template(_theme_path(request, "cust_invoice.html"))
     html = template.render(
         {
             "order": order,
             "items": order.items.all(),
             "request": request,
+            "latest_payment": latest_payment,
         }
     )
 

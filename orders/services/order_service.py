@@ -91,6 +91,7 @@ class OrderService:
             subtotal_amount=totals["subtotal"],
             shipping_amount=totals["shipping_amount"],
             discount_amount=totals["discount_amount"],
+            tax_amount=totals["tax_amount"],
             total_amount=totals["total_amount"],
         )
 
@@ -137,7 +138,7 @@ class OrderService:
         return (
             Order.objects
             .filter(subject=subject, id=order_id)
-            .select_related("subject", "coordinate", "coupon")
+            .select_related("subject", "coupon")
             .prefetch_related("items__product")
             .get()
         )
