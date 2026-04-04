@@ -21,17 +21,17 @@ def get_order_confirmation_template():
     return template.template.name
 
 
-# def safe_send_order_paid_email(*, tenant, order_id, payment_id):
-#     try:
-#         print(f"Attempting to send order paid email for order_id={order_id}, payment_id={payment_id}")
-#         send_order_paid_email(
-#             tenant=tenant,
-#             order_id=order_id,
-#             payment_id=payment_id,
-#         )
-#     except Exception as exc:
-#         print(f"Order paid email failed for order_id={order_id}, "
-#               f"payment_id={payment_id}: {exc}")
+def safe_send_order_paid_email(*, tenant, order_id, payment_id):
+    try:
+        print(f"Attempting to send order paid email for order_id={order_id}, payment_id={payment_id}")
+        send_order_paid_email(
+            tenant=tenant,
+            order_id=order_id,
+            payment_id=payment_id,
+        )
+    except Exception as exc:
+        print(f"Order paid email failed for order_id={order_id}, "
+              f"payment_id={payment_id}: {exc}")
 
 def send_order_paid_email(*, tenant, order_id, payment_id):
     with schema_context(tenant.schema_name):

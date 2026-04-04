@@ -4,7 +4,7 @@ from django.db import transaction, connection
 
 from orders.models import Order
 from payments.models import OrderPayment
-from notifications.services.services import safe_send_order_paid_email, send_order_paid_email
+from notifications.services.services import safe_send_order_paid_email
 
 def paise_to_rupees(amount_paise: int) -> Decimal:
     return Decimal(amount_paise) / Decimal("100")
@@ -61,7 +61,7 @@ def register_razorpay_payment_success(
         if not payment.confirmation_email_sent:
             transaction.on_commit(
                 lambda tenant=tenant, order_pk=order.id, payment_id=payment.id:
-                    send_order_paid_email(
+                    safe_send_order_paid_email(
                         tenant=tenant,
                         order_id=order_pk,
                         payment_id=payment_id,
