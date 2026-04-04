@@ -324,8 +324,8 @@ def invoice_pdf_view(request, order_id):
     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
 
     try:
-        pdf_bytes = build_invoice_pdf_bytes(order=order, tenant=request.tenant)    
-    except Exception as exc:
+        pdf_bytes = build_invoice_pdf_bytes(order=order, tenant=request.tenant)  # pass tenant ecplicitly to render the html template 
+    except Exception as exc:                                                     
         print("Error generating invoice PDF:", exc)
         return HttpResponse("Error generating PDF", status=500)
 

@@ -61,7 +61,7 @@ def register_razorpay_payment_success(
         if not payment.confirmation_email_sent:
             transaction.on_commit(
                 lambda tenant=tenant, order_pk=order.id, payment_id=payment.id:
-                    safe_send_order_paid_email(
+                    safe_send_order_paid_email(         # Don't use request here, removed the request parameter from the function to work without it. Now, only tenant is passed down explicitly.
                         tenant=tenant,
                         order_id=order_pk,
                         payment_id=payment_id,

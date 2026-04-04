@@ -21,19 +21,21 @@ def get_order_confirmation_template(tenant):
 
 def safe_send_order_paid_email(*, tenant, order_id, payment_id):
     try:
-        print(f"Attempting to send order paid email for order_id={order_id}, payment_id={payment_id}")
+        #print(f"Attempting to send order paid email for order_id={order_id}, payment_id={payment_id}")
         send_order_paid_email(
             tenant=tenant,
             order_id=order_id,
             payment_id=payment_id,
         )
     except Exception as exc:
-        print(f"Order paid email failed for order_id={order_id}, "
-              f"payment_id={payment_id}: {exc}")
-
+        print(
+            f"Order paid email failed for order_id={order_id}, "    # This is a critical notification, so we log the exception to know what went wrong, but we don't want it to crash the entire process if email sending fails.
+            f"payment_id={payment_id}: {exc}"
+            )
+    
 def send_order_paid_email(*, tenant, order_id, payment_id):
-    with tenant_context(tenant):
-        order = (
+    with tenant_context(tenant):        # Ensure we're operating in the correct tenant context for database access and template rendering.
+        order = (                       # Dont use schema_context it will trigger issues along the way with email notifications workflow.
             Order.objects
             .select_related("subject")
             .prefetch_related("items")
@@ -54,7 +56,7 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
             print(f"Skipping confirmation email for order {order_id}: no email found")
             return
         
-        print(f"Sending order confirmation email to {recipient} for order {order_id}")
+        #print(f"Sending order confirmation email to {recipient} for order {order_id}")
 
         context = {
             "order": order,
@@ -65,10 +67,10 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
 
         subject = f"Order Confirmation - {order.order_id}"
         template_name = get_order_confirmation_template(tenant=tenant)
-        print(f"Using email template: {template_name}")
+        #print(f"Using email template: {template_name}")
         html_body = render_to_string(template_name, context)
         text_body = strip_tags(html_body)
-        print("JUST BEFORE SENDING EMAIL")
+        #print("JUST BEFORE SENDING EMAIL")
         message = EmailMultiAlternatives(
             subject=subject,
             body=text_body,
@@ -76,14 +78,14 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
             to=[recipient],
         )
         message.attach_alternative(html_body, "text/html")
-        print("Email message constructed, attaching invoice PDF")
+        #print("Email message constructed, attaching invoice PDF")
         pdf_bytes = build_invoice_pdf_bytes(order=order, tenant=tenant, latest_payment=payment)
         message.attach(
             f"invoice_{order.order_id}.pdf",
             pdf_bytes,
             "application/pdf",
         )
-        print("Invoice PDF attached")
+        #print("Invoice PDF attached")
 
         message.send(fail_silently=False)
 

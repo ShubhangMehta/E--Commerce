@@ -10,7 +10,14 @@ def _invoice_template_name(tenant):
     return f"themes/{theme}/cust_invoice.html"
 
 
-def build_invoice_pdf_bytes(*, order, tenant=None, latest_payment=None):
+def build_invoice_pdf_bytes(*, order, tenant=None, latest_payment=None): 
+    """
+    This function is used to build the invoice PDF bytes for a given order. 
+    Its used in two places:
+    1. When the customer views the invoice PDF from the storefront.
+    2. When the customer receives the order confirmation email with the invoice PDF attached.
+    The function takes an optional tenant parameter to ensure that the correct themed template is used for both the storefront(view order pdf) and email contexts.
+    """
     if latest_payment is None:
         latest_payment = (
             OrderPayment.objects
@@ -31,7 +38,7 @@ def build_invoice_pdf_bytes(*, order, tenant=None, latest_payment=None):
     result = BytesIO()
     pdf = pisa.CreatePDF(html, dest=result)
 
-    # if request:
+    # if request:   #leave it for future purposes
     #     invoice_html = template.render(context, request=request)
     #     result = BytesIO()
     #     pdf = pisa.CreatePDF(invoice_html, dest=result)
