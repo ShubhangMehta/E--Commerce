@@ -4,19 +4,17 @@ from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string, select_template
 from django.utils import timezone
-from django_tenants.utils import schema_context
+from django_tenants.utils import tenant_context
 
 from orders.models import Order
 from payments.models import OrderPayment
 from payments.services.invoice_service import build_invoice_pdf_bytes
     
-def get_order_confirmation_template():
-    tenant = getattr(connection, "tenant", None)
+def get_order_confirmation_template(tenant):
     theme = getattr(tenant, "theme", "default") if tenant else "default"
 
     template = select_template([
         f"themes/{theme}/emails/order_confirmation.html",
-        "emails/order_confirmation.html",
     ])
     return template.template.name
 
@@ -34,7 +32,7 @@ def safe_send_order_paid_email(*, tenant, order_id, payment_id):
               f"payment_id={payment_id}: {exc}")
 
 def send_order_paid_email(*, tenant, order_id, payment_id):
-    with schema_context(tenant.schema_name):
+    with tenant_context(tenant):
         order = (
             Order.objects
             .select_related("subject")
@@ -66,10 +64,11 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
         }
 
         subject = f"Order Confirmation - {order.order_id}"
-        template_name = get_order_confirmation_template()
+        template_name = get_order_confirmation_template(tenant=tenant)
+        print(f"Using email template: {template_name}")
         html_body = render_to_string(template_name, context)
         text_body = strip_tags(html_body)
-
+        print("JUST BEFORE SENDING EMAIL")
         message = EmailMultiAlternatives(
             subject=subject,
             body=text_body,
@@ -77,13 +76,14 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
             to=[recipient],
         )
         message.attach_alternative(html_body, "text/html")
-
+        print("Email message constructed, attaching invoice PDF")
         pdf_bytes = build_invoice_pdf_bytes(order=order, latest_payment=payment)
         message.attach(
             f"invoice_{order.order_id}.pdf",
             pdf_bytes,
             "application/pdf",
         )
+        print("Invoice PDF attached")
 
         message.send(fail_silently=False)
 
@@ -93,16 +93,3 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
             "confirmation_email_sent",
             "confirmation_email_sent_at",
         ])
-
-# def render_order_paid_email(*, tenant, context):
-#     html_tpl = select_template([
-#         f"themes/{tenant.theme}/emails/order_paid.html",
-#         "themes/default/emails/order_paid.html",
-#     ])
-#     text_tpl = select_template([
-#         f"themes/{tenant.theme}/emails/order_paid.txt",
-#         "themes/default/emails/order_paid.txt",
-#     ])
-#     print(f"Selected HTML template for tenant '{tenant.schema_name}': {html_tpl.template.name}")
-#     print(f"Selected Text template for tenant '{tenant.schema_name}': {text_tpl.template.name}")
-#     return html_tpl.render(context), text_tpl.render(context)
