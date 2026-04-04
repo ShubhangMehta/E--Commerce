@@ -1,9 +1,7 @@
 from io import BytesIO
-from urllib import request
 
 from django.db import connection
 from django.template.loader import get_template
-from httpx import request
 from xhtml2pdf import pisa
 
 from payments.models import OrderPayment
@@ -31,11 +29,14 @@ def build_invoice_pdf_bytes(*, order, request=None, latest_payment=None):
         "tenant": getattr(connection, "tenant", None),
     }
 
-    # ✅ Pass request so {{ request }} works in template
-    html = template.render(context, request=request)
-
-    result = BytesIO()
-    pdf = pisa.CreatePDF(html, dest=result)
+    if request:
+        invoice_html = template.render(context, request=request)
+        result = BytesIO()
+        pdf = pisa.CreatePDF(invoice_html, dest=result)
+    else:
+        email_html = template.render(context)
+        result = BytesIO()
+        pdf = pisa.CreatePDF(email_html, dest=result)
 
     if pdf.err:
         raise ValueError("Error generating PDF")

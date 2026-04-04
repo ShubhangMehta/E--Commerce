@@ -346,3 +346,4 @@ def invoice_pdf_view(request, order_id):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="invoice_{order.id}.pdf"'
     return response
+
