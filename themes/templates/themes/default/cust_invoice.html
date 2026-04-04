@@ -223,11 +223,11 @@
       <tr>
         <td style="width:55%;">
           <p class="brand-title">
-            {{ request.tenant.company|default:request.tenant.tenant_name|default:"Your Store" }}
+            {{ tenant.company|default:tenant.tenant_name|default:"Your Store" }}
           </p>
           <p class="brand-sub">
-            {{ request.tenant.desired_domain|default:request.get_host }}<br>
-            {% if request.tenant.email %}{{ request.tenant.email }}{% endif %}
+            {{ tenant.desired_domain|default:"" }}<br>
+            {% if tenant.email %}{{ tenant.email }}{% endif %}
           </p>
         </td>
 

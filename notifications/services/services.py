@@ -77,7 +77,7 @@ def send_order_paid_email(*, tenant, order_id, payment_id):
         )
         message.attach_alternative(html_body, "text/html")
         print("Email message constructed, attaching invoice PDF")
-        pdf_bytes = build_invoice_pdf_bytes(order=order, latest_payment=payment)
+        pdf_bytes = build_invoice_pdf_bytes(order=order, tenant=tenant, latest_payment=payment)
         message.attach(
             f"invoice_{order.order_id}.pdf",
             pdf_bytes,

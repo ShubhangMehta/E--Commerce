@@ -318,27 +318,13 @@ def order_detail_view(request, order_id):
         },
     )
 
-# @login_required
-# def invoice_view(request, order_id):
-#     subject = get_subject_member(request)
-#     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
-
-#     return render(
-#         request,
-#         _theme_path(request, "cust_invoice.html"),
-#         {
-#             "order": order,
-#             "items": order.items.all(),
-#         },
-#     )
-
 @login_required
 def invoice_pdf_view(request, order_id):
     subject = get_subject_member(request)
     order = OrderService.get_customer_order_detail(subject=subject, order_id=order_id)
 
     try:
-        pdf_bytes = build_invoice_pdf_bytes(order=order, request=request)
+        pdf_bytes = build_invoice_pdf_bytes(order=order, tenant=request.tenant)    
     except Exception as exc:
         print("Error generating invoice PDF:", exc)
         return HttpResponse("Error generating PDF", status=500)

@@ -1,18 +1,16 @@
 from io import BytesIO
 
-from django.db import connection
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 
 from payments.models import OrderPayment
 
-def _invoice_template_name():
-    tenant = getattr(connection, "tenant", None)
+def _invoice_template_name(tenant):
     theme = getattr(tenant, "theme", "default") if tenant else "default"
     return f"themes/{theme}/cust_invoice.html"
 
 
-def build_invoice_pdf_bytes(*, order, request=None, latest_payment=None):
+def build_invoice_pdf_bytes(*, order, tenant=None, latest_payment=None):
     if latest_payment is None:
         latest_payment = (
             OrderPayment.objects
@@ -21,22 +19,26 @@ def build_invoice_pdf_bytes(*, order, request=None, latest_payment=None):
             .first()
         )
 
-    template = get_template(_invoice_template_name())
+    template = get_template(_invoice_template_name(tenant))
     context = {
         "order": order,
         "items": order.items.all(),
         "latest_payment": latest_payment,
-        "tenant": getattr(connection, "tenant", None),
+        "tenant": tenant,
     }
 
-    if request:
-        invoice_html = template.render(context, request=request)
-        result = BytesIO()
-        pdf = pisa.CreatePDF(invoice_html, dest=result)
-    else:
-        email_html = template.render(context)
-        result = BytesIO()
-        pdf = pisa.CreatePDF(email_html, dest=result)
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.CreatePDF(html, dest=result)
+
+    # if request:
+    #     invoice_html = template.render(context, request=request)
+    #     result = BytesIO()
+    #     pdf = pisa.CreatePDF(invoice_html, dest=result)
+    # else:
+    #     email_html = template.render(context)
+    #     result = BytesIO()
+    #     pdf = pisa.CreatePDF(email_html, dest=result)
 
     if pdf.err:
         raise ValueError("Error generating PDF")
