@@ -38,13 +38,12 @@ foreach ($app in $apps) {
 }
 
 Write-Host "Running makemigrations..." -ForegroundColor Cyan
-foreach ($app in $apps) {
-    & "$PSScriptRoot\venv\Scripts\python.exe" manage.py makemigrations $app
-    sleep 3 # Small delay to ensure file system updates before next command
-    Write-Host "Generated migrations for: $app" -ForegroundColor Green
-}
+& "$PSScriptRoot\venv\Scripts\python.exe" manage.py makemigrations
 
-Write-Host "Running migrate..." -ForegroundColor Cyan
+Write-Host "Running migrate_schemas --shared..." -ForegroundColor Cyan
+& "$PSScriptRoot\venv\Scripts\python.exe" manage.py migrate_schemas --shared
+
+Write-Host "Running migrate_schemas..." -ForegroundColor Cyan
 & "$PSScriptRoot\venv\Scripts\python.exe" manage.py migrate_schemas
 
 Write-Host "Done." -ForegroundColor Green
