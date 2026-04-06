@@ -3,8 +3,6 @@ from orders.models import Order, OrderItem
 from users.models import Coordinate
 from django.contrib.contenttypes.models import ContentType
 
-
-
 class OrderService:
     """
     CENTRAL ORDER ENGINE
@@ -106,8 +104,9 @@ class OrderService:
                     object_id=product.id,
 
                     # snapshot
-                    product_name=product.name,
-                    product_price=product.price,
+                    product_name_snapshot=product.name,
+                    product_price_snapshot=product.price,
+                    #product_image_url_snapshot=product.image_url,
 
                     quantity=item["quantity"],
                     line_total=item["line_total"],
@@ -115,8 +114,6 @@ class OrderService:
             )
 
         OrderItem.objects.bulk_create(order_items)
-
-
        
     # =========================================================
     # 👤 CUSTOMER QUERIES

@@ -137,7 +137,7 @@ def razorpay_webhook(request):
                 to_email=tr.email,
                 template_name="emails/tenant_created.html",
                 context={
-                    "owner_name": tr.tenant_name,
+                    "owner_name": tr.owner_name,
                     "tenant_name": tenant.tenant_name,
                     "company": tr.company,
                     "domain": domain,

@@ -165,6 +165,11 @@ def forgot_password_view(request):
 
     template = "accounts/forgot_password.html"
 
+    template = "accounts/forgot_password.html" # default for public schema
+
+    if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
+        template = _theme_path(request, "password_reset.html")
+
     if request.method == "POST":
         email = request.POST.get("email")
 
@@ -180,14 +185,9 @@ def forgot_password_view(request):
                 use_https=False,
                 email_template_name="accounts/password_reset_email.html",
             )
-            messages.success(request, "Password reset email sent.")
-            return redirect("/login/")
-
-        else:
-            messages.error(request, "No account found with this email.")
-
+            messages.success(request, 'Password reset email sent.')
+            return redirect('/login/')
     return render(request, template)
-
 
 @login_required
 def session_logs_view(request):

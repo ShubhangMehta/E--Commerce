@@ -56,9 +56,7 @@ SHARED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    
-    
+    'rest_framework',    
 ]
 
 
@@ -66,6 +64,8 @@ TENANT_APPS = [
     'dashboard',
     'catalog',#products
     'orders',
+    'payments',
+    'notifications',
     'themes',
     'django_crontab',
     'backups',
