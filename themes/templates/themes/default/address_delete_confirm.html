@@ -6,7 +6,7 @@
   <div class="card p-4">
     <h1 class="h5 fw-bold mb-2">Delete address?</h1>
     <p class="text-muted2 mb-3">
-      {{ address.house_no }}, {{ address.landmark }}, {{ address.city }} - {{ address.postal_code }}
+      {{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}, {{ address.city }}, {{ address.state }} - {{ address.postal_code }}
     </p>
     <form method="post">
       {% csrf_token %}

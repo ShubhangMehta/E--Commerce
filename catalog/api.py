@@ -1,1 +1,0 @@
-from catalog.views.single_template import SingleProductListAPIView

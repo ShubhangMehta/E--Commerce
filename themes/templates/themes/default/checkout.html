@@ -48,19 +48,10 @@
 
         {% if selected_address %}
           <div class="border rounded-3 p-3 mb-3" style="border-color:#e5e7eb;">
-            <div class="text-muted2 small">Deliver to</div>
-            <div class="fw-semibold">{{ selected_address.title|default:"Selected address" }}</div>
-            <div class="text-muted2 small">
-              {% if selected_address.address_line1 %}
-                {{ selected_address.address_line1 }}
-              {% elif selected_address.address %}
-                {{ selected_address.address }}
-              {% else %}
-                {{ selected_address }}
-              {% endif %}
-              {% if selected_address.city %}, {{ selected_address.city }}{% endif %}
-              {% if selected_address.state %}, {{ selected_address.state }}{% endif %}
-              {% if selected_address.pincode %} - {{ selected_address.pincode }}{% endif %}
+            <div class="fw-bold small">Delivering to</div>
+            <div>
+              <span class="fw-bold">{{ selected_address.address_type|capfirst }}</span>
+              {{ selected_address.formatted_address }}
             </div>
           </div>
         {% endif %}
@@ -81,12 +72,9 @@
 
         <div class="d-flex justify-content-between py-2 border-top mt-2">
           <div class="fw-bold">Total</div>
-          <div class="fw-bold">{{ cart_total|default:"—" }}</div>
+          <div class="fw-bold">{{ grand_total|default:"—" }}</div>
         </div>
 
-        <div class="text-muted2 small mt-2">
-          Address is selected in cart. To change it, go back to cart.
-        </div>
       </div>
     </div>
   </div>

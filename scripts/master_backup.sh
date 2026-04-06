@@ -8,7 +8,7 @@ PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/sasia
 # Load environment variables
 export $(grep -v '^#' /Users/sasiabburi/E--Commerce/.env | xargs)
 
-DATE=$(date +%Y-%m-%d_%H-%M)
+DATE=$(date +%Y-%m-%d)
 
 echo "🚀 Starting MASTER DB BACKUP for database: $DB_NAME"
 

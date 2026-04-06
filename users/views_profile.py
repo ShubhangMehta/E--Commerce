@@ -15,26 +15,48 @@ from themes.views import _theme_path
 from .models import SubjectMember, Coordinate, TenantRole, StaffInvite
 from core_app.emails.utils import send_html_email
 from accounts.services import get_or_create_global_user
-
+from django.db.models import Q
+from django.contrib.auth import get_user_model
+from django_tenants.utils import schema_context, get_public_schema_name
 
 @login_required
 def users_home(request):
-    users = SubjectMember.objects.all()
+        if connection.schema_name == "public": #temp fix 
+            return redirect("/")  # or raise 404
+        users = SubjectMember.objects.all()
 
-    # get tenant
-    if not request.user.is_authenticated:
-        # Replace with a tenant you want to preview
-        from customers.models import Client  # or whatever your Tenant model is
-        client = Client.objects.first()  # pick the first tenant for testing
-    else:
+        User = get_user_model()
+        search_query = request.GET.get("q", "").strip()
+
+        # 🔍 Search by full_name only
+        if search_query:
+            users = users.filter(
+                full_name__icontains=search_query
+            )
+
+        # Get all global_user_ids from tenant users
+        global_ids = [u.global_user_id for u in users]
+
+        # Fetch last_login from public schema
+        with schema_context(get_public_schema_name()):
+            global_users = User.objects.filter(id__in=global_ids).values("id", "last_login")
+
+        # Convert to dictionary {id: last_login}
+        last_login_map = {u["id"]: u["last_login"] for u in global_users}
+
+        # Attach last_login to each SubjectMember instance
+        for user in users:
+            user.last_login = last_login_map.get(user.global_user_id)
+
+        # Tenant + theme
         client = request.tenant
-    theme = client.theme
+        theme = client.theme
 
-    return render(request, "dashboard.html", {
-        "users": users,
-        "tenant": client,
-        "theme_base": f"themes/{theme}/storefront.html",
-    })
+        return render(request, "dashboard.html", {
+            "users": users,
+            "tenant": client,
+            "theme_base": f"themes/{theme}/storefront.html",
+        })
 
 
 INVITE_RULES = {
@@ -255,13 +277,13 @@ def address_add(request):
     if request.method == "POST":
         addr = Coordinate.objects.create(
             user=member,
-            full_name=request.POST.get("full_name", "").strip() or member.full_name,
-            phone=request.POST.get("phone", "").strip() or (member.phone or ""),
-            house_no=request.POST.get("house_no", "").strip(),
+            address_line1=request.POST.get("address_line1", "").strip(),
+            address_line2=request.POST.get("address_line2", "").strip(),
             landmark=request.POST.get("landmark", "").strip(),
             city=request.POST.get("city", "").strip(),
             state=request.POST.get("state", "").strip(),
             postal_code=request.POST.get("postal_code", "").strip(),
+            country=request.POST.get("country", "").strip(),
             address_type=request.POST.get("address_type", "home"),
             is_default=(request.POST.get("is_default") == "on"),
         )
@@ -286,14 +308,14 @@ def address_edit(request, address_id: int):
     addr = get_object_or_404(Coordinate, id=address_id, user=member)
 
     if request.method == "POST":
-        addr.full_name = request.POST.get("full_name", "").strip()
-        addr.phone = request.POST.get("phone", "").strip()
-        addr.house_no = request.POST.get("house_no", "").strip()
+        addr.address_line1 = request.POST.get("address_line1", "").strip()
+        addr.address_line2 = request.POST.get("address_line2", "").strip()
         addr.landmark = request.POST.get("landmark", "").strip()
         addr.city = request.POST.get("city", "").strip()
         addr.state = request.POST.get("state", "").strip()
         addr.postal_code = request.POST.get("postal_code", "").strip()
         addr.address_type = request.POST.get("address_type", "home")
+        addr.country = request.POST.get("country", "").strip()
         addr.is_default = (request.POST.get("is_default") == "on")
         addr.save()
 

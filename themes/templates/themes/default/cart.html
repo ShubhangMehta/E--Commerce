@@ -179,10 +179,6 @@
               {% endif %}
             </div>
 
-            {# You need a backend endpoint to apply coupons.
-               Option A: point this to a new URL like 'cart_apply_coupon'
-               Option B: keep action="" and handle POST inside your cart view.
-            #}
             <form method="text" class="d-flex gap-2">
               {% csrf_token %}
               <input class="form-control" name="coupon_code" placeholder="Enter coupon code" value="{{ coupon_code|default:'' }}">
@@ -205,7 +201,7 @@
           <div class="d-flex justify-content-between py-2 border-top">
             <div class="fw-bold">Grand total</div>
             <div class="fw-bold">
-              {{ grand_total|default:cart_total|default:"—" }}
+              {{ grand_total|default:grand_total|default:"—" }}
             </div>
           </div>
 
@@ -244,11 +240,9 @@
                   >
                   <div>
                     <div class="fw-semibold">{{ addr.title|default:"Address" }}</div>
-                    <div class="muted2 small">
-                      {% if addr.address_line1 %}{{ addr.address_line1 }}{% elif addr.address %}{{ addr.address }}{% else %}{{ addr }}{% endif %}
-                      {% if addr.city %}, {{ addr.city }}{% endif %}
-                      {% if addr.state %}, {{ addr.state }}{% endif %}
-                      {% if addr.pincode %} - {{ addr.pincode }}{% endif %}
+                    <div>
+                      <span class="fw-bold">{{ addr.address_type|capfirst }}</span>
+                      {{ addr.formatted_address }}
                     </div>
                   </div>
                 </label>

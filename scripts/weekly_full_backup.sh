@@ -1,42 +1,29 @@
 #!/bin/bash
-
-# Weekly full backup - upload directly to Supabase Storage
 set -e
 
-# Correct PATH for pg_dump, psql, python
 PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/sasiabburi/E--Commerce/venv/bin
 
-# Load environment variables
-if [ -f /Users/sasiabburi/E--Commerce/.env ]; then
-  source /Users/sasiabburi/E--Commerce/.env
-fi
+# SAFE env loading
+set -a
+source /Users/sasiabburi/E--Commerce/.env
+set +a
 
 DATE=$(date +%Y-%m-%d)
 
-echo "🚀 Starting WEEKLY full backup for $DB_NAME on $DATE"
+echo "🚀 Starting WEEKLY FULL backup for $DB_NAME on $DATE"
 
-# Query only tenant schemas (exclude PostgreSQL internal schemas)
-TENANT_SCHEMAS=$(psql "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
-  -t -c "SELECT schema_name 
-         FROM information_schema.schemata 
-         WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog')
-           AND schema_name NOT LIKE 'pg_%'
-           AND schema_name NOT LIKE 'pg_toast%'
-           AND schema_name NOT LIKE 'pg_temp_%';")
+DUMP_FILE="/tmp/${DB_NAME}_weekly_${DATE}.dump"
 
-for schema in $TENANT_SCHEMAS; do
+pg_dump "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
+  -Fc \
+  -f "$DUMP_FILE"
 
-  schema=$(echo "$schema" | xargs)   # trim whitespace
-  echo "📦 Weekly backup: $schema"
+echo "📦 Full database dump created → $DUMP_FILE"
 
-  # Pipe pg_dump → python upload
-  pg_dump "host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASSWORD sslmode=$DB_SSLMODE" \
-      -n "$schema" -Fc \
-  | /Users/sasiabburi/E--Commerce/venv/bin/python3 \
-        /Users/sasiabburi/E--Commerce/backups/utils/upload_to_supabase.py "$schema-weekly" "$DATE" "weekly"
+cat "$DUMP_FILE" | /Users/sasiabburi/E--Commerce/venv/bin/python3 \
+  /Users/sasiabburi/E--Commerce/backups/utils/upload_to_supabase.py \
+  "$DB_NAME" "$DATE" "weekly"
 
-  echo "✅ Uploaded: $schema-weekly.dump → Supabase Storage"
+rm -f "$DUMP_FILE"
 
-done
-
-echo "🎉 WEEKLY full backups completed & uploaded successfully!"
+echo "🎉 WEEKLY FULL BACKUP COMPLETED"

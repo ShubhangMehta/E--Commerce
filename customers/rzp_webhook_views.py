@@ -203,7 +203,7 @@ class TenantRazorpayWebhookAPIView(APIView):
         event = payload.get("event")
         print(f"Received Razorpay webhook event: {event}")
 
-        if event not in ["order.paid", "payment.captured"]:
+        if event != "payment.captured":
             print(f"Ignoring unsupported event type: {event}")
             return JsonResponse({"detail": "Event ignored"}, status=200)
         

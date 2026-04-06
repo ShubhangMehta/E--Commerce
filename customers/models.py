@@ -1,3 +1,4 @@
+
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 from django.core.exceptions import ValidationError
@@ -9,8 +10,14 @@ from django.db.models import Q
 # Create your models here.
 
 class Client(TenantMixin):
-    owner_name = models.CharField(max_length=255, blank=True, null=True)
+
+    """name = models.CharField(max_length=100)
+    paid_until = models.DateField()
+    on_trial = models.BooleanField(default=True)
+    created_on = models.DateField(auto_now_add=True)"""
+
     tenant_name = models.CharField(max_length=100)
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     company = models.CharField(max_length=200, null=True, blank=True)
@@ -30,6 +37,8 @@ class Client(TenantMixin):
     active_users = models.IntegerField(default=0)
     last_login = models.DateTimeField(null=True, blank=True)
 
+
+    # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
 
     @property

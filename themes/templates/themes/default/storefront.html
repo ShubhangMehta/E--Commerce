@@ -352,7 +352,6 @@
           <input class="form-control form-control-sm me-2" type="search" name="q" placeholder="Search products" value="{{ request.GET.q|default:'' }}">
           <button class="btn btn-sm btn-outline-dark" type="submit">Search</button>
         </form>
-
         <!-- Right links -->
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}

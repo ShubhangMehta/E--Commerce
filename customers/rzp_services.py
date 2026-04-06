@@ -1,5 +1,4 @@
 # customers/rzp_services.py
-
 import razorpay
 from django.conf import settings
 

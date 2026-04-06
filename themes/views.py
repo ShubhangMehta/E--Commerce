@@ -5,21 +5,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
-
+from orders.models import Coupon
 from catalog.models import SingleProduct
+from users.models import SubjectMember
+from decimal import Decimal
 
 # If you already have an Order model in your project, import it here.
 # Example:
 # from orders.models import Order, OrderItem
 
 def _theme_path(request, template_name: str) -> str:
-    """
-    Returns the theme-aware template path.
-    Works for all themes as long as templates exist under: templates/themes/<theme>/
-    """
+
     theme = getattr(request.tenant, "theme", "default") or "default"
     return f"themes/{theme}/{template_name}"
-
 
 def index(request):
     featured_products = (
@@ -39,64 +37,26 @@ def index(request):
             (img for img in product.images.all() if img.image_type == "product"),
             None
         )
+#   # ✅ Role Check
+#   is_owner = False
+#   if request.user.is_authenticated:
+#       member = SubjectMember.objects.filter(
+#           global_user_id=request.user.id
+#       ).first()
+#
+#       if member and member.role == "OWNER":
+#           is_owner = True
 
     context = {
         "featured_products": featured_products,
         "product_count": getattr(request.tenant, "product_count", None),
         "order_count": getattr(request.tenant, "order_count", None),
         "visitor_count": getattr(request.tenant, "visitor_count_7d", None),
+        #is_owner": is_owner,
     }
 
     return render(request, _theme_path(request, "index.html"), context)
 
-#def product_list(request):
-#    """
-#    Product listing page with basic search/sort.
-#    Template: product_list.html expects 'products'.
-#    """
-#    qs = SingleProduct.objects.all()
-#
-#    q = (request.GET.get("q") or "").strip()
-#    if q:
-#        # Adjust fields if your model uses different names
-#        qs = qs.filter(name__icontains=q) | qs.filter(description__icontains=q)
-#
-#    sort = request.GET.get("sort") or ""
-#    if sort == "price_asc":
-#        qs = qs.order_by("price")
-#    elif sort == "price_desc":
-#        qs = qs.order_by("-price")
-#    elif sort == "new":
-#        # If you have created_at; otherwise fallback to id desc
-#        if hasattr(SingleProduct, "created_at"):
-#            qs = qs.order_by("-created_at")
-#        else:
-#            qs = qs.order_by("-id")
-#
-#    return render(
-#        request,
-#        _theme_path(request, "product_list.html"),
-#        {"products": qs},
-#    )
-#
-#
-#def product_detail(request, id):
-#    """
-#    Product details page.
-#    Template: product_details.html expects 'product' (and optionally 'related_products').
-#    """
-#    product = get_object_or_404(SingleProduct, id=id)
-#
-#    # Optional related products. Adjust logic as needed.
-#    related_products = SingleProduct.objects.exclude(id=product.id)[:4]
-#
-#    return render(
-#        request,
-#        _theme_path(request, "product_details.html"),
-#        {"product": product, "related_products": related_products},
-#    )
-#
-#
 # -----------------------------
 # CART (Session-based reference implementation)
 # -----------------------------
@@ -162,18 +122,49 @@ def index(request):
 #             messages.success(request, "Added to cart.")
 #             return redirect("cart")
 
-#     cart_data = _get_cart(request.session)
-#     cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
+    cart_data = _get_cart(request.session)
+    cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
 
-#     context = {
-#         "cart_items": cart_items,
-#         "cart_subtotal": cart_subtotal,
-#         "cart_total": cart_total,
-#         # placeholders
-#         "shipping_total": 0,
-#         "tax_total": 0,
-#     }
-#     return render(request, _theme_path(request, "cart.html"), context)
+    #  COUPON LOGIC STARTS HERE
+    discount = 0
+    coupon = None
+
+    coupon_id = request.session.get("coupon_id")
+
+    if coupon_id:
+        try:
+            coupon = Coupon.objects.get(id=coupon_id)
+
+            if coupon.is_valid(cart_subtotal):
+
+                
+
+                discount = (cart_subtotal * coupon.discount_percent) / Decimal("100")
+
+                # apply max discount limit
+                if coupon.max_discount:
+                    discount = min(discount, coupon.max_discount)
+
+            else:
+                # remove invalid coupon
+                request.session.pop("coupon_id", None)
+
+        except Coupon.DoesNotExist:
+            request.session.pop("coupon_id", None)
+
+    # final total after discount
+    final_total = cart_subtotal - discount
+
+    context = {
+        "cart_items": cart_items,
+        "cart_subtotal": cart_subtotal,
+        "cart_total": final_total,   
+        "discount": discount,
+        "applied_coupon": coupon,
+        "shipping_total": 0,
+        "tax_total": 0,
+    }
+    return render(request, _theme_path(request, "cart.html"), context)
 
 
 # @require_http_methods(["POST"])
@@ -219,112 +210,6 @@ def index(request):
 #     messages.success(request, "Item removed.")
 #     return redirect("cart")
 
-
-# -----------------------------
-# CHECKOUT + ORDERS (stubs you can connect to your real orders app)
-# -----------------------------
-
-#@require_http_methods(["GET", "POST"])
-#@login_required
-#def checkout(request):
-#    """
-#    Checkout page.
-#    - Shows cart summary on GET
-#    - On POST, creates an order (stub) and redirects to success
-#
-#    Templates:
-#      - checkout.html expects cart_items, cart_total and optionally 'form'
-#      - order_success.html expects 'order' (and optionally 'order_items')
-#    """
-#    cart_data = _get_cart(request.session)
-#    cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
-#
-#    if not cart_items:
-#        messages.info(request, "Your cart is empty.")
-#        return redirect("product_list")
-#
-#    if request.method == "POST":
-#        # If you have a real Order model, create it here.
-#        # This stub stores a minimal order in session.
-#        with transaction.atomic():
-#            order_id = request.session.get("last_order_id", 0) + 1
-#            request.session["last_order_id"] = order_id
-#
-#            order = {
-#                "id": order_id,
-#                "status": "Processing",
-#                "total": cart_total,
-#                "payment_status": "Pending",
-#            }
-#
-#            # Keep simple history for "previous_order_listing"
-#            history = request.session.get("orders_history", [])
-#            history.insert(
-#                0,
-#                {
-#                    "id": order_id,
-#                    "status": order["status"],
-#                    "total": order["total"],
-#                    "created_at": None,  # optionally store timestamp as string
-#                },
-#            )
-#            request.session["orders_history"] = history
-#            request.session["last_order"] = order
-#            request.session.modified = True
-#
-#            # Clear cart
-#            _set_cart(request.session, {})
-#
-#        messages.success(request, "Order placed successfully.")
-#        return redirect("order_success")
-#
-#    context = {
-#        "cart_items": cart_items,
-#        "cart_subtotal": cart_subtotal,
-#        "cart_total": cart_total,
-#        "shipping_total": 0,
-#        "tax_total": 0,
-#        # If you later use a real CheckoutForm, pass it as "form"
-#        "form": None,
-#    }
-#    return render(request, _theme_path(request, "checkout.html"), context)
-#
-#
-#@login_required
-#def previous_order_listing(request):
-#    """
-#    Lists previous orders.
-#    If you have a real Order model, replace session logic with DB queries.
-#    Template: previous_order_listing.html expects 'orders'
-#    """
-#    orders = request.session.get("orders_history", [])
-#    return render(
-#        request,
-#        _theme_path(request, "previous_order_listing.html"),
-#        {"orders": orders},
-#    )
-#
-#
-#@login_required
-#def order_success(request):
-#    """
-#    Order success page.
-#    Loads the last order from session (stub) or from DB if you have Order model.
-#    Template: order_success.html expects 'order' (and optionally 'order_items')
-#    """
-#    order = request.session.get("last_order")
-#    if not order:
-#        messages.info(request, "No recent order found.")
-#        return redirect("previous_order_listing")
-#
-#    # If you have DB order items, load them here. For now, none.
-#    context = {
-#        "order": order,
-#        "order_items": None,
-#    }
-#    return render(request, _theme_path(request, "order_success.html"), context)
-#
-
 # -----------------------------
 # AUTH PAGES
 # -----------------------------
@@ -336,7 +221,7 @@ def signup(request):
     Template: signup.html expects 'form'
     """
     if request.user.is_authenticated:
-        return redirect("profile")
+        return redirect("users:profile")
 
     form = UserCreationForm(request.POST or None)
     if request.method == "POST":
@@ -344,7 +229,7 @@ def signup(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created.")
-            return redirect("profile")
+            return redirect("users:profile")
         messages.error(request, "Please correct the errors below.")
 
     return render(request, _theme_path(request, "signup.html"), {"form": form})

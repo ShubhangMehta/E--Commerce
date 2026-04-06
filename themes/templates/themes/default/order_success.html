@@ -28,7 +28,7 @@
         <div class="row g-3 mt-1">
           <div class="col-12 col-md-6">
             <div class="text-muted2 small">Order ID</div>
-            <div class="fw-bold">#{{ order.id|default:"—" }}</div>
+            <div class="fw-bold">ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
           </div>
 
           <div class="col-12 col-md-6">
