@@ -10,7 +10,7 @@
           <div class="page-title">Order ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
           <div class="text-muted2">Manage and update order status</div>
       </div>
-      <a href="{% url 'orders:dashboard_order_list' %}" class="btn btn-soft">← Back to Orders</a>
+      <a href="{% url 'dashboard_order_list' %}" class="btn btn-soft">← Back to Orders</a>
   </div>
 
 

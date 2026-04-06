@@ -15,18 +15,15 @@ def admin_login_redirect(request):
 urlpatterns = [
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
-
+    path("", include("themes.urls")),  # Storefront and cart/checkout
+    path("", include("users.urls")),
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
-
-    path("", include("themes.urls")),       # Storefront and cart/checkout
-
     path('catalog/', include('catalog.urls', namespace="catalog")),
     path("", include("orders.urls")),
-    
     path('dashboard/', include('dashboard.urls')),  
-
-    path("users/", include("users.urls", namespace="users")),
+    
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    

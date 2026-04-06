@@ -3,11 +3,17 @@ from catalog.models import SingleProduct
 
 class CartService:
     """
-    Owns session cart: add/update/remove + building cart_items for OrderService.
+    Owns the session cart only.
+
     Session format:
-      session["cart"] = { "<product_id>": {"qty": int} }
-      session["selected_address_id"] = "<id>"
-      session["coupon_code"] = "SAVE10"
+        session["cart"] = {
+            "<product_id>": {
+                "qty": int
+            }
+        }
+
+        session["selected_address_id"] = <int>
+        session["coupon_code"] = "SAVE10"
     """
 
     SESSION_KEY = "cart"
@@ -27,17 +33,27 @@ class CartService:
     def add(session, product_id: int, qty: int = 1) -> None:
         cart = CartService.get_cart(session)
         pid = str(product_id)
+
         cart.setdefault(pid, {"qty": 0})
-        cart[pid]["qty"] = int(cart[pid]["qty"]) + int(qty)
+        cart[pid]["qty"] = int(cart[pid]["qty"]) + max(1, int(qty))
+
         CartService.set_cart(session, cart)
 
     @staticmethod
     def update(session, product_id: int, qty: int) -> None:
         cart = CartService.get_cart(session)
         pid = str(product_id)
-        if pid in cart:
-            cart[pid]["qty"] = max(1, int(qty))
-            CartService.set_cart(session, cart)
+        qty = int(qty)
+
+        if pid not in cart:
+            return
+
+        if qty <= 0:
+            cart.pop(pid, None)
+        else:
+            cart[pid]["qty"] = qty
+
+        CartService.set_cart(session, cart)
 
     @staticmethod
     def remove(session, product_id: int) -> None:
@@ -47,55 +63,81 @@ class CartService:
 
     @staticmethod
     def clear(session) -> None:
-        CartService.set_cart(session, {})
+        session.pop(CartService.SESSION_KEY, None)
+        session.pop(CartService.ADDRESS_KEY, None)
+        session.pop(CartService.COUPON_KEY, None)
+        session.modified = True
 
     @staticmethod
-    def items_and_totals(session):
+    def build_items(session):
         """
-        Returns: (cart_items, subtotal, total)
-        cart_items is compatible with OrderService._calculate_totals() expectation. :contentReference[oaicite:7]{index=7}
+        Returns normalized cart items:
+
+        [
+            {
+                "product": <SingleProduct>,
+                "quantity": 2,
+                "unit_price": Decimal("100.00"),
+                "line_total": Decimal("200.00"),
+            }
+        ]
         """
         cart = CartService.get_cart(session)
-        product_ids = [int(pid) for pid in cart.keys()] if cart else []
-        products = {p.id: p for p in SingleProduct.objects.filter(id__in=product_ids)}
+        if not cart:
+            return []
+
+        product_ids = [int(pid) for pid in cart.keys()]
+        products = {
+            product.id: product
+            for product in SingleProduct.objects.filter(id__in=product_ids)
+        }
 
         items = []
-        subtotal = Decimal("0")
 
         for pid_str, data in cart.items():
-            pid = int(pid_str)
-            product = products.get(pid)
+            product = products.get(int(pid_str))
             if not product:
                 continue
-            qty = int(data.get("qty", 1))
-            price = Decimal(str(product.price or 0))
-            line_total = price * qty
-            subtotal += line_total
-            items.append({"product": product, "quantity": qty, "line_total": line_total})
 
-        total = subtotal
-        return items, subtotal, total
+            quantity = max(1, int(data.get("qty", 1)))
+            unit_price = Decimal(str(product.price or "0.00"))
+            line_total = unit_price * quantity
 
-    # ---- address selection stored in session ----
+            items.append(
+                {
+                    "product": product,
+                    "quantity": quantity,
+                    "unit_price": unit_price,
+                    "line_total": line_total,
+                }
+            )
+
+        return items
+
+    @staticmethod
+    def get_subtotal(items) -> Decimal:
+        return sum((item["line_total"] for item in items), start=Decimal("0.00"))
+
     @staticmethod
     def set_selected_address(session, address_id: int) -> None:
-        session[CartService.ADDRESS_KEY] = str(address_id)
+        session[CartService.ADDRESS_KEY] = int(address_id)
         session.modified = True
 
     @staticmethod
     def get_selected_address_id(session):
         return session.get(CartService.ADDRESS_KEY)
 
-    # # ---- coupon stored in session ----
-    # @staticmethod
-    # def set_coupon(session, code: str) -> None:
-    #     code = (code or "").strip()
-    #     if code:
-    #         session[CartService.COUPON_KEY] = code
-    #     else:
-    #         session.pop(CartService.COUPON_KEY, None)
-    #     session.modified = True
+    @staticmethod
+    def set_coupon(session, code: str) -> None:
+        code = (code or "").strip()
 
-    # @staticmethod
-    # def get_coupon(session):
-    #     return (session.get(CartService.COUPON_KEY) or "").strip()
+        if code:
+            session[CartService.COUPON_KEY] = code
+        else:
+            session.pop(CartService.COUPON_KEY, None)
+
+        session.modified = True
+
+    @staticmethod
+    def get_coupon_code(session) -> str:
+        return (session.get(CartService.COUPON_KEY) or "").strip()

@@ -1,9 +1,74 @@
+import uuid
 from django.db import models
-from users.models import SubjectMember
+from catalog.models import SingleProduct
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
+from users.models import Coordinate, SubjectMember
+
+class Coupon(models.Model):
+
+    code = models.CharField(max_length=50, unique=True)
+
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2
+    )
+
+    max_discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    min_order_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+
+    active = models.BooleanField(default=True)
+
+    usage_limit = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    used_count = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self, cart_total):
+        now = timezone.now()
+
+        if not self.active:
+            return False
+
+        if self.valid_from > now or self.valid_to < now:
+            return False
+
+        if cart_total < self.min_order_value:
+            return False
+
+        if self.usage_limit and self.used_count >= self.usage_limit:
+            return False
+
+        return True
+
+    def __str__(self):
+        return self.code
+    
 class Order(models.Model):
+    tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
+    subject = models.ForeignKey(SubjectMember, on_delete=models.CASCADE, related_name="orders", null=True, blank=True)  # 🔥 SUBJECT FIELD (important for multi-tenancy)
+
+    customer_email = models.EmailField(default="", blank=True)
+    customer_name = models.CharField(max_length=255, default="", blank=True)
 
     PAYMENT_STATUS_CHOICES = [
         ("pending", "Pending"),
@@ -19,25 +84,26 @@ class Order(models.Model):
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
     ]
-    tenant = models.CharField(max_length=100, default="default_tenant")  # 🔥 TENANT FIELD (important for multi-tenancy)
-    customer_email = models.EmailField(default="")
-    customer_name = models.CharField(max_length=255, blank=True, default="")
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
 
-    # customer (storefront identity)
-    subject = models.ForeignKey(
-        SubjectMember,
-        on_delete=models.CASCADE,
-        related_name="orders",
-        null=True,   # allow NULL for existing rows
-        blank=True
-    )
+    order_id = models.CharField(max_length=20, unique=True, blank=True)  # Optional: can be auto-generated
 
+    shipping_full_name = models.CharField(max_length=255, default="Not Provided")
+    shipping_phone = models.CharField(max_length=20, default="Not Provided")
+    shipping_address_type = models.CharField(max_length=50)  # e.g., "home", "work"
+    shipping_address = models.TextField(default="Not Provided")
+    shipping_city = models.CharField(max_length=100, default="Not Provided")
+    shipping_state = models.CharField(max_length=100, default="Not Provided")
+    shipping_postal_code = models.CharField(max_length=20, default="Not Provided")
+    shipping_country = models.CharField(max_length=100, default="Not Provided")
+    
     # totals
     subtotal_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     shipping_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-
+        
     # order lifecycle
     status = models.CharField(
         max_length=20,
@@ -46,22 +112,18 @@ class Order(models.Model):
     )
 
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
-
-    # 🔥 shipping snapshot (VERY IMPORTANT)
-    shipping_full_name = models.CharField(max_length=255, default="Not Provided")
-    shipping_phone = models.CharField(max_length=20, default="Not Provided")
-    shipping_house_no= models.CharField(max_length=100, default="Not Provided")
-    shipping_landmark= models.CharField(max_length=100, default="Not Provided")
-    shipping_address = models.TextField(default="Not Provided")
-    shipping_city = models.CharField(max_length=100,default="Not Provided")
-    shipping_state = models.CharField(max_length=100,default="Not Provided")
-    shipping_postal_code = models.CharField(max_length=20,default="Not Provided")
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+
+    def save(self, *args, **kwargs):
+       if not self.order_id:
+           self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+       super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Order #{self.id}"
+      return self.order_id
 
 
 class OrderItem(models.Model):

@@ -1,20 +1,442 @@
-<h2>Invoice</h2>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Invoice - ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</title>
 
-<p>Order Number: {{ order.order_number }}</p>
-<p>User: {{ order.user.username }}</p>
-<p>Status: {{ order.status }}</p>
-<p>Date: {{ order.created_at }}</p>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 14mm 16mm 14mm;
+    }
 
-<hr>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      color: #111111;
+      background: #ffffff;
+    }
 
-<h3>Items</h3>
-{% for item in order.items.all %}
-    <p>
-        {{ item.product_name }} |
-        Qty: {{ item.quantity }} |
-        Price: {{ item.price }}
-    </p>
-{% endfor %}
+    * {
+      box-sizing: border-box;
+    }
 
-<hr>
-<h3>Total: {{ order.total_amount }}</h3>
+    .document {
+      width: 100%;
+    }
+
+    .top-rule {
+      height: 4px;
+      background: #111111;
+      margin-bottom: 14px;
+    }
+
+    .header-table,
+    .info-table,
+    .items-table,
+    .totals-table,
+    .footer-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .header-table td {
+      vertical-align: top;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin: 0 0 4px 0;
+    }
+
+    .brand-sub {
+      color: #444444;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .invoice-title {
+      text-align: right;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 0 0 6px 0;
+    }
+
+    .invoice-meta {
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 0 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #111111;
+    }
+
+    .block {
+      margin-top: 16px;
+    }
+
+    .info-table td {
+      vertical-align: top;
+      width: 50%;
+      padding-right: 14px;
+    }
+
+    .label {
+      color: #555555;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      color: #111111;
+      line-height: 1.6;
+    }
+
+    .items-table {
+      margin-top: 8px;
+      border-top: 2px solid #111111;
+      border-bottom: 2px solid #111111;
+    }
+
+    .items-table thead th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 8px;
+      border-bottom: 1px solid #111111;
+    }
+
+    .items-table tbody td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #cfcfcf;
+      vertical-align: top;
+    }
+
+    .items-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .product-name {
+      font-weight: 700;
+      margin: 0 0 2px 0;
+    }
+
+    .product-sub {
+      color: #555555;
+      margin: 0;
+      font-size: 10px;
+    }
+
+    .totals-wrap {
+      margin-top: 14px;
+      width: 100%;
+    }
+
+    .totals-table {
+      width: 42%;
+      margin-left: auto;
+      border-collapse: collapse;
+    }
+
+    .totals-table td {
+      padding: 7px 0;
+      border-bottom: 1px solid #d7d7d7;
+    }
+
+    .totals-table tr:last-child td {
+      border-bottom: 2px solid #111111;
+      border-top: 2px solid #111111;
+      font-weight: 700;
+      font-size: 12px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+    }
+
+    .totals-label {
+      color: #333333;
+    }
+
+    .totals-value {
+      text-align: right;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status-box {
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    .status-chip {
+      display: inline-block;
+      border: 1px solid #111111;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .notes {
+      margin-top: 20px;
+      line-height: 1.7;
+      color: #444444;
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #111111;
+      color: #555555;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .spacer-8 { height: 8px; }
+    .spacer-12 { height: 12px; }
+  </style>
+</head>
+<body>
+  <div class="document">
+    <div class="top-rule"></div>
+
+    <!-- HEADER -->
+    <table class="header-table">
+      <tr>
+        <td style="width:55%;">
+          <p class="brand-title">
+            {{ tenant.company|default:tenant.tenant_name|default:"Your Store" }}
+          </p>
+          <p class="brand-sub">
+            {{ tenant.desired_domain|default:"" }}<br>
+            {% if tenant.email %}{{ tenant.email }}{% endif %}
+          </p>
+        </td>
+
+        <td style="width:45%;">
+          <p class="invoice-title">INVOICE</p>
+          <div class="invoice-meta">
+            <div><strong>Invoice No:</strong> INV-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"06d" }}</div>
+            <div><strong>Order ID:</strong> ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</div>
+            <div><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</div>
+            <div><strong>Order Status:</strong> {{ order.status|default:"confirmed"|upper }}</div>
+            <div><strong>Payment Status:</strong> {{ order.payment_status|default:"paid"|upper }}</div>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CUSTOMER + PAYMENT -->
+    <div class="block">
+      <table class="info-table">
+        <tr>
+          <td>
+            <div class="section-title">Bill To</div>
+            <div class="label">Customer</div>
+            <div class="value">
+              {{ order.customer_name|default:order.shipping_full_name|default:"Customer" }}<br>
+              {{ order.customer_email|default:"" }}<br>
+              {{ order.shipping_phone|default:"" }}
+            </div>
+          </td>
+
+          <td>
+            <div class="section-title">Payment Details</div>
+            <div class="label">Payment Reference</div>
+            <div class="value">
+              {% if payment_reference %}
+                {{ payment_reference }}
+              {% elif latest_payment %}
+                {{ latest_payment.razorpay_payment_id|default:"—" }}
+              {% else %}
+                {{ order.payment_reference|default:"—" }}
+              {% endif %}
+            </div>
+
+            <div class="spacer-8"></div>
+
+            <div class="label">Paid Via</div>
+            <div class="value">
+              {% if payment_method %}
+                {{ payment_method|upper }}
+              {% elif latest_payment and latest_payment.payment_method %}
+                {{ latest_payment.payment_method|upper }}
+              {% else %}
+                {{ order.payment_method|default:"RAZORPAY" }}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- SHIPPING -->
+    <div class="block">
+      <table class="info-table">
+        <tr>
+          <td>
+            <div class="section-title">Ship To</div>
+            <div class="value">
+              {% if order.shipping_address %}
+                {{ order.shipping_address }}
+              {% else %}
+                {% if order.shipping_house_no %}{{ order.shipping_house_no }}{% endif %}
+                {% if order.shipping_landmark %}, {{ order.shipping_landmark }}{% endif %}
+                {% if order.shipping_city %}, {{ order.shipping_city }}{% endif %}
+                {% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}
+                {% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
+              {% endif %}
+            </div>
+          </td>
+
+          <td>
+            <div class="section-title">Order Details</div>
+            <div class="value">
+              <strong>Placed On:</strong> {{ order.created_at|date:"d M Y, h:i A" }}<br>
+              <strong>Currency:</strong> INR
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="block">
+      <div class="section-title">Items</div>
+
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:52%;">Product</th>
+            <th style="width:12%;" class="text-right">Qty</th>
+            <th style="width:18%;" class="text-right">Unit Price</th>
+            <th style="width:18%;" class="text-right">Line Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if order_items %}
+            {% for item in order_items %}
+              <tr>
+                <td>
+                  <p class="product-name">{{ item.product_name_snapshot|default:"—" }}</p>
+                  {% if item.product_brand_snapshot %}
+                    <p class="product-sub">{{ item.product_brand_snapshot }}</p>
+                  {% endif %}
+                </td>
+                <td class="text-right">{{ item.quantity|default:"1" }}</td>
+                <td class="text-right">INR {{ item.product_price_snapshot|default:"—" }}</td>
+                <td class="text-right">
+                  {% if item.line_total %}
+                    <strong>INR {{ item.line_total }}</strong>
+                  {% else %}
+                    <strong>INR {{ item.product_price_snapshot|default:"—" }}</strong>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">No items found.</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            {% for item in order.items.all %}
+              <tr>
+                <td>
+                  <p class="product-name">{{ item.product_name_snapshot|default:"—" }}</p>
+                  {% if item.product_brand_snapshot %}
+                    <p class="product-sub">{{ item.product_brand_snapshot }}</p>
+                  {% endif %}
+                </td>
+                <td class="text-right">{{ item.quantity|default:"1" }}</td>
+                <td class="text-right">INR {{ item.product_price_snapshot|default:"—" }}</td>
+                <td class="text-right">
+                  {% if item.line_total %}
+                    <strong>INR {{ item.line_total }}</strong>
+                  {% else %}
+                    <strong>INR {{ item.product_price_snapshot|default:"—" }}</strong>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">No items found.</td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TOTALS -->
+    <div class="totals-wrap">
+      <table class="totals-table">
+        <tr>
+          <td class="totals-label">Subtotal</td>
+          <td class="totals-value">INR {{ order.subtotal_amount|default_if_none:"0.00" }}</td>
+        </tr>
+
+        <tr>
+          <td class="totals-label">Shipping</td>
+          <td class="totals-value">INR {{ order.shipping_amount|default_if_none:"0.00" }}</td>
+        </tr>
+
+        <tr>
+          <td class="totals-label">Tax</td>
+          <td class="totals-value">INR {{ order.tax_amount|default_if_none:"0.00" }}</td>
+        </tr>
+
+        <tr>
+          <td class="totals-label">Discount</td>
+          <td class="totals-value">INR {{ order.discount_amount|default_if_none:"0.00" }}</td>
+        </tr>
+
+        <tr>
+          <td class="totals-label">Coupon Applied</td>
+          <td class="totals-value">
+            {% if order.coupon %}
+              {{ order.coupon.code|default:order.coupon }}
+            {% elif order.coupon_code %}
+              {{ order.coupon_code }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="totals-label">Grand Total</td>
+          <td class="totals-value">INR {{ order.total_amount|default_if_none:"0.00" }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- NOTES -->
+    <div class="notes">
+      Thank you for your purchase. This document serves as your official payment receipt and order invoice.
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      This is a computer-generated receipt. No signature is required.
+    </div>
+  </div>
+</body>
+</html>

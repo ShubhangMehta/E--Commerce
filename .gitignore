@@ -65,11 +65,13 @@ static/
 collected_static/
 user_uploads/
 
-# Migrations (optional — comment out if you want to track)
-# *Never* ignore initial migrations, but you can exclude local testing migrations
-**/migrations/__pycache__/
-# Uncomment below only if you know what you're doing:
-# **/migrations/*.py
+#All migrations are ignored except __init__.py
+*/migrations/*.py
+!*/migrations/__init__.py
+# Ignore migration caches
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
 
 # Local configs
 local_settings.py
@@ -165,7 +167,7 @@ test_output/
 .env.*
 .env.local
 .env.development.local
-.env.test...local
+.env.test.local
 .env.production.local
 .envrc
 *.env

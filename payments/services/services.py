@@ -1,10 +1,10 @@
 from decimal import Decimal
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, connection
 
 from orders.models import Order
 from payments.models import OrderPayment
-from notifications.services.services import send_order_paid_email
+from notifications.services.services import safe_send_order_paid_email
 
 def paise_to_rupees(amount_paise: int) -> Decimal:
     return Decimal(amount_paise) / Decimal("100")
@@ -20,6 +20,8 @@ def register_razorpay_payment_success(
         currency,
         raw_payload,
 ):
+    tenant = getattr(connection, "tenant", None)
+
     with transaction.atomic():
         order = Order.objects.select_for_update().get(id=local_order_id)
 
@@ -38,16 +40,32 @@ def register_razorpay_payment_success(
             },
         )
 
-        print(f"Payment record {'created' if created else 'already exists'} for Razorpay Payment ID: {razorpay_payment_id}")
+        print(
+            f"Payment record {'created' if created else 'already exists'} " 
+            f"For Razorpay Payment ID: {razorpay_payment_id}"
+        )
 
-        if not created:
-            return payment #Idempotent - payment already exists
-        
-        # Update order status to 'paid'
-        order.payment_status = "paid"
-        order.status = "confirmed"
-        order.save(update_fields=["payment_status", "status"])
+        update_fields = []
 
-        transaction.on_commit(lambda: send_order_paid_email(order_id=order.id, payment_id=payment.id))
+        if order.payment_status != "paid":
+            order.payment_status = "paid"
+            update_fields.append("payment_status")
+
+        if order.status != "confirmed":
+            order.status = "confirmed"
+            update_fields.append("status")
+
+        if update_fields:
+            order.save(update_fields=update_fields)
+
+        if not payment.confirmation_email_sent:
+            transaction.on_commit(
+                lambda tenant=tenant, order_pk=order.id, payment_id=payment.id:
+                    safe_send_order_paid_email(         # Don't use request here, removed the request parameter from the function to work without it. Now, only tenant is passed down explicitly.
+                        tenant=tenant,
+                        order_id=order_pk,
+                        payment_id=payment_id,
+                    )
+            )
 
         return payment

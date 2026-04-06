@@ -22,12 +22,12 @@ def monthly_top_products(request):
             order__created_at__gte=last_month,
             content_type=product_content_type   # 🔥 KEY FIX
         )
-        .values("product_name")
+        .values("product_name_snapshot")  # 🔥 KEY FIX
         .annotate(total_sold=Sum("quantity"))
         .order_by("-total_sold")[:5]
     )
 
-    labels = [p["product_name"] for p in top_products]
+    labels = [p["product_name_snapshot"] for p in top_products]
     data = [p["total_sold"] for p in top_products]
 
     return JsonResponse({

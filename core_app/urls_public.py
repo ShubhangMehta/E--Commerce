@@ -1,18 +1,18 @@
-from django.urls import path, include
 from django.contrib import admin
-from django.http import HttpResponse
+from django.urls import path, include
 from django.shortcuts import redirect
-from customers import rzp_webhook_views
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.conf import settings
 from django.conf.urls.static import static
+from customers import rzp_webhook_views as rzp_webhook_views
 
 
 def admin_login_redirect(request):
-    next_url = request.GET.get("next", "/admin/")
+    next_url = request.GET.get("next", "/index/")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         next_url = "/login/"
-    return redirect("/login/?" + urlencode({"next": next_url}))                                   
+    return redirect("/login/?" + urlencode({"next": next_url}))
+
 
 urlpatterns = [
     #Webhook for Tenant admin payments

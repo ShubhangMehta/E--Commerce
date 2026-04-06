@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from catalog.models import SingleProduct, SingleProductImage
-from catalog.forms import SingleProductForm, ProductImageFormSet, BannerForm
-
+from catalog.forms import SingleProductForm, ProductImageFormSet, BannerForm, CategoryForm, SubCategoryForm
 
 # LIST PRODUCTS
 def product_list(request):
-    products = SingleProduct.objects.prefetch_related("images")
-
+    products = SingleProduct.objects.select_related(
+    "category",
+    "sub_category"
+    ).prefetch_related("images")
     return render(
         request,
         "catalog/dashboard/product_list.html",
@@ -15,18 +16,44 @@ def product_list(request):
         }
     )
 
-
-# CREATE PRODUCT
 def product_create(request):
-    if request.method == "POST":
+
+    # CATEGORY FORM
+    if request.method == "POST" and "create_category" in request.POST:
+        category_form = CategoryForm(request.POST)
+        subcategory_form = SubCategoryForm()
+
+        if category_form.is_valid():
+            category_form.save()
+            return redirect("catalog:product_create")
+
+        form = SingleProductForm()
+        formset = ProductImageFormSet()
+
+    # SUBCATEGORY FORM
+    elif request.method == "POST" and "create_subcategory" in request.POST:
+        subcategory_form = SubCategoryForm(request.POST)
+        category_form = CategoryForm()
+
+        if subcategory_form.is_valid():
+            subcategory_form.save()
+            return redirect("catalog:product_create")
+
+        form = SingleProductForm()
+        formset = ProductImageFormSet()
+
+    # PRODUCT FORM
+    elif request.method == "POST":
         form = SingleProductForm(request.POST)
+        category_form = CategoryForm()
+        subcategory_form = SubCategoryForm()
 
         if form.is_valid():
             product = form.save(commit=False)
 
-            # ⭐ LIMIT FEATURED PRODUCTS TO MAX 3
             if product.is_featured:
                 featured_count = SingleProduct.objects.filter(is_featured=True).count()
+
                 if featured_count >= 3:
                     form.add_error(None, "You can only feature 3 products.")
                     formset = ProductImageFormSet(request.POST, request.FILES)
@@ -42,6 +69,7 @@ def product_create(request):
                     if formset.is_valid():
                         formset.save()
                         return redirect("catalog:product_list")
+
             else:
                 product.save()
 
@@ -61,6 +89,8 @@ def product_create(request):
     else:
         form = SingleProductForm()
         formset = ProductImageFormSet()
+        category_form = CategoryForm()
+        subcategory_form = SubCategoryForm()
 
     return render(
         request,
@@ -68,12 +98,12 @@ def product_create(request):
         {
             "form": form,
             "formset": formset,
+            "category_form": category_form,
+            "subcategory_form": subcategory_form,
             "title": "Create Product"
         }
     )
 
-
-# EDIT PRODUCT
 def product_edit(request, pk):
     product = get_object_or_404(SingleProduct, pk=pk)
 
@@ -95,10 +125,12 @@ def product_edit(request, pk):
 
                 if featured_count >= 3:
                     form.add_error(None, "You can only feature 3 products.")
+
                 else:
                     product.save()
                     formset.save()
                     return redirect("catalog:product_list")
+
             else:
                 product.save()
                 formset.save()
@@ -114,9 +146,13 @@ def product_edit(request, pk):
         {
             "form": form,
             "formset": formset,
+            "category_form": CategoryForm(),
+            "subcategory_form": SubCategoryForm(),
             "title": "Edit Product"
         }
     )
+
+
 def banner_list(request):
     banners = SingleProductImage.objects.filter(image_type="banner")
 
