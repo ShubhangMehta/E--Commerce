@@ -111,7 +111,11 @@ def invoice_pdf_view(request, order_id):
     )
     items = order.items.all()
 
+<<<<<<< HEAD
+    template = get_template("themes/default/cust_invoice.html")  # fixed path
+=======
     template = get_template(_theme_path(request, "cust_invoice.html"))
+>>>>>>> origin/Humera
     html = template.render({
         "order": order,
         "items": items,

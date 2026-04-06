@@ -70,6 +70,7 @@ TENANT_APPS = [
     'django_crontab',
     'backups',
     'users',
+    'inventory',
 ]
 
 
