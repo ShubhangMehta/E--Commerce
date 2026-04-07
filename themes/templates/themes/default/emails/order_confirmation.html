@@ -115,11 +115,7 @@
                     <div style="font-size:13px; line-height:1.7; color:#111111;">
                       {{ order.shipping_full_name|default:"" }}<br>
                       {{ order.shipping_phone|default:"" }}<br>
-                      {% if order.shipping_address %}
-                        {{ order.shipping_address }}<br>
-                      {% endif %}
-                      {% if order.shipping_city %}{{ order.shipping_city }}{% endif %}{% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}{% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}<br>
-                      {{ order.shipping_country|default:"" }}
+                      {% order.shipping_address %}<br>
                     </div>
                   </td>
                   <td valign="top" style="width:50%; padding-left:16px;">
