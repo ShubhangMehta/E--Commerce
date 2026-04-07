@@ -22,7 +22,7 @@ Team Roles:
 
 Humera Mueed - Team Leader/Intern
 
-Venkatesh Bodakunta Trinity - Developer/Intern
+Venkatesh Bodakunta - Developer/Intern
 
 Shubhang Mehta - Developer/Intern
 
