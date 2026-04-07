@@ -20,8 +20,6 @@ Shipping
 {{ order.shipping_full_name|default:"" }}
 {{ order.shipping_phone|default:"" }}
 {{ order.shipping_address|default:"" }}
-{% if order.shipping_city %}{{ order.shipping_city }}{% endif %}{% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}{% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
-{{ order.shipping_country|default:"" }}
 
 Items
 {% for item in items %}
