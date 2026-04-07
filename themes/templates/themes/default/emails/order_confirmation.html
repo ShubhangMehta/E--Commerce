@@ -115,7 +115,7 @@
                     <div style="font-size:13px; line-height:1.7; color:#111111;">
                       {{ order.shipping_full_name|default:"" }}<br>
                       {{ order.shipping_phone|default:"" }}<br>
-                      {% order.shipping_address %}<br>
+                      {{ order.shipping_address|default:"" }}<br>
                     </div>
                   </td>
                   <td valign="top" style="width:50%; padding-left:16px;">
