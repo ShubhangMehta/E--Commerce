@@ -7,7 +7,6 @@
 #     extra = 1
 #     fields = ("image", "image_type", "is_primary")
 
-
 # # @admin.register(SingleProduct)
 # # class SingleProductAdmin(admin.ModelAdmin):
 # #     list_display = (

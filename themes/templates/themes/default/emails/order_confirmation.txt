@@ -1,0 +1,40 @@
+Order Confirmation - {{ order.order_id }}
+
+Invoice No: INV-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"06d" }}
+Order ID: {{ order.order_id }}
+Date: {{ order.created_at|date:"d M Y" }}
+Order Status: {{ order.status|default:"confirmed"|upper }}
+Payment Status: {{ order.payment_status|default:"paid"|upper }}
+
+Customer
+{{ order.customer_name|default:order.shipping_full_name|default:"Customer" }}
+{{ order.customer_email|default:"" }}
+{{ order.shipping_phone|default:"" }}
+
+Payment Details
+Reference: {% if latest_payment %}{{ latest_payment.razorpay_payment_id|default:"—" }}{% else %}—{% endif %}
+Method: {% if latest_payment and latest_payment.payment_method %}{{ latest_payment.payment_method|upper }}{% else %}RAZORPAY{% endif %}
+Amount: {% if latest_payment %}INR {{ latest_payment.amount }}{% else %}INR {{ order.total_amount|default_if_none:"0.00" }}{% endif %}
+
+Shipping
+{{ order.shipping_full_name|default:"" }}
+{{ order.shipping_phone|default:"" }}
+{{ order.shipping_address|default:"" }}
+{% if order.shipping_city %}{{ order.shipping_city }}{% endif %}{% if order.shipping_state %}, {{ order.shipping_state }}{% endif %}{% if order.shipping_postal_code %} - {{ order.shipping_postal_code }}{% endif %}
+{{ order.shipping_country|default:"" }}
+
+Items
+{% for item in items %}
+- {{ item.product_name_snapshot|default:"—" }} | Qty: {{ item.quantity|default:"1" }} | Unit Price: INR {{ item.product_price_snapshot|default:"—" }} | Total: {% if item.line_total %}INR {{ item.line_total }}{% else %}INR {{ item.product_price_snapshot|default:"—" }}{% endif %}
+{% empty %}
+No items found.
+{% endfor %}
+
+Subtotal: INR {{ order.subtotal_amount|default_if_none:"0.00" }}
+Shipping: INR {{ order.shipping_amount|default_if_none:"0.00" }}
+Tax: INR {{ order.tax_amount|default_if_none:"0.00" }}
+Discount: INR {{ order.discount_amount|default_if_none:"0.00" }}
+Coupon: {% if order.coupon %}{{ order.coupon.code|default:order.coupon }}{% else %}—{% endif %}
+Grand Total: INR {{ order.total_amount|default_if_none:"0.00" }}
+
+Thank you for your purchase. Your invoice PDF is attached.

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
-class StartPaymentSerializer(serializers.Serializer):
+class BaseOrderSerializer(serializers.Serializer):
     pass
 
+class StartPaymentSerializer(serializers.Serializer):
+    pass

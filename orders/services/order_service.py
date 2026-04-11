@@ -1,167 +1,157 @@
 from django.db import transaction
+from django.db.models import F
+
 from orders.models import Order, OrderItem
 from users.models import Coordinate
-from django.contrib.contenttypes.models import ContentType
+
+from .pricing_service import PricingService
 
 class OrderService:
     """
-    CENTRAL ORDER ENGINE
-    --------------------
-    Converts cart → Order → OrderItems
-    Handles customer + tenant queries.
+    Central order engine.
+
+    Responsibilities:
+    - validate checkout inputs
+    - convert cart items into Order + OrderItems
+    - preserve shipping snapshot on Order
+    - customer and tenant order queries
     """
 
-    # =========================================================
-    # 🛒 CHECKOUT ENGINE (MAIN FUNCTION)
-    # =========================================================
+    @staticmethod
+    def _tenant_value(tenant):
+        """
+        Supports either:
+        - tenant object with .schema_name
+        - raw tenant string already stored in Order.tenant
+        """
+        return getattr(tenant, "schema_name", tenant)
+
+    @staticmethod
+    def _get_address(*, subject, address_id):
+        return Coordinate.objects.get(
+            id=address_id,
+            user=subject,
+        )
+    
+    @staticmethod
+    def _build_shipping_address(address):
+        parts = [
+            address.address_type,
+            address.address_line1,
+            address.address_line2,
+            address.landmark,
+            address.city,
+            address.state,
+            address.postal_code,
+            address.country,
+        ]
+        return ", ".join(part.strip() for part in parts if part and part.strip())
+
     @staticmethod
     @transaction.atomic
     def create_order_from_cart(
         *,
         tenant,
-        subject,        # SubjectMember (customer)
-        cart_items,     # from theme cart helper
+        subject,
+        cart_items,
         address_id,
+        coupon=None,
     ):
         """
-        Convert session cart → DB Order + OrderItems
+        Convert cart_items into:
+        - Order
+        - OrderItem rows
         """
+        if not subject:
+            raise ValueError("Subject is required to create an order.")
 
-        # 1️⃣ Validate & fetch shipping address
-        address = Coordinate.objects.get(
-            id=address_id,
-            user=subject
-        )
+        if not cart_items:
+            raise ValueError("Cannot create an order from an empty cart.")
 
-        # 2️⃣ Calculate totals from cart_items
-        totals = OrderService._calculate_totals(cart_items)
+        address = OrderService._get_address(subject=subject, address_id=address_id)
+        totals = PricingService.calculate_from_items(items=cart_items, coupon=coupon)
 
-        # 3️⃣ Create ORDER (with SHIPPING SNAPSHOT)
         order = Order.objects.create(
-            tenant=tenant,
-            subject=subject,
-            total_amount=totals["grand_total"],
+            tenant=OrderService._tenant_value(tenant),
+            subject=address.user,
+            customer_email=address.user.email or address.email or "",
+            customer_name=address.user.full_name or address.full_name or "",
+            
+            #coupon=totals["coupon"],
 
-            # 🚚 SHIPPING SNAPSHOT (VERY IMPORTANT)
-            shipping_full_name=address.full_name,
-            shipping_phone=address.phone,
-            shipping_house_no=address.house_no,
-            shipping_landmark=address.landmark,
+            shipping_full_name=address.user.full_name,
+            shipping_phone=address.user.phone,
+            shipping_address_type=address.address_type,
+            shipping_address=OrderService._build_shipping_address(address),
             shipping_city=address.city,
             shipping_state=address.state,
             shipping_postal_code=address.postal_code,
+            shipping_country=address.country,
+
+            subtotal_amount=totals["subtotal"],
+            shipping_amount=totals["shipping_amount"],
+            discount_amount=totals["discount_amount"],
+            tax_amount=totals["tax_amount"],
+            total_amount=totals["total_amount"],
         )
 
-        # 4️⃣ Create ORDER ITEMS
-        OrderService._create_order_items(order, cart_items)
+        OrderService._create_order_items(order=order, cart_items=cart_items)
+
+        if totals["coupon"]:
+            type(totals["coupon"]).objects.filter(id=totals["coupon"].id).update(
+                used_count=F("used_count") + 1
+            )
 
         return order
 
-    # =========================================================
-    # 💰 CALCULATIONS
-    # =========================================================
     @staticmethod
-    def _calculate_totals(cart_items):
-        """
-        Cart items come from theme helper:
-        {
-            "product": product,
-            "quantity": qty,
-            "line_total": price * qty
-        }
-        """
-        subtotal = sum(item["line_total"] for item in cart_items)
-
-        shipping = 0      # future feature
-        tax = 0           # future feature
-
-        grand_total = subtotal + shipping + tax
-
-        return {
-            "subtotal": subtotal,
-            "shipping": shipping,
-            "tax": tax,
-            "grand_total": grand_total,
-        }
-
-    # =========================================================
-    # 📦 CREATE ORDER ITEMS
-    # =========================================================
-    @staticmethod
-    def _create_order_items(order, cart_items):
+    def _create_order_items(*, order, cart_items):
         order_items = []
 
         for item in cart_items:
             product = item["product"]
-            content_type = ContentType.objects.get_for_model(product)
 
             order_items.append(
                 OrderItem(
                     order=order,
-
-                    # ⭐ Generic FK fields
-                    content_type=content_type,
-                    object_id=product.id,
-
-                    # snapshot
+                    product=product,
                     product_name_snapshot=product.name,
                     product_price_snapshot=product.price,
-                    #product_image_url_snapshot=product.image_url,
-
                     quantity=item["quantity"],
                     line_total=item["line_total"],
                 )
             )
 
         OrderItem.objects.bulk_create(order_items)
-       
-    # =========================================================
-    # 👤 CUSTOMER QUERIES
-    # =========================================================
+
     @staticmethod
     def get_customer_orders(*, subject):
-        """
-        Used in storefront "My Orders" page
-        """
         return (
             Order.objects
             .filter(subject=subject)
-            .select_related("tenant")
+            .select_related("subject", "coordinate", "coupon")
             .order_by("-created_at")
         )
 
     @staticmethod
     def get_customer_order_detail(*, subject, order_id):
-        """
-        Used in order detail page
-        Security: user can only see their own order
-        """
-        order = (
-            Order.objects
-            .select_related("tenant")
-            .prefetch_related("items__product")
-            .get(id=order_id, subject=subject)
-        )
-        return order
-
-    # =========================================================
-    # 🏪 TENANT (ADMIN DASHBOARD)
-    # =========================================================
-    @staticmethod
-    def get_tenant_orders(*, tenant):
-        """
-        Used in tenant dashboard → Orders list
-        """
         return (
             Order.objects
-            .filter(tenant=tenant)
-            .select_related("subject")
+            .filter(subject=subject, id=order_id)
+            .select_related("subject", "coupon")
+            .prefetch_related("items__product")
+            .get()
+        )
+
+    @staticmethod
+    def get_tenant_orders(*, tenant):
+        return (
+            Order.objects
+            .filter(tenant=OrderService._tenant_value(tenant))
+            .select_related("subject", "coordinate", "coupon")
             .order_by("-created_at")
         )
 
-    # =========================================================
-    # 🔄 ORDER STATUS UPDATE
-    # =========================================================
     @staticmethod
     def update_status(*, order, new_status):
         order.status = new_status

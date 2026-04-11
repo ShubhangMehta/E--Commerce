@@ -8,10 +8,11 @@ from rest_framework import status
 
 from orders.models import Order
 from orders.serializers.serializers import StartPaymentSerializer
-from orders.services.payment_start import create_razorpay_order_for_order
+from orders.services.payment_start import RazorpayGatewayError, create_razorpay_order_for_order
 
 from orders.serializers.tenant_serializers import TenantOrderSerializer
 from orders.serializers.customer_serializers import CustomerOrderSerializer
+from users.views.customer_profile import get_subject_member
 
 class StartPaymentAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -28,7 +29,10 @@ class StartPaymentAPIView(APIView):
         if order.status == "cancelled":
             return Response({"detail": "Cannot start payment for a cancelled order."}, status=status.HTTP_400_BAD_REQUEST)
         
-        rp_order = create_razorpay_order_for_order(tenant=request.tenant, order=order)
+        try:
+            rp_order = create_razorpay_order_for_order(tenant=request.tenant, order=order)
+        except RazorpayGatewayError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         return Response({
             "key": settings.RAZORPAY_KEY_ID,
@@ -42,6 +46,22 @@ class StartPaymentAPIView(APIView):
             }, status=status.HTTP_200_OK
         )
   
+
+class OrderStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        subject = get_subject_member(request)
+    
+        order = get_object_or_404(Order, id=order_id, subject=subject)
+
+        return Response({
+            "order_id": order.id,
+            "payment_status": order.payment_status,
+            "status": order.status,
+        })
+
+
 class OrderListAPI(APIView):
     permission_classes = [IsAuthenticated]
 

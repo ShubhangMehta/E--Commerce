@@ -6,7 +6,7 @@ from users.views.theme_views import customer_profile
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("signup/", views.signup, name="tenant_customer_signup"),
+    #path("signup/", views., name="tenant_customer_signup"),
 
     path("login/", c_views.login_view, name="login"),
     #path("orders/invoice/<int:order_id>/pdf/", views.invoice_pdf, name="invoice_pdf"),

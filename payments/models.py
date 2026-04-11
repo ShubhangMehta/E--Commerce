@@ -17,5 +17,8 @@ class OrderPayment(models.Model):
     paid_at = models.DateTimeField(blank=True, null=True)
     raw_payload = models.JSONField(default=dict, blank=True)  # Store the entire payload for future reference
 
+    confirmation_email_sent = models.BooleanField(default=False)
+    confirmation_email_sent_at = models.DateTimeField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

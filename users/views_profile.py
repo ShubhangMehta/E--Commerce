@@ -277,13 +277,13 @@ def address_add(request):
     if request.method == "POST":
         addr = Coordinate.objects.create(
             user=member,
-            full_name=request.POST.get("full_name", "").strip() or member.full_name,
-            phone=request.POST.get("phone", "").strip() or (member.phone or ""),
-            house_no=request.POST.get("house_no", "").strip(),
+            address_line1=request.POST.get("address_line1", "").strip(),
+            address_line2=request.POST.get("address_line2", "").strip(),
             landmark=request.POST.get("landmark", "").strip(),
             city=request.POST.get("city", "").strip(),
             state=request.POST.get("state", "").strip(),
             postal_code=request.POST.get("postal_code", "").strip(),
+            country=request.POST.get("country", "").strip(),
             address_type=request.POST.get("address_type", "home"),
             is_default=(request.POST.get("is_default") == "on"),
         )
@@ -308,14 +308,14 @@ def address_edit(request, address_id: int):
     addr = get_object_or_404(Coordinate, id=address_id, user=member)
 
     if request.method == "POST":
-        addr.full_name = request.POST.get("full_name", "").strip()
-        addr.phone = request.POST.get("phone", "").strip()
-        addr.house_no = request.POST.get("house_no", "").strip()
+        addr.address_line1 = request.POST.get("address_line1", "").strip()
+        addr.address_line2 = request.POST.get("address_line2", "").strip()
         addr.landmark = request.POST.get("landmark", "").strip()
         addr.city = request.POST.get("city", "").strip()
         addr.state = request.POST.get("state", "").strip()
         addr.postal_code = request.POST.get("postal_code", "").strip()
         addr.address_type = request.POST.get("address_type", "home")
+        addr.country = request.POST.get("country", "").strip()
         addr.is_default = (request.POST.get("is_default") == "on")
         addr.save()
 

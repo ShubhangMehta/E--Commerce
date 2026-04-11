@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from orders.serializers.serializers import BaseOrderSerializer
 
-class TenantOrderSerializer(serializers.Serializer):
+class TenantOrderSerializer(BaseOrderSerializer):
     pass

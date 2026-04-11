@@ -45,7 +45,7 @@
                 <td><strong>₹{{ order.total_amount }}</strong></td>
 
                 <td>
-                    <a href="{% url 'orders:dashboard_order_detail' order.id %}" class="btn btn-soft btn-sm">View</a>
+                    <a href="{% url 'dashboard_order_detail' order.id %}" class="btn btn-soft btn-sm">View</a>
                     
                 </td>
             </tr>
@@ -57,9 +57,7 @@
         <div class="alert-soft">
             No orders found yet.
             <td>
-                    
-                    
-                </td>
+            </td>
         </div>
     {% endif %}
 

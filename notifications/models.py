@@ -5,7 +5,7 @@ from orders.models import Order
 from payments.models import OrderPayment
 
 # Create your models here.
-class EmailNOtification(models.Model):
+class EmailNotification(models.Model):
     event = models.CharField(max_length=100) #order_paid
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     payment = models.ForeignKey(OrderPayment, on_delete=models.CASCADE)

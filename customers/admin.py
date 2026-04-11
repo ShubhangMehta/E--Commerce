@@ -6,33 +6,12 @@ from django.db import transaction
 from .models import (
     Client, Domain, TenantRequest, SubscriptionPlan,
     Ticket, ClientSubscription, Invoice,
-    RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing
+    RzpPayment, RzpWebhookEvent, RzpRefund, PlanPricing, RazorpayOrderMap
 )
 from django.utils import timezone
 from datetime import timedelta
 from core_app.emails.utils import send_html_email
 from customers.services.provisioning import provision_tenant_from_request
-
-# ----------------------------
-# Domain Admin
-# ----------------------------
-@admin.register(Domain)
-class DomainAdmin(ModelAdmin):
-    list_display = ('domain', 'tenant_owner_name', 'tenant_name_display', 'is_primary', 'tenant_status_display')
-    list_filter = ('is_primary',)
-    search_fields = ('desired_domain', 'tenant__tenant_name')
-
-    def tenant_owner_name(self, obj):
-        return obj.tenant.owner_name
-    tenant_owner_name.short_description = 'Owner Name'
-
-    def tenant_name_display(self, obj):
-        return obj.tenant.tenant_name
-    tenant_name_display.short_description = 'Tenant Name'
-    
-    def tenant_status_display(self, obj):
-        return obj.tenant.status
-    tenant_status_display.short_description = 'Status'
 
 
 # ----------------------------
@@ -70,6 +49,30 @@ class ClientAdmin(ModelAdmin):
     list_filter = ('desired_domain','theme', 'catalog_template')
     search_fields = ('tenant_name', 'schema_name')
     ordering = ('-clientsubscription__start_date',)
+
+
+
+# ----------------------------
+# Domain Admin
+# ----------------------------
+@admin.register(Domain)
+class DomainAdmin(ModelAdmin):
+    list_display = ('domain', 'tenant_owner_name', 'tenant_name_display', 'is_primary', 'tenant_status_display')
+    list_filter = ('is_primary',)
+    search_fields = ('desired_domain', 'tenant__tenant_name')
+
+    def tenant_owner_name(self, obj):
+        return obj.tenant.owner_name
+    tenant_owner_name.short_description = 'Owner Name'
+
+    def tenant_name_display(self, obj):
+        return obj.tenant.tenant_name
+    tenant_name_display.short_description = 'Tenant Name'
+    
+    def tenant_status_display(self, obj):
+        return obj.tenant.status
+    tenant_status_display.short_description = 'Status'
+
 
 
 # ----------------------------
@@ -284,7 +287,6 @@ class RzpWebhookEventAdmin(admin.ModelAdmin):
     readonly_fields = ("event", "payload", "created_at")
     ordering = ("-created_at",)
     
-
     def has_add_permission(self, request):
         return False
 
@@ -292,3 +294,8 @@ class RzpWebhookEventAdmin(admin.ModelAdmin):
 @admin.register(RzpRefund)
 class RzpRefundAdmin(admin.ModelAdmin):
     list_display = ("payment", "razorpay_refund_id", "status", "created_at")
+
+@admin.register(RazorpayOrderMap)
+class RazorpayOrderMapAdmin(admin.ModelAdmin):
+    list_display = ("local_order_id", "razorpay_order_id", "tenant")
+    search_fields = ("local_order_id", "razorpay_order_id", "tenant__tenant_name")
