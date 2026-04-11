@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from accounts import views as c_views
 from users.views.theme_views import customer_profile
-app_name="themes"
+#app_name="themes"
 
 urlpatterns = [
     path("", views.index, name="index"),
