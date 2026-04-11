@@ -9,6 +9,7 @@ from django.template.loader import get_template
 from io import BytesIO
 from xhtml2pdf import pisa
 from users.views.theme_views import get_subject_member
+from django.utils import timezone
 # import cart helpers from THEMES
 from themes.views import _get_cart, _set_cart, _cart_items_and_totals, _theme_path
 
@@ -122,11 +123,7 @@ def invoice_pdf_view(request, order_id):
     )
     items = order.items.all()
 
-<<<<<<< HEAD
-    template = get_template("themes/default/cust_invoice.html")  # fixed path
-=======
     template = get_template(_theme_path(request, "cust_invoice.html"))
->>>>>>> origin/Humera
     html = template.render({
         "order": order,
         "items": items,
@@ -142,3 +139,60 @@ def invoice_pdf_view(request, order_id):
     response = HttpResponse(result.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="invoice_{order.id}.pdf"'
     return response
+
+
+""" @login_required
+def request_refund(request, order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        customer=request.user
+    )
+
+    if request.method == "POST":
+
+        reason = request.POST.get("reason")
+
+        order.status = "refund_requested"
+        order.refund_reason = reason
+        order.refund_requested_at = timezone.now()
+        order.save()
+
+        messages.success(request, "Refund request submitted successfully.")
+
+        return redirect("order_detail", order_id=order.id)
+
+    return render(request, "orders/customer/refund_request.html", {"order": order})
+
+@login_required
+def approve_refund(request, order_id):
+
+    if not request.user.is_superuser:
+        return HttpResponseForbidden()
+
+    order = get_object_or_404(Order, id=order_id)
+
+    order.status = "refunded"
+    order.refund_processed_at = timezone.now()
+    order.save()
+
+    messages.success(request, "Refund approved.")
+
+    return redirect("admin_order_list")
+
+@login_required
+def reject_refund(request, order_id):
+
+    if not request.user.is_superuser:
+        return HttpResponseForbidden()
+
+    order = get_object_or_404(Order, id=order_id)
+
+    order.status = "refund_rejected"
+    order.refund_processed_at = timezone.now()
+    order.save()
+
+    messages.success(request, "Refund rejected.")
+
+    return redirect("admin_order_list") """

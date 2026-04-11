@@ -69,6 +69,7 @@ class Order(models.Model):
         default="pending"
     )
 
+
     # 🔥 shipping snapshot (VERY IMPORTANT)
     shipping_full_name = models.CharField(max_length=255, default="Not Provided")
     shipping_phone = models.CharField(max_length=20, default="Not Provided")
@@ -81,10 +82,10 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if not self.order_number:
-            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-        super().save(*args, **kwargs)
+   # def save(self, *args, **kwargs):
+   #     if not self.order_number:
+   #         self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+   #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Order #{self.id}"
@@ -99,9 +100,9 @@ class OrderItem(models.Model):
     )
 
     # ⭐ GENERIC PRODUCT RELATION (supports SingleProduct OR MultiProduct)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    product = GenericForeignKey("content_type", "object_id")
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # product = GenericForeignKey("content_type", "object_id")
 
     # 🔒 SNAPSHOT (SUPER IMPORTANT — never remove)
     product_name = models.CharField(max_length=255)
@@ -113,26 +114,3 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"Order #{self.id}"
 
-
-class OrderItem(models.Model):
-
-    order = models.ForeignKey(
-        Order,
-        related_name="items",
-        on_delete=models.CASCADE
-    )
-
-    # ⭐ GENERIC PRODUCT RELATION (supports SingleProduct OR MultiProduct)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    product = GenericForeignKey("content_type", "object_id")
-
-    # 🔒 SNAPSHOT (SUPER IMPORTANT — never remove)
-    product_name = models.CharField(max_length=255)
-    product_price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    quantity = models.PositiveIntegerField()
-    line_total = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.product_name} x {self.quantity}"

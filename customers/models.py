@@ -325,17 +325,26 @@ class Ticket(models.Model):
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='tickets')
+    email = models.EmailField()
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     subject = models.CharField(max_length=255)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='medium')
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='open')
+    admin_response = models.TextField(blank=True, null=True)
     assigned_to = models.CharField(max_length=255, null=True, blank=True)  # could be staff username or email
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    def __str__(self):
+        return f"Ticket #{self.id} - {self.subject}"
 
 
 # ---------------------------------------------
@@ -448,7 +457,14 @@ class RzpRefund(models.Model):
     """
     Razorpay refund for a payment transaction.
     """
-
+    STATUS_CHOICES = [
+            ("pending", "Pending"), 
+            ("approved", "Approved"), 
+            ("rejected", "Rejected"), 
+            ("refund requested", "Refund Requested"), 
+            ("refunded", "Refunded"), 
+            ("refund rejected", "Refund Rejected"),
+        ]
     payment = models.ForeignKey(RzpPayment, on_delete=models.CASCADE, related_name="refunds")
 
     razorpay_refund_id = models.CharField(max_length=64, unique=True)
@@ -456,9 +472,16 @@ class RzpRefund(models.Model):
 
     status = models.CharField(
         max_length=20,
-        choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
+        choices = STATUS_CHOICES, 
+            
+        
         default="pending"
     )
+
+    # refund cycle
+    refund_reason = models.TextField(blank=True, null=True)
+    refund_requested_at = models.DateTimeField(null=True, blank=True)
+    refund_processed_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

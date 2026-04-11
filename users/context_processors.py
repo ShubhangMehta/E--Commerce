@@ -1,7 +1,10 @@
+from django.db import connection
 from .models import SubjectMember
 
 def owner_status(request):
     is_owner = False
+    if connection.schema_name == "public":
+        return {"is_owner": False}
 
     if request.user.is_authenticated:
         member = SubjectMember.objects.filter(

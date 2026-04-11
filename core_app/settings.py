@@ -70,7 +70,7 @@ TENANT_APPS = [
     'django_crontab',
     'backups',
     'users',
-    'inventory',
+    #'inventory',
 ]
 
 
@@ -265,6 +265,7 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 #ADMIN_EMAIL = env("ADMIN_EMAIL", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # -----------------------------------
 # Payment And Billing Configuration

@@ -24,7 +24,7 @@
 
     <div class="table-row">
         <div class="table-cell text-muted2">Order Number</div>
-        <div class="table-cell"><strong>#{{ order.order_number }}</strong></div>
+        <div class="table-cell"><strong>ORD-{{ order.created_at|date:"Y" }}{{ order.id|stringformat:"04d" }}</strong></div>
     </div>
 
     <div class="table-row">
@@ -45,11 +45,11 @@
 
     {% for item in order.items.all %}
         <div class="order-item">
-            <img src="{{ item.product_image.url }}" alt="{{ item.product_name }}">
+            <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product_name }}">
 
             <div class="order-item-details">
                 <h4>{{ item.product_name }}</h4>
-                <div class="text-muted2">Price: ₹{{ item.price }}</div>
+                <div class="text-muted2">Price: ₹{{ item.product_price }}</div>
             </div>
         </div>
     {% empty %}
@@ -65,11 +65,7 @@
         <p class="text-muted2">You can download the invoice for this order.</p>
     </div>
 
-<<<<<<< HEAD
-    <a href="{% url 'orders:invoice_pdf' order.id %}" class="btn-brand">
-=======
     <a href="{% url 'orders_storefront:invoice_pdf' order.id %}" class="btn-brand">
->>>>>>> origin/Humera
         Download Invoice (PDF)
     </a>
 </div>

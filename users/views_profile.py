@@ -231,7 +231,7 @@ def tenant_customer_signup(request):
         if user is not None:
             login(request, user)
 
-        return redirect("index")  # or "store_index" etc.
+        return redirect("themes:index")  # or "store_index" etc.
 
     # ✅ GET must render signup page
     return render(request, _theme_path(request, "signup.html"))

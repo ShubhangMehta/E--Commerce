@@ -12,6 +12,8 @@ from django_tenants.utils import schema_context, get_public_schema_name
 from .models import Client, Domain, SubscriptionPlan, TenantRequest, Ticket, PlanPricing, Invoice
 from .rzp_services import get_or_create_order_for_invoice
 from .services.provisioning import provision_tenant_from_request
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 User = get_user_model()
 
@@ -275,3 +277,86 @@ def raise_ticket(request):
             messages.error(request, "Please fill all fields before submitting.")
 
     return render(request, 'customers/raise_ticket.html')
+
+@login_required
+def invoice_pdf_view(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        subject = get_subject_member(request)
+    )
+    items = order.items.all()
+
+    template = get_template(_theme_path(request, "cust_invoice.html"))
+    html = template.render({
+        "order": order,
+        "items": items,
+        "request": request,  # for static/media URLs
+    })
+
+    result = BytesIO()
+    pdf = pisa.CreatePDF(html, dest=result)
+
+    if pdf.err:
+        return HttpResponse("Error generating PDF")
+
+    response = HttpResponse(result.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="invoice_{order.id}.pdf"'
+    return response
+
+
+@login_required
+def request_refund(request, order_id):
+
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        customer=request.user
+    )
+
+    if request.method == "POST":
+
+        reason = request.POST.get("reason")
+
+        order.status = "refund_requested"
+        order.refund_reason = reason
+        order.refund_requested_at = timezone.now()
+        order.save()
+
+        messages.success(request, "Refund request submitted successfully.")
+
+        return redirect("order_detail", order_id=order.id)
+
+    return render(request, "orders/customer/refund_request.html", {"order": order})
+
+@login_required
+def approve_refund(request, order_id):
+
+    if not request.user.is_superuser:
+        return HttpResponseForbidden()
+
+    order = get_object_or_404(Order, id=order_id)
+
+    order.status = "refunded"
+    order.refund_processed_at = timezone.now()
+    order.save()
+
+    messages.success(request, "Refund approved.")
+
+    return redirect("admin_order_list")
+
+@login_required
+def reject_refund(request, order_id):
+
+    if not request.user.is_superuser:
+        return HttpResponseForbidden()
+
+    order = get_object_or_404(Order, id=order_id)
+
+    order.status = "refund_rejected"
+    order.refund_processed_at = timezone.now()
+    order.save()
+
+    messages.success(request, "Refund rejected.")
+
+    return redirect("admin_order_list")

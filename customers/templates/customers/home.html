@@ -58,6 +58,7 @@
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
+        <a href="/raise-ticket/">Support</a>
         <!-- Replace these with your real URLs -->
         <a class="btn btn-outline" href="/login/">Login</a>
         <!-- <a class="btn btn-primary" href="/create-tenant/">Start</a> -->
@@ -71,6 +72,26 @@
         <div>
           <h1>{{ hero_title|default:"Launch your online store in minutes" }}</h1>
           <p>{{ hero_subtitle|default:"Multi-tenant e-commerce with subscriptions, themes, and a clean admin experience." }}</p>
+          <h2>Raise Ticket</h2>
+          <p style="color:#555; margin:0 0 32px;">We're here to help. Please describe your issue below.</p>
+
+          {% if subscription %}
+          <div class="info-box">
+            <p><strong>Current Plan:</strong> {{ subscription.plan.get_name_display }}</p>
+            <p><strong>Status:</strong> {{ subscription.status }}</p>
+            <p><strong>Ends:</strong> {{ subscription.end_date|date:"M d, Y" }}</p>
+          </div>
+          {% endif %}
+
+          {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="message-success">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+          {% endif %}
 
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a class="btn btn-primary" href="/create-tenant/">{{ cta_primary|default:"Start Free Trial" }}</a>
