@@ -20,8 +20,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
 
-    path("", include("themes.urls",namespace="themes")),       # Storefront and cart/checkout
-
     path('catalog/', include('catalog.urls',namespace="catalog")),
     path('orders/', include('orders.urls',namespace="orders")),
     path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),
@@ -30,5 +28,3 @@ urlpatterns = [
     path("users/", include("users.urls", namespace="users")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

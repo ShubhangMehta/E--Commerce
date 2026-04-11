@@ -21,7 +21,8 @@ from django_tenants.utils import schema_context, get_public_schema_name
 
 @login_required
 def users_home(request):
-
+        if connection.schema_name == "public": #temp fix 
+            return redirect("/")  # or raise 404
         users = SubjectMember.objects.all()
 
         User = get_user_model()
