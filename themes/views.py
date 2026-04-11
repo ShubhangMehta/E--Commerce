@@ -19,10 +19,6 @@ def _theme_path(request, template_name: str) -> str:
     theme = getattr(request.tenant, "theme", "default") or "default"
     return f"themes/{theme}/{template_name}"
 
-
-
-
-
 def index(request):
     featured_products = (
         SingleProduct.objects
@@ -65,66 +61,66 @@ def index(request):
 # CART (Session-based reference implementation)
 # -----------------------------
 
-def _get_cart(session) -> dict:
-    """
-    Cart stored in session as:
-    cart = { "<product_id>": {"qty": int} }
-    """
-    return session.get("cart", {})
+# def _get_cart(session) -> dict:
+#     """
+#     Cart stored in session as:
+#       cart = { "<product_id>": {"qty": int} }
+#     """
+#     return session.get("cart", {})
 
 
-def _set_cart(session, cart: dict) -> None:
-    session["cart"] = cart
-    session.modified = True
+# def _set_cart(session, cart: dict) -> None:
+#     session["cart"] = cart
+#     session.modified = True
 
 
-def _cart_items_and_totals(cart: dict):
-    """
-    Returns (items, subtotal, total). Shipping/tax can be added later.
-    Each item: {product, quantity, line_total}
-    """
-    product_ids = [int(pid) for pid in cart.keys()] if cart else []
-    products = {p.id: p for p in SingleProduct.objects.filter(id__in=product_ids)}
+# def _cart_items_and_totals(cart: dict):
+#     """
+#     Returns (items, subtotal, total). Shipping/tax can be added later.
+#     Each item: {product, quantity, line_total}
+#     """
+#     product_ids = [int(pid) for pid in cart.keys()] if cart else []
+#     products = {p.id: p for p in SingleProduct.objects.filter(id__in=product_ids)}
 
-    items = []
-    subtotal = 0
+#     items = []
+#     subtotal = 0
 
-    for pid_str, data in cart.items():
-        pid = int(pid_str)
-        product = products.get(pid)
-        if not product:
-            continue
-        qty = int(data.get("qty", 1))
-        line_total = (product.price or 0) * qty
-        subtotal += line_total
-        items.append(
-            {
-                "product": product,
-                "quantity": qty,
-                "line_total": line_total,
-            }
-        )
+#     for pid_str, data in cart.items():
+#         pid = int(pid_str)
+#         product = products.get(pid)
+#         if not product:
+#             continue
+#         qty = int(data.get("qty", 1))
+#         line_total = (product.price or 0) * qty
+#         subtotal += line_total
+#         items.append(
+#             {
+#                 "product": product,
+#                 "quantity": qty,
+#                 "line_total": line_total,
+#             }
+#         )
 
-    total = subtotal
-    return items, subtotal, total
+#     total = subtotal
+#     return items, subtotal, total
 
 
-@require_http_methods(["GET", "POST"])
-def cart(request):
-    """
-    Shows cart. Optional: POST can add items if you want.
-    Template: cart.html expects cart_items, cart_total, cart_subtotal (optional).
-    """
-    # Optional add-to-cart via POST from product_list template
-    if request.method == "POST":
-        product_id = request.POST.get("product_id")
-        if product_id:
-            cart_data = _get_cart(request.session)
-            cart_data.setdefault(str(product_id), {"qty": 0})
-            cart_data[str(product_id)]["qty"] = int(cart_data[str(product_id)]["qty"]) + 1
-            _set_cart(request.session, cart_data)
-            messages.success(request, "Added to cart.")
-            return redirect("themes:cart")
+# @require_http_methods(["GET", "POST"])
+# def cart(request):
+#     """
+#     Shows cart. Optional: POST can add items if you want.
+#     Template: cart.html expects cart_items, cart_total, cart_subtotal (optional).
+#     """
+#     # Optional add-to-cart via POST from product_list template
+#     if request.method == "POST":
+#         product_id = request.POST.get("product_id")
+#         if product_id:
+#             cart_data = _get_cart(request.session)
+#             cart_data.setdefault(str(product_id), {"qty": 0})
+#             cart_data[str(product_id)]["qty"] = int(cart_data[str(product_id)]["qty"]) + 1
+#             _set_cart(request.session, cart_data)
+#             messages.success(request, "Added to cart.")
+#             return redirect("cart")
 
     cart_data = _get_cart(request.session)
     cart_items, cart_subtotal, cart_total = _cart_items_and_totals(cart_data)
@@ -171,48 +167,48 @@ def cart(request):
     return render(request, _theme_path(request, "cart.html"), context)
 
 
-@require_http_methods(["POST"])
-def cart_update(request):
-    """
-    Updates quantity for a product in cart.
-    Template uses URL name: cart_update
-    """
-    product_id = request.POST.get("product_id")
-    qty = request.POST.get("quantity")
+# @require_http_methods(["POST"])
+# def cart_update(request):
+#     """
+#     Updates quantity for a product in cart.
+#     Template uses URL name: cart_update
+#     """
+#     product_id = request.POST.get("product_id")
+#     qty = request.POST.get("quantity")
 
-    if not product_id or not qty:
-        messages.error(request, "Invalid cart update.")
-        return redirect("cart")
+#     if not product_id or not qty:
+#         messages.error(request, "Invalid cart update.")
+#         return redirect("cart")
 
-    try:
-        qty_int = max(1, int(qty))
-    except ValueError:
-        messages.error(request, "Quantity must be a number.")
-        return redirect("themes:cart")
+#     try:
+#         qty_int = max(1, int(qty))
+#     except ValueError:
+#         messages.error(request, "Quantity must be a number.")
+#         return redirect("cart")
 
-    cart_data = _get_cart(request.session)
-    if str(product_id) in cart_data:
-        cart_data[str(product_id)]["qty"] = qty_int
-        _set_cart(request.session, cart_data)
-        messages.success(request, "Cart updated.")
-    return redirect("themes:cart")
+#     cart_data = _get_cart(request.session)
+#     if str(product_id) in cart_data:
+#         cart_data[str(product_id)]["qty"] = qty_int
+#         _set_cart(request.session, cart_data)
+#         messages.success(request, "Cart updated.")
+#     return redirect("cart")
 
 
-@require_http_methods(["POST"])
-def cart_remove(request):
-    """
-    Removes a product from cart.
-    Template uses URL name: cart_remove
-    """
-    product_id = request.POST.get("product_id")
-    if not product_id:
-        return redirect("themes:cart")
+# @require_http_methods(["POST"])
+# def cart_remove(request):
+#     """
+#     Removes a product from cart.
+#     Template uses URL name: cart_remove
+#     """
+#     product_id = request.POST.get("product_id")
+#     if not product_id:
+#         return redirect("cart")
 
-    cart_data = _get_cart(request.session)
-    cart_data.pop(str(product_id), None)
-    _set_cart(request.session, cart_data)
-    messages.success(request, "Item removed.")
-    return redirect("themes:cart")
+#     cart_data = _get_cart(request.session)
+#     cart_data.pop(str(product_id), None)
+#     _set_cart(request.session, cart_data)
+#     messages.success(request, "Item removed.")
+#     return redirect("cart")
 
 # -----------------------------
 # AUTH PAGES

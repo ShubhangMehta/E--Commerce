@@ -1,5 +1,3 @@
-
-
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
@@ -14,22 +12,18 @@ def admin_login_redirect(request):
         next_url = "/login/"
     return redirect("/login/?" + urlencode({"next": next_url}))
 
-
 urlpatterns = [
     path("admin/login/", admin_login_redirect, name="admin_login_redirect"),
     path("admin/", admin.site.urls),
     path("", include("themes.urls")),  # Storefront and cart/checkout
+    path("", include("users.urls")),
     path("", include("accounts.urls")),     # Tenant login/2FA endpoints
-
-    #path("", include("themes.urls",namespace="themes")),       # Storefront and cart/checkout
-
-    path('catalog/', include('catalog.urls',namespace="catalog")),
-    path('orders/', include('orders.urls',namespace="orders")),
-    path('orders/', include('orders.storefront_urls',namespace="orders_storefront")),
+    path('catalog/', include('catalog.urls', namespace="catalog")),
+    path("", include("orders.urls")),
     path('dashboard/', include('dashboard.urls')),  
-
-    path("users/", include("users.urls", namespace="users")),
+    
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    

@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from catalog.models import SingleProduct, SingleProductImage
 from catalog.forms import SingleProductForm, ProductImageFormSet, BannerForm, CategoryForm, SubCategoryForm
 
-
 # LIST PRODUCTS
 def product_list(request):
     products = SingleProduct.objects.select_related(
@@ -16,9 +15,6 @@ def product_list(request):
             "products": products
         }
     )
-
-
-
 
 def product_create(request):
 
@@ -61,7 +57,6 @@ def product_create(request):
                 if featured_count >= 3:
                     form.add_error(None, "You can only feature 3 products.")
                     formset = ProductImageFormSet(request.POST, request.FILES)
-
                 else:
                     product.save()
 

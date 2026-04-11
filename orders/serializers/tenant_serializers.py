@@ -1,7 +1,4 @@
-from .base import BaseOrderSerializer
-
-class TenantOrderSerializer(BaseOrderSerializer):
-    pass
+from orders.serializers.serializers import BaseOrderSerializer
 
 class TenantOrderSerializer(BaseOrderSerializer):
     pass

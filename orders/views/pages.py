@@ -20,24 +20,6 @@ class OrderBaseView(View):
         return subject_member.role == "OWNER"
 
 
-#class OrderCreateView(OrderBaseView):
-#    """
-#    Customer-only order creation view
-#    """
-#
-#    def get(self, request):
-#        return render(request, "orders/customer/order_create.html")
-#
-#    def post(self, request):
-#        service = CustomerOrderService()
-#        service.create_order(
-#            tenant="default_tenant",
-#            customer=request.user,
-#            total_amount=request.POST.get("amount")
-#        )
-#        return redirect("order-list")
-
-
 class OrderDetailView(OrderBaseView):
 
     def get(self, request, pk):
@@ -68,7 +50,7 @@ class OrderDetailView(OrderBaseView):
         new_status = request.POST.get("status")
         OrderService.update_status(order=order, new_status=new_status)
 
-        return redirect("orders:dashboard_order_detail", pk=pk)
+        return redirect("dashboard_order_detail", pk=pk)
 
 
 class OrderListView(OrderBaseView):
