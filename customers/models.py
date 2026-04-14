@@ -33,13 +33,12 @@ class Client(TenantMixin):
         default=ACCESS_ACTIVE
         )
     
-    grace_expires_at = models.DateTimeField(null=True, blank=True)
-    deactivation_date = models.DateTimeField(null=True, blank=True)
-    archived_at = models.DateTimeField(null=True, blank=True)
-    latest_backup_path= models.CharField(max_length=255, blank=True, default="")
-    latest_media_backup_path = models.CharField(max_length=255, blank=True, default="")
-    restore_requested = models.BooleanField(default=False)
-
+    # grace_expires_at = models.DateTimeField(null=True, blank=True)
+    # deactivation_date = models.DateTimeField(null=True, blank=True)
+    # archived_at = models.DateTimeField(null=True, blank=True)
+    # latest_backup_path= models.CharField(max_length=255, blank=True, default="")
+    # latest_media_backup_path = models.CharField(max_length=255, blank=True, default="")
+    # restore_requested = models.BooleanField(default=False)
 
     tenant_name = models.CharField(max_length=100)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
