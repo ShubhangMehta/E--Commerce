@@ -10,6 +10,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import LoginSession, TwoFactorCode
 from django.conf import settings
 from themes.views import _theme_path
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 
@@ -234,3 +235,79 @@ def logout_all_devices_view(request):
     )
     logout(request)
     return redirect('/login/')
+
+
+# Client raises ticket
+def raise_ticket(request):
+    from .models import SupportTicket
+    from .forms import SupportTicketForm
+    if request.method == 'POST':
+        form = SupportTicketForm(request.POST)
+        if form.is_valid():
+            ticket = form.save(commit=False)
+            ticket.tenant = request.tenant          # Important for multi-tenant
+            ticket.user = request.user
+            ticket.save()
+            messages.success(request, "Your support ticket has been submitted successfully!")
+            return redirect('raise_ticket')
+    else:
+        form = SupportTicketForm()
+
+    return render(request, 'support/raise_ticket.html', {'form': form})
+
+
+# Super Admin updates status + sends reply
+@staff_member_required
+def update_ticket(request, ticket_id):
+    ticket = get_object_or_404(SupportTicket, id=ticket_id)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        admin_reply = request.POST.get('admin_response', '')
+
+        ticket.status = new_status
+        ticket.admin_response = admin_reply
+        if new_status in ['solved', 'closed']:
+            ticket.resolved_by = request.user
+
+        ticket.save()
+
+        # Send email reply to client when status becomes Solved
+        if new_status == 'solved' and admin_reply:
+            send_ticket_reply_email(ticket)
+
+        messages.success(request, f"Ticket #{ticket.id} updated successfully.")
+        return redirect('admin_ticket_list')
+
+    return render(request, 'support/admin_update_ticket.html', {'ticket': ticket})
+
+
+def send_ticket_reply_email(ticket):
+    """Helper function to send email reply"""
+    subject = f"Update on your Support Ticket #{ticket.id}: {ticket.subject}"
+    message = f"""
+Dear {ticket.user.get_full_name() or ticket.user.email},
+
+Your support ticket has been updated.
+
+**Status:** {ticket.get_status_display()}
+**Our Reply:**
+{ticket.admin_response}
+
+Thank you for contacting E-Cartel support.
+
+Best regards,
+E-Cartel Support Team
+    """
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[ticket.user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        # Log error in production (don't crash admin action)
+        print(f"Failed to send email for ticket {ticket.id}: {e}")

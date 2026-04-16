@@ -1,5 +1,5 @@
-from django.contrib import admin
-from .models import SingleProduct, SingleProductImage
+# from django.contrib import admin
+# from .models import SingleProduct, SingleProductImage
 
 
 # class SingleProductImageInline(admin.TabularInline):
@@ -7,6 +7,20 @@ from .models import SingleProduct, SingleProductImage
 #     extra = 1
 #     fields = ("image", "image_type", "is_primary")
 
+# # @admin.register(SingleProduct)
+# # class SingleProductAdmin(admin.ModelAdmin):
+# #     list_display = (
+# #         "name",
+# #         "brand_name",
+# #         "price",
+# #         "availability",
+# #         "seller",
+# #         "refundable",
+# #         "returnable",
+# #     )
+# #     list_filter = ("availability", "refundable", "returnable")
+# #     search_fields = ("name", "brand_name")
+# #     inlines = [SingleProductImageInline]
 # @admin.register(SingleProduct)
 # class SingleProductAdmin(admin.ModelAdmin):
 #     list_display = (
