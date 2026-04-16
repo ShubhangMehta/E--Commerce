@@ -129,7 +129,7 @@ class OrderService:
         return (
             Order.objects
             .filter(subject=subject)
-            .select_related("subject", "coordinate", "coupon")
+            .select_related("subject", "coupon")
             .order_by("-created_at")
         )
 
