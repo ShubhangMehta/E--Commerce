@@ -176,15 +176,15 @@ def index(request):
 #     product_id = request.POST.get("product_id")
 #     qty = request.POST.get("quantity")
 
-<<<<<<< HEAD
+
     if not product_id or not qty:
         messages.error(request, "Invalid cart update.")
         return redirect("themes:cart")
-=======
+
 #     if not product_id or not qty:
 #         messages.error(request, "Invalid cart update.")
 #         return redirect("cart")
->>>>>>> origin/Humera
+
 
 #     try:
 #         qty_int = max(1, int(qty))
