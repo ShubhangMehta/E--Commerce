@@ -12,56 +12,8 @@ from django.conf import settings
 from themes.views import _theme_path
 from django.contrib.admin.views.decorators import staff_member_required
 
-# Create your views here.
-
-# def login_view(request):
-#     next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
-
-#     # # Avoid sending users into admin/login loops
-#     # # (you can tune these rules to match your routing)
-#     # if next_url.startswith("/admin"):
-#     #     next_url = "/"
-
-#     template = "accounts/login.html" # default for public schema
-
-#     if getattr(request, "tenant", None) and request.tenant.schema_name != "public":
-#         template = _theme_path(request, "login.html")
-
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         user = authenticate(request, username=username, password=password)
-
-#         if user is None:
-#             messages.error(request, 'Invalid username or password.')
-        
-#         else:
-#             #Non-Staff users: login directly
-#             if not user.is_staff:
-#                 login (request, user)
-#                 return redirect(next_url)
-
-#             ##Code for generating and sending 6-digits 2FA code for superuser
-#             code = TwoFactorCode.generate_code()
-#             TwoFactorCode.objects.create(user=user, code=code)
-#             send_mail(
-#                 'Your 2FA code',
-#                 f'Your one-time login code is: {code}',
-#                 settings.DEFAULT_FROM_EMAIL,
-#                 [user.email],
-#                 fail_silently=False,
-#             )
-#             request.session['pending_user'] = user.id
-#             request.session['pending_next'] = next_url
-#             request.session.modified = True
-
-#             print("Debug: pending_user set -> ", request.session['pending_user'])
-
-#             # Redirect to 2FA verification page
-#             return redirect('verify_2fa')
-        
-#     return render(request, template, {'next': next_url})
-
+from customers.models import Ticket
+from customers.forms import SupportTicketForm
 
 def login_view(request):
     next_url = request.GET.get('next') or request.POST.get('next') or '/' #Dont give admin page to next url, its will create the endless login loop
@@ -239,8 +191,6 @@ def logout_all_devices_view(request):
 
 # Client raises ticket
 def raise_ticket(request):
-    from .models import SupportTicket
-    from .forms import SupportTicketForm
     if request.method == 'POST':
         form = SupportTicketForm(request.POST)
         if form.is_valid():
@@ -259,7 +209,7 @@ def raise_ticket(request):
 # Super Admin updates status + sends reply
 @staff_member_required
 def update_ticket(request, ticket_id):
-    ticket = get_object_or_404(SupportTicket, id=ticket_id)
+    ticket = get_object_or_404(Ticket, id=ticket_id)
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
@@ -283,22 +233,21 @@ def update_ticket(request, ticket_id):
 
 
 def send_ticket_reply_email(ticket):
-    """Helper function to send email reply"""
+    """Send an email update to the user for a support ticket reply."""
+    
+    recipient_name = ticket.user.get_full_name() or ticket.user.email
     subject = f"Update on your Support Ticket #{ticket.id}: {ticket.subject}"
-    message = f"""
-Dear {ticket.user.get_full_name() or ticket.user.email},
 
-Your support ticket has been updated.
-
-**Status:** {ticket.get_status_display()}
-**Our Reply:**
-{ticket.admin_response}
-
-Thank you for contacting E-Cartel support.
-
-Best regards,
-E-Cartel Support Team
-    """
+    message = (
+        f"Dear {recipient_name},\n\n"
+        f"Your support ticket has been updated.\n\n"
+        f"Status: {ticket.get_status_display()}\n"
+        f"Our Reply:\n"
+        f"{ticket.admin_response}\n\n"
+        f"Thank you for contacting E-Cartel support.\n\n"
+        f"Best regards,\n"
+        f"E-Cartel Support Team"
+    )
 
     try:
         send_mail(
@@ -309,5 +258,5 @@ E-Cartel Support Team
             fail_silently=False,
         )
     except Exception as e:
-        # Log error in production (don't crash admin action)
+        # Log error in production instead of print
         print(f"Failed to send email for ticket {ticket.id}: {e}")
