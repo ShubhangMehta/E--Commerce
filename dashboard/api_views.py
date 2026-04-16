@@ -11,12 +11,21 @@ def monthly_top_products(request):
 
     top_products = (
         OrderItem.objects
+<<<<<<< HEAD
         .filter(content_type=product_content_type)
         .values("product_name")
+=======
+        .filter(
+            order__created_at__gte=last_month,
+            content_type=product_content_type   # 🔥 KEY FIX
+        )
+        .values("product_name_snapshot")  # 🔥 KEY FIX
+>>>>>>> origin/Humera
         .annotate(total_sold=Sum("quantity"))
         .order_by("-total_sold")[:5]
     )
 
+<<<<<<< HEAD
     labels = []
     data = []
 
@@ -30,6 +39,10 @@ def monthly_top_products(request):
         round((v / total) * 100, 1) if total > 0 else 0
         for v in data
     ]
+=======
+    labels = [p["product_name_snapshot"] for p in top_products]
+    data = [p["total_sold"] for p in top_products]
+>>>>>>> origin/Humera
 
     return JsonResponse({
         "labels": labels,

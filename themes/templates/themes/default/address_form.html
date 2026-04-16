@@ -9,21 +9,19 @@
     <form method="post">
       {% csrf_token %}
       <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full name</label>
-          <input class="form-control" name="full_name" value="{{ address.full_name|default:member.full_name }}">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Phone</label>
-          <input class="form-control" name="phone" value="{{ address.phone|default:member.phone }}">
+        
+        <div class="col-12">
+          <label class="form-label">Address line 1</label>
+          <input class="form-control" name="address_line1" value="{{ address.address_line1|default:'' }}">
         </div>
 
         <div class="col-12">
-          <label class="form-label">House/Flat No</label>
-          <input class="form-control" name="house_no" value="{{ address.house_no|default:'' }}">
+          <label class="form-label">Address line 2</label>
+          <input class="form-control" name="address_line2" value="{{ address.address_line2|default:'' }}">
         </div>
+
         <div class="col-12">
-          <label class="form-label">Landmark</label>
+          <label class="form-label">Landmark(Optional)</label>
           <input class="form-control" name="landmark" value="{{ address.landmark|default:'' }}">
         </div>
 
@@ -31,22 +29,29 @@
           <label class="form-label">City</label>
           <input class="form-control" name="city" value="{{ address.city|default:'' }}">
         </div>
+        
         <div class="col-md-4">
           <label class="form-label">State</label>
           <input class="form-control" name="state" value="{{ address.state|default:'' }}">
         </div>
+        
         <div class="col-md-4">
           <label class="form-label">Postal code</label>
           <input class="form-control" name="postal_code" value="{{ address.postal_code|default:'' }}">
+        </div>
+        
+        <div class="col-md-6">
+          <label class="form-label">Country</label>
+          <input class="form-control" name="country" value="{{ address.country|default:'' }}"> 
         </div>
 
         <div class="col-md-6">
           <label class="form-label">Address type</label>
           <select class="form-select" name="address_type">
-            <option value="home" {% if address and address.address_type == "home" %}selected{% endif %}>Home</option>
-            <option value="work" {% if address and address.address_type == "work" %}selected{% endif %}>Work</option>
-            <option value="office" {% if address and address.address_type == "office" %}selected{% endif %}>Office</option>
-            <option value="other" {% if address and address.address_type == "other" %}selected{% endif %}>Other</option>
+            <option value="Home" {% if address and address.address_type == "Home" %}selected{% endif %}>Home</option>
+            <option value="Work" {% if address and address.address_type == "Work" %}selected{% endif %}>Work</option>
+            <option value="Office" {% if address and address.address_type == "Office" %}selected{% endif %}>Office</option>
+            <option value="Other" {% if address and address.address_type == "Other" %}selected{% endif %}>Other</option>
           </select>
         </div>
 

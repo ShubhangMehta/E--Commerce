@@ -1,0 +1,67 @@
+{% extends theme_storefront %}
+
+{% block title %}Coupon{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    {% if coupon %}Edit Coupon{% else %}Create Coupon{% endif %}
+</div>
+
+<div class="section">
+    <div class="card">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;">
+
+                <div>
+                    <label>Coupon Code</label>
+                    {{ form.code }}
+                </div>
+
+                <div>
+                    <label>Discount (%)</label>
+                    {{ form.discount_percent }}
+                </div>
+
+                <div>
+                    <label>Max Discount (₹)</label>
+                    {{ form.max_discount }}
+                </div>
+
+                <div>
+                    <label>Minimum Order Value (₹)</label>
+                    {{ form.min_order_value }}
+                </div>
+
+                <div>
+                    <label>Valid From</label>
+                    {{ form.valid_from }}
+                </div>
+
+                <div>
+                    <label>Valid To</label>
+                    {{ form.valid_to }}
+                </div>
+
+                <div>
+                    <label>Usage Limit</label>
+                    {{ form.usage_limit }}
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;margin-top:20px;">
+                    <label>Active</label>
+                    {{ form.active }}
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top:15px;">
+                Save Coupon
+            </button>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

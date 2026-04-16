@@ -6,8 +6,6 @@ from users.models import SubjectMember, Coordinate
 from users.services.customer_profile_service import ProfileService
 from users.services.customer_address_service import AddressService
 
-
-
 def get_active_theme():
     return getattr(settings, "ACTIVE_THEME", "default")
 
@@ -43,9 +41,6 @@ def customer_profile(request):
             "edit_mode": edit_mode,
         }
     )
-
-
-
 
 
 @login_required

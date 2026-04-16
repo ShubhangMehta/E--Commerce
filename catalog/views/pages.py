@@ -10,8 +10,11 @@ from catalog.forms import (
     SubCategoryForm
 )
 
+<<<<<<< HEAD
 
 # ==============================
+=======
+>>>>>>> origin/Humera
 # LIST PRODUCTS
 # ==============================
 def product_list(request):
@@ -26,11 +29,14 @@ def product_list(request):
         {"products": products}
     )
 
+<<<<<<< HEAD
 
 # ==============================
 # CREATE PRODUCT (MULTI-FORM)
 # ==============================
 @transaction.atomic
+=======
+>>>>>>> origin/Humera
 def product_create(request):
 
     category_form = CategoryForm()
@@ -68,6 +74,7 @@ def product_create(request):
             if form.is_valid():
                 product = form.save(commit=False)
 
+<<<<<<< HEAD
                 # ✅ FEATURE LIMIT
                 if product.is_featured:
                     featured_count = SingleProduct.objects.filter(is_featured=True).count()
@@ -82,6 +89,11 @@ def product_create(request):
                             formset.save()
                             return redirect("catalog:product_list")
 
+=======
+                if featured_count >= 3:
+                    form.add_error(None, "You can only feature 3 products.")
+                    formset = ProductImageFormSet(request.POST, request.FILES)
+>>>>>>> origin/Humera
                 else:
                     product.save()
 

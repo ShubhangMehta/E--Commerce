@@ -8,13 +8,11 @@ from users.serializers import CoordinateSerializer
 from users.services.customer_address_service import AddressService
 from users.models import Coordinate, SubjectMember
 
-
 def get_subject_member(request):
     return SubjectMember.objects.get(
         global_user_id=request.user.id,
         is_active=True
     )
-
 
 class AddressListCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -33,7 +31,6 @@ class AddressListCreateView(APIView):
             {"message": "Address added"},
             status=status.HTTP_201_CREATED
         )
-
 
 class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated]

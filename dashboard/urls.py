@@ -6,9 +6,17 @@ app_name = "dashboard"
 
 urlpatterns = [
     path("themes/", views.theme_settings, name="theme_settings"),
+<<<<<<< HEAD
 
     path("", views.dashboard, name="home"),
 
     # ✅ ONLY ONE API ROUTE
     path("api/monthly-top-products/", monthly_top_products, name="monthly_top_products"),
 ]
+=======
+    #Razorpay Payment Urls; Just used simple names here easy to comprehend and change later if needed
+
+    path('', views.dashboard, name='home'),
+    path("api/monthly-top-products/", monthly_top_products, name="monthly_top_products"), 
+]
+>>>>>>> origin/Humera
