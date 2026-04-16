@@ -3,9 +3,18 @@
 {% block title %}Orders{% endblock %}
 
 {% block content %}
-<div class="page-title">Orders</div>
+<div class="page-title">Orders & Coupons</div>
 
 <div class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+    
+    <div class="page-title">Orders</div>
+
+    <a href="{% url 'dashboard_coupon_list' %}" class="btn btn-primary">
+        Manage Coupons
+    </a>
+
+</div>
 
     {% if orders %}
     <table class="table">

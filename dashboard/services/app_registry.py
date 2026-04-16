@@ -9,7 +9,7 @@ TENANT_APPS = [
     {
     'key': 'orders',
     'name': 'Orders',
-    'url_name': 'orders:dashboard_order_list',
+    'url_name': 'dashboard_order_list',
     'description': 'View and manage customer orders',
     'icon': 'shopping-cart',
     },

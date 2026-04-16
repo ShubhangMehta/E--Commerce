@@ -1,0 +1,68 @@
+{% extends theme_storefront %}
+
+{% block title %}Coupons{% endblock %}
+
+{% block content %}
+<div class="page-title">Coupons</div>
+
+<div class="section">
+
+    <a href="{% url 'dashboard_coupon_create' %}" class="btn btn-primary" style="margin-bottom:15px;">
+        + Create Coupon
+    </a>
+
+    {% if coupons %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Min Order</th>
+                <th>Usage</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for coupon in coupons %}
+            <tr>
+                <td><strong>{{ coupon.code }}</strong></td>
+
+                <td>{{ coupon.discount_percent }}%</td>
+
+                <td>₹{{ coupon.min_order_value }}</td>
+
+                <td>
+                    {{ coupon.used_count }}
+                    {% if coupon.usage_limit %}
+                        / {{ coupon.usage_limit }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if coupon.active %}
+                        <span class="pill pill-success">Active</span>
+                    {% else %}
+                        <span class="pill pill-danger">Inactive</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'dashboard_coupon_edit' coupon.id %}" class="btn btn-soft btn-sm">
+                        Edit
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <div class="alert-soft">
+            No coupons created yet.
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -23,13 +23,13 @@ def dashboard(request):
     # if visitor tracking exists
     visitor_count = SubjectMember.objects.count()
 
-    # for app in TENANT_APPS:
-    #     apps.append({
-    #         'name': app['name'],
-    #         'description': app['description'],
-    #         'icon': app['icon'],
-    #         'url': reverse(app['url_name']),
-    #     })
+    for app in TENANT_APPS:
+        apps.append({
+            'name': app['name'],
+            'description': app['description'],
+            'icon': app['icon'],
+            'url': reverse(app['url_name']),
+        })
 
     return render(request, 'dashboard/dashboard.html', {
         'apps': apps,

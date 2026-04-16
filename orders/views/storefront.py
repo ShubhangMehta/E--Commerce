@@ -82,8 +82,8 @@ def cart_view(request):
             return redirect("checkout")
 
     cart_items = CartService.build_items(request.session)
-    Coupon = _get_coupon_from_session(request.session)
-    pricing = PricingService.calculate_from_items(items=cart_items, coupon=Coupon)
+    coupon = _get_coupon_from_session(request.session)
+    pricing = PricingService.calculate_from_items(items=cart_items, coupon=coupon)
 
     addresses = []
     if subject:
@@ -265,6 +265,15 @@ def apply_coupon(request):
     else:
         CartService.set_coupon(request.session, "")
         messages.error(request, "Coupon not valid for this order.")
+    print("---- COUPON DEBUG ----")
+    print("Code:", coupon.code)
+    print("Subtotal:", subtotal)
+    print("Min Order Value:", coupon.min_order_value)
+    print("Valid From:", coupon.valid_from)
+    print("Valid To:", coupon.valid_to)
+    print("Active:", coupon.active)
+    print("Usage:", coupon.used_count, "/", coupon.usage_limit)
+    print("Is Valid:", coupon.is_valid(subtotal))
 
     return redirect("cart")
 
