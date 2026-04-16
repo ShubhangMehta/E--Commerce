@@ -15,31 +15,6 @@ class Client(TenantMixin):
     on_trial = models.BooleanField(default=True)
     created_on = models.DateField(auto_now_add=True)"""
 
-    ACCESS_ACTIVE = 'active'
-    ACCESS_SUSPENDED = 'suspended'
-    ACCESS_EXPIRED = 'expired'
-    ACESS_ARCHIVED = 'archived'
-
-    ACCESS_CHOICES = [
-        (ACCESS_ACTIVE, 'Active'),
-        (ACCESS_SUSPENDED, 'Suspended'),
-        (ACCESS_EXPIRED, 'Expired'),
-        (ACESS_ARCHIVED, 'Archived'),
-    ]
-
-    access_state = models.CharField(
-        max_length=20, 
-        choices=ACCESS_CHOICES, 
-        default=ACCESS_ACTIVE
-        )
-    
-    # grace_expires_at = models.DateTimeField(null=True, blank=True)
-    # deactivation_date = models.DateTimeField(null=True, blank=True)
-    # archived_at = models.DateTimeField(null=True, blank=True)
-    # latest_backup_path= models.CharField(max_length=255, blank=True, default="")
-    # latest_media_backup_path = models.CharField(max_length=255, blank=True, default="")
-    # restore_requested = models.BooleanField(default=False)
-
     tenant_name = models.CharField(max_length=100)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     desired_domain = models.CharField(max_length=150, blank=True, null=True)
