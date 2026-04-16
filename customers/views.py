@@ -265,14 +265,20 @@ def raise_ticket(request):
         category = request.POST.get('category')
 
         if subject and description and category:
-            Ticket.objects.create(
-                client=request.tenant,
-                subject=subject,
-                description=description,
-                category=category
-            )
-            messages.success(request, "Your support ticket has been submitted successfully!")
-            return redirect('raise_ticket')
+            try:
+                Ticket.objects.create(
+                    tenant=request.tenant,           
+                    user=request.user,              
+                    email=request.user.email,
+                    client=request.tenant,
+                    subject=subject,
+                    description=description,
+                    category=category
+                )
+                messages.success(request, "Your support ticket has been submitted successfully!")
+                return redirect('raise_ticket')
+            except Exception as e:
+                messages.error(request, "An error occurred while submitting the ticket.")
         else:
             messages.error(request, "Please fill all fields before submitting.")
 
