@@ -8,8 +8,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from .models import UserProfile
 from core_app.emails.utils import send_html_email
-from .models import SupportTicket
-from .services import send_ticket_status_update_email
+# from .models import SupportTicket
+# from .services import send_ticket_status_update_email
 
 @receiver(user_logged_in, dispatch_uid="accounts_user_logged_in_unique")
 def log_user_login(sender, request, user, **kwargs):
