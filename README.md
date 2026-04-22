@@ -3,11 +3,10 @@ This is a Intership Project, creating SaaS platform for client to meet requireme
 
 Team Members:
 
-Humera Mueed - Team Lead, Dev
-Abburi Srinath - Dev
-Shubhang Mehta - Dev
-Anshad Mohammad - Dev
-Venkatesh Bodakunta - Dev
+Humera Mueed - Team Lead, Backend Developer
+Shubhang Mehta - Backend Developer
+Venkatesh Bodakunta - Backend Developer
+Onkar Shinde - Backend Developer
 
 
 SaaS + E-Commerce Platform:
@@ -26,9 +25,7 @@ Venkatesh Bodakunta - Developer/Intern
 
 Shubhang Mehta - Developer/Intern
 
-Anshad Ahamed - Developer/Intern
-
-Abburi Srinath- Developer/Intern
+Onkar Shinde - Developer/Intern
 
 Features:
 
