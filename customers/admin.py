@@ -221,9 +221,9 @@ class SubscriptionPlanAdmin(ModelAdmin):
 
 @admin.register(Ticket)
 class TicketAdmin(ModelAdmin):
-    list_display = ('client', 'subject', 'category', 'priority', 'status', 'assigned_to', 'created_at')
+    list_display = ('email', 'subject', 'category', 'priority', 'status', 'assigned_to', 'created_at')
     list_filter = ('category', 'priority', 'status')
-    search_fields = ('client__tenant_name', 'subject', 'assigned_to')
+    search_fields = ('email', 'subject', 'assigned_to')
 
 
 @admin.register(ClientSubscription)

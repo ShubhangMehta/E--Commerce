@@ -53,6 +53,7 @@ TENANT_APPS = [
     'themes',
     'django_crontab',
     'users',
+    #'inventory',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [ a for a in TENANT_APPS if a not in SHARED_APPS]
@@ -188,7 +189,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 

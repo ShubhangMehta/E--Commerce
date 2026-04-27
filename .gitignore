@@ -66,11 +66,12 @@ collected_static/
 user_uploads/
 
 #All migrations are ignored except __init__.py
-*/migrations/*.py
-!*/migrations/__init__.py
+**/migrations/*.py
+!**/migrations/__init__.py
+
 # Ignore migration caches
-*/migrations/__pycache__/
-*/migrations/*.pyc
+**/migrations/__pycache__/
+**/migrations/*.pyc
 
 # Local configs
 local_settings.py

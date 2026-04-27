@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from datetime import timedelta
 from django.utils import timezone
 import random
+from django.conf import settings
 
 # Create your models here.
 class LoginSession(models.Model):

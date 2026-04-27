@@ -32,6 +32,36 @@
 
     <button type="submit">Submit Refund Request</button>
 </form>
+<table>
+<tr>
+<th>Order</th>
+<th>Customer</th>
+<th>Amount</th>
+<th>Reason</th>
+<th>Action</th>
+</tr>
 
+{% for order in orders %}
+<tr>
+<td>{{ order.id }}</td>
+<td>{{ order.customer }}</td>
+<td>{{ order.total_amount }}</td>
+<td>{{ order.refund_reason }}</td>
+
+<td>
+<a href="{% url 'approve_refund' order.id %}">Approve</a>
+<a href="{% url 'reject_refund' order.id %}">Reject</a>
+</td>
+
+</tr>
+{% endfor %}
+</table>
+
+{% if order.status == "delivered" %}
+<a href="{% url 'request_refund' order.id %}">
+    Request Refund
+</a>
+{% endif %}
 </body>
 </html>
+

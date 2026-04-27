@@ -1,3 +1,4 @@
+from django.db import connection
 from .models import SubjectMember
 from django.db import connection
 

@@ -177,13 +177,22 @@
               {% if coupon_code %}
                 <span class="badge text-bg-light border">Applied: {{ coupon_code }}</span>
               {% endif %}
-            </div>
-
-            <form method="text" class="d-flex gap-2">
-              {% csrf_token %}
-              <input class="form-control" name="coupon_code" placeholder="Enter coupon code" value="{{ coupon_code|default:'' }}">
-              <button class="btn btn-outline-dark" type="submit">Apply</button>
+            <form method="POST" action="{% url 'apply_coupon' %}" class="d-flex gap-2 align-items-center">
+                {% csrf_token %}
+                        
+                <input 
+                    type="text" 
+                    name="coupon_code" 
+                    value="{{ coupon_code }}"
+                    placeholder="Enter coupon code"
+                    class="form-control"
+                >
+                        
+                <button type="submit" class="btn btn-brand">
+                    Apply
+                </button>
             </form>
+
 
             {% if discount_total %}
               <div class="d-flex justify-content-between mt-2">

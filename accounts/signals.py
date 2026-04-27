@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from .models import UserProfile
 from core_app.emails.utils import send_html_email
+# from .models import SupportTicket
+# from .services import send_ticket_status_update_email
 
 @receiver(user_logged_in, dispatch_uid="accounts_user_logged_in_unique")
 def log_user_login(sender, request, user, **kwargs):
@@ -73,3 +75,16 @@ def send_login_email(user, profile):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
+
+# @receiver(post_save, sender=SupportTicket)
+# def notify_client_on_ticket_update(sender, instance, created, **kwargs):
+#     """
+#     Automatically send email when ticket status changes to 'in_progress' or 'solved'
+#     """
+#     # Don't send email when ticket is first created
+#     if created:
+#         return
+
+#     # Send email only when status is updated to In Progress or Solved
+#     if instance.status in ['in_progress', 'solved']:
+#         send_ticket_status_update_email(instance)

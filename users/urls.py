@@ -5,7 +5,7 @@ app_name="users"
 
 
 urlpatterns = [
-    path("", views_profile.users_home, name="list"),
+    path("active-users/", views_profile.users_home, name="list"),
     # path("api/", include("users.api")),
     #path('profile/', theme_views.customer_profile, name='profile'),
     #path('address/', theme_views.customer_address, name='address'),

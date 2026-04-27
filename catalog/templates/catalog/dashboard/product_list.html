@@ -1,97 +1,115 @@
+{% extends theme_storefront %}
 {% block content %}
 
-<div class="page-title">Products</div>
+<div class="container py-4">
 
-<div class="section">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="page-title mb-1">Products</div>
+            <div class="text-muted2">Manage your product catalog</div>
+        </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="text-muted2">
-          Manage your product catalog
-      </div>
-      <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
-          + Add New Product
-      </a>
-  </div>
+        <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
+            + Add Product
+        </a>
+    </div>
 
-  {% if products %}
+    <!-- PRODUCT LIST CARD -->
+    <div class="card p-4">
 
-  <div class="table">
-    <table class="table mb-0">
-      <thead>
-        <tr>
-          <th>Image</th>
-          <th>Name</th>
-          <th>Brand</th>
-          <th>Price</th>
-          <th>Status</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
+        {% if products %}
 
-      <tbody>
-        {% for product in products %}
-        <tr>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
 
-          <!-- Image -->
-          <td style="width:100px;">
-            {% if product.images.all %}
-              {% with product.images.all|first as img %}
-                <div class="product-img" style="height:70px;">
-                    <img src="{{ img.image.url }}">
-                </div>
-              {% endwith %}
-            {% else %}
-              <div class="badge-soft">No Image</div>
-            {% endif %}
-          </td>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
-          <!-- Name -->
-          <td class="fw-semibold">
-            {{ product.name }}
-          </td>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
 
-          <!-- Brand -->
-          <td class="text-muted2">
-            {{ product.brand_name }}
-          </td>
+                        <!-- PRODUCT (IMAGE + NAME) -->
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
 
-          <!-- Price -->
-          <td class="fw-semibold">
-            ₹{{ product.price }}
-          </td>
+                                {% if product.images.all %}
+                                    {% with product.images.all|first as img %}
+                                        <div class="product-img" style="height:60px; width:60px;">
+                                            <img src="{{ img.image.url }}">
+                                        </div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="badge-soft">No Image</div>
+                                {% endif %}
 
-          <!-- Availability -->
-          <td>
-            {% if product.availability %}
-              <span class="pill pill-success">Available</span>
-            {% else %}
-              <span class="pill pill-danger">Out of Stock</span>
-            {% endif %}
-          </td>
+                                <div>
+                                    <div class="fw-semibold">{{ product.name }}</div>
+                                    <div class="text-muted2 small">ID: {{ product.id }}</div>
+                                </div>
 
-          <!-- Actions -->
-          <td class="text-end">
-            <a href="{% url 'catalog:product_edit' product.id %}" class="btn btn-soft btn-sm">
-              Edit
+                            </div>
+                        </td>
+
+                        <!-- BRAND -->
+                        <td class="text-muted2">
+                            {{ product.brand_name }}
+                        </td>
+
+                        <!-- PRICE -->
+                        <td class="fw-semibold">
+                            ₹{{ product.price }}
+                        </td>
+
+                        <!-- STATUS -->
+                        <td>
+                            {% if product.availability %}
+                                <span class="pill pill-success">Available</span>
+                            {% else %}
+                                <span class="pill pill-danger">Out of Stock</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTIONS -->
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'catalog:product_edit' product.id %}" class="btn btn-soft btn-sm">
+                                    Edit
+                                </a>
+                                <a href="{% url 'catalog:product_delete' product.id %}" class="btn btn-soft btn-sm">
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+
+        <!-- EMPTY STATE -->
+        <div class="text-center py-5">
+            <div class="text-muted2 mb-3">No products found</div>
+            <a href="{% url 'catalog:product_create' %}" class="btn btn-brand">
+                + Add Your First Product
             </a>
-            <a href="{% url 'catalog:product_delete' product.id %}" class="btn btn-soft btn-sm">
-              Delete
-            </a>
-          </td>
+        </div>
 
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        {% endif %}
 
-  {% else %}
-
-  <div class="alert-soft mt-3">
-      No products found. Click "Add New Product" to create one.
-  </div>
-
-  {% endif %}
+    </div>
 
 </div>
 

@@ -5,6 +5,8 @@ from orders.services.order_service import OrderService
 from users.views.theme_views import get_subject_member
 from users.models import SubjectMember
 from themes.views import _theme_path
+from orders.models import Coupon
+from orders.forms import CouponForm
 
 
 class OrderBaseView(View):
@@ -68,3 +70,58 @@ class OrderListView(OrderBaseView):
             template = _theme_path(request, "previous_order_listing.html")
 
         return render(request, template, {"orders": orders})
+    
+# views.py
+
+
+
+class CouponListView(OrderBaseView):
+
+    def get(self, request):
+        if not self.is_owner(request):
+            return redirect("themes:index")
+
+        coupons = Coupon.objects.all()
+
+        return render(request, "orders/dashboard/coupon_list.html", {
+            "coupons": coupons
+        })
+    
+class CouponCreateView(OrderBaseView):
+
+    def get(self, request):
+        form = CouponForm()
+        return render(request, "orders/dashboard/coupon_form.html", {"form": form})
+
+    def post(self, request):
+        form = CouponForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("dashboard_coupon_list")
+
+        return render(request, "orders/dashboard/coupon_form.html", {"form": form})
+    
+class CouponUpdateView(OrderBaseView):
+
+    def get(self, request, pk):
+        coupon = get_object_or_404(Coupon, pk=pk)
+        form = CouponForm(instance=coupon)
+
+        return render(request, "orders/dashboard/coupon_form.html", {
+            "form": form,
+            "coupon": coupon
+        })
+
+    def post(self, request, pk):
+        coupon = get_object_or_404(Coupon, pk=pk)
+        form = CouponForm(request.POST, instance=coupon)
+
+        if form.is_valid():
+            form.save()
+            return redirect("dashboard_coupon_list")
+
+        return render(request, "orders/dashboard/coupon_form.html", {
+            "form": form,
+            "coupon": coupon
+        })
