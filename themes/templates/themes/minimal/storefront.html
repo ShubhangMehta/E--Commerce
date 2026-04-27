@@ -260,7 +260,7 @@
             Shop
             </a>
             <a href="/cart/" class="text-gray-600 hover:text-brandGold transition-colors">Cart</a>
-            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'orders_storefront:my_orders' %}">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'my_orders' %}active-link{% endif %}" href="{% url 'my_orders' %}">
             Orders
             </a>
             
@@ -272,7 +272,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'themes:tenant_customer_signup' %}">
+              <a class="btn btn-sm btn-brand ms-lg-2" href="{% url 'signup' %}">
                 Sign up
               </a>
         </nav>
